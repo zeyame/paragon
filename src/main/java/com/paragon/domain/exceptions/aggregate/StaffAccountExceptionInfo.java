@@ -15,4 +15,7 @@ public class StaffAccountExceptionInfo extends DomainExceptionInfo {
         return new StaffAccountExceptionInfo("Password is required for registration.", 10002);
     }
 
+    public static StaffAccountExceptionInfo orderAccessDurationRequired() {
+        return new StaffAccountExceptionInfo("Order access duration is required for registration.", 10003);
+    }
 }
