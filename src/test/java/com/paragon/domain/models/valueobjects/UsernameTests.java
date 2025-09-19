@@ -38,7 +38,7 @@ public class UsernameTests {
                     .containsExactly(expectedErrorMessage, expectedErrorCode);
         }
 
-        static Stream<Arguments> invalidUsernames() {
+        private static Stream<Arguments> invalidUsernames() {
             return Stream.of(
                     Arguments.of(null, UsernameExceptionInfo.mustNotBeBlank().getMessage(), 103001),
                     Arguments.of("", UsernameExceptionInfo.mustNotBeBlank().getMessage(), 103001),
