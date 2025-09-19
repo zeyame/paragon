@@ -27,4 +27,14 @@ public class VersionTests {
         assertThat(version.getValue())
                 .isEqualTo(2);
     }
+
+    @Test
+    void givenTwoVersionsWithTheSameValue_whenCompared_returnsTrue() {
+        // Given
+        Version version1 = Version.initial();
+        Version version2 = Version.initial();
+
+        // When & Then
+        assertThat(version1).isEqualTo(version2);
+    }
 }
