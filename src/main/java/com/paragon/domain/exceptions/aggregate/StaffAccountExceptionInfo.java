@@ -7,7 +7,12 @@ public class StaffAccountExceptionInfo extends DomainExceptionInfo {
         super(message, domainErrorCode);
     }
 
-    public static StaffAccountExceptionInfo missingUsername() {
+    public static StaffAccountExceptionInfo usernameRequired() {
         return new StaffAccountExceptionInfo("Username is required for registration.", 10001);
     }
+
+    public static StaffAccountExceptionInfo passwordRequired() {
+        return new StaffAccountExceptionInfo("Password is required for registration.", 10002);
+    }
+
 }
