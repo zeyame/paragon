@@ -20,11 +20,4 @@ public class OrderAccessDurationExceptionInfo extends DomainExceptionInfo {
                 106002
         );
     }
-
-    public static OrderAccessDurationExceptionInfo exceedsMaximum() {
-        return new OrderAccessDurationExceptionInfo(
-                "Order access duration exceeds the maximum allowed limit",
-                106003
-        );
-    }
 }

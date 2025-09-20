@@ -32,7 +32,7 @@ public class Username extends ValueObject {
 
     private static void assertValidUsername(String value) {
         if (value == null || value.isBlank()) {
-            throw new UsernameException(UsernameExceptionInfo.mustNotBeBlank());
+            throw new UsernameException(UsernameExceptionInfo.missingValue());
         }
         if (value.length() < 3 || value.length() > 20) {
             throw new UsernameException(UsernameExceptionInfo.lengthOutOfRange());

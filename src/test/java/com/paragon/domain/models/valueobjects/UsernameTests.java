@@ -40,8 +40,8 @@ public class UsernameTests {
 
         private static Stream<Arguments> invalidUsernames() {
             return Stream.of(
-                    Arguments.of(null, UsernameExceptionInfo.mustNotBeBlank().getMessage(), 103001),
-                    Arguments.of("", UsernameExceptionInfo.mustNotBeBlank().getMessage(), 103001),
+                    Arguments.of(null, UsernameExceptionInfo.missingValue().getMessage(), 103001),
+                    Arguments.of("", UsernameExceptionInfo.missingValue().getMessage(), 103001),
                     Arguments.of("ab", UsernameExceptionInfo.lengthOutOfRange().getMessage(), 103002),
                     Arguments.of("thisusernameistoolongforme", UsernameExceptionInfo.lengthOutOfRange().getMessage(), 103002),
                     Arguments.of("inv@lid", UsernameExceptionInfo.invalidCharacters().getMessage(), 103003),

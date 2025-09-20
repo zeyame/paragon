@@ -8,14 +8,30 @@ public class StaffAccountExceptionInfo extends DomainExceptionInfo {
     }
 
     public static StaffAccountExceptionInfo usernameRequired() {
-        return new StaffAccountExceptionInfo("Username is required for registration.", 10001);
+        return new StaffAccountExceptionInfo(
+                "Username is required for registration.",
+                10001
+        );
     }
 
     public static StaffAccountExceptionInfo passwordRequired() {
-        return new StaffAccountExceptionInfo("Password is required for registration.", 10002);
+        return new StaffAccountExceptionInfo(
+                "Password is required for registration.",
+                10002
+        );
     }
 
     public static StaffAccountExceptionInfo orderAccessDurationRequired() {
-        return new StaffAccountExceptionInfo("Order access duration is required for registration.", 10003);
+        return new StaffAccountExceptionInfo(
+                "Order access duration is required for registration.",
+                10003
+        );
+    }
+
+    public static StaffAccountExceptionInfo modmailTranscriptAccessDurationRequired() {
+        return new StaffAccountExceptionInfo(
+                "Modmail transcript access duration is required for registration.",
+                10004
+        );
     }
 }

@@ -8,7 +8,10 @@ public class StaffAccountIdExceptionInfo extends DomainExceptionInfo {
     }
 
     public static StaffAccountIdExceptionInfo missingValue() {
-        return new StaffAccountIdExceptionInfo("Staff account ID cannot be null or empty.", 102001);
+        return new StaffAccountIdExceptionInfo(
+                "Staff account ID cannot be null or empty.",
+                102001
+        );
     }
 
     public static StaffAccountIdExceptionInfo invalidFormat() {

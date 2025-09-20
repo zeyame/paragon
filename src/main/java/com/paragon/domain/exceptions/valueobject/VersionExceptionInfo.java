@@ -8,6 +8,9 @@ public class VersionExceptionInfo extends DomainExceptionInfo {
     }
     
     public static VersionExceptionInfo mustBeAtleastOne() {
-        return new VersionExceptionInfo("Version number cannot be below 1.", 100001);
+        return new VersionExceptionInfo(
+                "Version number cannot be below 1.",
+                100001
+        );
     }
 }

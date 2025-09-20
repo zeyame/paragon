@@ -29,9 +29,6 @@ public class OrderAccessDuration extends ValueObject {
         if (value.isNegative() || value.isZero()) {
             throw new OrderAccessDurationException(OrderAccessDurationExceptionInfo.mustBePositive());
         }
-        if (value.compareTo(Duration.ofDays(30)) > 0) {
-            throw new OrderAccessDurationException(OrderAccessDurationExceptionInfo.exceedsMaximum());
-        }
     }
 
     @Override

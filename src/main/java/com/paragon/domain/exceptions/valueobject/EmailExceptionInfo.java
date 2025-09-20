@@ -8,14 +8,23 @@ public class EmailExceptionInfo extends DomainExceptionInfo {
     }
 
     public static EmailExceptionInfo missingValue() {
-        return new EmailExceptionInfo("Email address must not be null or empty.", 104001);
+        return new EmailExceptionInfo(
+                "Email address must not be null or empty.",
+                104001
+        );
     }
 
     public static EmailExceptionInfo lengthOutOfRange() {
-        return new EmailExceptionInfo("Email address must not exceed 320 characters.", 104002);
+        return new EmailExceptionInfo(
+                "Email address must not exceed 320 characters.",
+                104002
+        );
     }
 
     public static EmailExceptionInfo invalidFormat() {
-        return new EmailExceptionInfo("Email address has an invalid format (must be a valid address like user@example.com).", 104003);
+        return new EmailExceptionInfo(
+                "Email address has an invalid format (must be a valid address like user@example.com).",
+                104003
+        );
     }
 }

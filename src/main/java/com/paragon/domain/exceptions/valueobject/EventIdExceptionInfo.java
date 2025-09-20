@@ -8,6 +8,9 @@ public class EventIdExceptionInfo extends DomainExceptionInfo {
     }
 
     public static EventIdExceptionInfo mustNotBeNull() {
-        return new EventIdExceptionInfo("Event ID cannot be null and must be of valid format.", 101001);
+        return new EventIdExceptionInfo(
+                "Event ID cannot be null and must be of valid format.",
+                101001
+        );
     }
 }

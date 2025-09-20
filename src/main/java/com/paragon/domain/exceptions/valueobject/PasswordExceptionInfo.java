@@ -8,6 +8,9 @@ public class PasswordExceptionInfo extends DomainExceptionInfo {
     }
 
     public static PasswordExceptionInfo missingValue() {
-        return new PasswordExceptionInfo("Password cannot be null or empty.", 105001);
+        return new PasswordExceptionInfo(
+                "Password cannot be null or empty.",
+                105001
+        );
     }
 }
