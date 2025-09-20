@@ -42,9 +42,21 @@ public class ModmailTranscriptAccessDurationTests {
 
         private static Stream<Arguments> invalidDurations() {
             return Stream.of(
-                    Arguments.of(null, ModmailTranscriptAccessDurationExceptionInfo.missingValue().getMessage(), 107001),
-                    Arguments.of(Duration.ZERO, ModmailTranscriptAccessDurationExceptionInfo.mustBePositive().getMessage(), 107002),
-                    Arguments.of(Duration.ofDays(-1), ModmailTranscriptAccessDurationExceptionInfo.mustBePositive().getMessage(), 107002)
+                    Arguments.of(
+                            null,
+                            ModmailTranscriptAccessDurationExceptionInfo.missingValue().getMessage(),
+                            ModmailTranscriptAccessDurationExceptionInfo.missingValue().getDomainErrorCode()
+                    ),
+                    Arguments.of(
+                            Duration.ZERO,
+                            ModmailTranscriptAccessDurationExceptionInfo.mustBePositive().getMessage(),
+                            ModmailTranscriptAccessDurationExceptionInfo.mustBePositive().getDomainErrorCode()
+                    ),
+                    Arguments.of(
+                            Duration.ofDays(-1),
+                            ModmailTranscriptAccessDurationExceptionInfo.mustBePositive().getMessage(),
+                            ModmailTranscriptAccessDurationExceptionInfo.mustBePositive().getDomainErrorCode()
+                    )
             );
         }
     }

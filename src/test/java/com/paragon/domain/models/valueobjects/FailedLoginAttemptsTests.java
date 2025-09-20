@@ -23,12 +23,16 @@ public class FailedLoginAttemptsTests {
 
         @ParameterizedTest
         @ValueSource(ints = {-1, FailedLoginAttempts.MAX_ATTEMPTS + 1})
-        void shouldRejectInvalidAttemptNumbers(int invalidAttemptNumber) {
+        void shouldRejectOutOfRangeAttemptNumbers(int invalidAttemptNumber) {
+            // Given
+            String expectedErrorMessage = FailedLoginAttemptsExceptionInfo.invalidAttemptNumber().getMessage();
+            int expectedErrorCode = FailedLoginAttemptsExceptionInfo.invalidAttemptNumber().getDomainErrorCode();
+
             // When & Then
             assertThatExceptionOfType(FailedLoginAttemptsException.class)
                     .isThrownBy(() -> FailedLoginAttempts.of(invalidAttemptNumber))
                     .extracting("message", "domainErrorCode")
-                    .containsExactly(FailedLoginAttemptsExceptionInfo.invalidAttemptNumber().getMessage(), 108001);
+                    .containsExactly(expectedErrorMessage, expectedErrorCode);
         }
     }
 
@@ -63,11 +67,14 @@ public class FailedLoginAttemptsTests {
             // Given
             FailedLoginAttempts failedLoginAttempts = FailedLoginAttempts.of(FailedLoginAttempts.MAX_ATTEMPTS);
 
+            String expectedErrorMessage = FailedLoginAttemptsExceptionInfo.maxAttemptsReached().getMessage();
+            int expectedErrorCode = FailedLoginAttemptsExceptionInfo.maxAttemptsReached().getDomainErrorCode();
+
             // When & Then
             assertThatExceptionOfType(FailedLoginAttemptsException.class)
                     .isThrownBy(failedLoginAttempts::increment)
                     .extracting("message", "domainErrorCode")
-                    .containsExactly(FailedLoginAttemptsExceptionInfo.maxAttemptsReached().getMessage(), 108002);
+                    .containsExactly(expectedErrorMessage, expectedErrorCode);
         }
     }
 

@@ -40,15 +40,51 @@ public class UsernameTests {
 
         private static Stream<Arguments> invalidUsernames() {
             return Stream.of(
-                    Arguments.of(null, UsernameExceptionInfo.missingValue().getMessage(), 103001),
-                    Arguments.of("", UsernameExceptionInfo.missingValue().getMessage(), 103001),
-                    Arguments.of("ab", UsernameExceptionInfo.lengthOutOfRange().getMessage(), 103002),
-                    Arguments.of("thisusernameistoolongforme", UsernameExceptionInfo.lengthOutOfRange().getMessage(), 103002),
-                    Arguments.of("inv@lid", UsernameExceptionInfo.invalidCharacters().getMessage(), 103003),
-                    Arguments.of("double__underscores", UsernameExceptionInfo.consecutiveUnderscores().getMessage(), 103004),
-                    Arguments.of("1username", UsernameExceptionInfo.mustStartWithALetter().getMessage(), 103005),
-                    Arguments.of("username_", UsernameExceptionInfo.mustNotEndWithUnderscore().getMessage(), 103006),
-                    Arguments.of("admin", UsernameExceptionInfo.reservedWord().getMessage(), 103007)
+                    Arguments.of(
+                            null,
+                            UsernameExceptionInfo.missingValue().getMessage(),
+                            UsernameExceptionInfo.missingValue().getDomainErrorCode()
+                    ),
+                    Arguments.of(
+                            "",
+                            UsernameExceptionInfo.missingValue().getMessage(),
+                            UsernameExceptionInfo.missingValue().getDomainErrorCode()
+                    ),
+                    Arguments.of(
+                            "ab",
+                            UsernameExceptionInfo.lengthOutOfRange().getMessage(),
+                            UsernameExceptionInfo.lengthOutOfRange().getDomainErrorCode()
+                    ),
+                    Arguments.of(
+                            "thisusernameistoolongforme",
+                            UsernameExceptionInfo.lengthOutOfRange().getMessage(),
+                            UsernameExceptionInfo.lengthOutOfRange().getDomainErrorCode()
+                    ),
+                    Arguments.of(
+                            "inv@lid",
+                            UsernameExceptionInfo.invalidCharacters().getMessage(),
+                            UsernameExceptionInfo.invalidCharacters().getDomainErrorCode()
+                    ),
+                    Arguments.of(
+                            "double__underscores",
+                            UsernameExceptionInfo.consecutiveUnderscores().getMessage(),
+                            UsernameExceptionInfo.consecutiveUnderscores().getDomainErrorCode()
+                    ),
+                    Arguments.of(
+                            "1username",
+                            UsernameExceptionInfo.mustStartWithALetter().getMessage(),
+                            UsernameExceptionInfo.mustStartWithALetter().getDomainErrorCode()
+                    ),
+                    Arguments.of(
+                            "username_",
+                            UsernameExceptionInfo.mustNotEndWithUnderscore().getMessage(),
+                            UsernameExceptionInfo.mustNotEndWithUnderscore().getDomainErrorCode()
+                    ),
+                    Arguments.of(
+                            "admin",
+                            UsernameExceptionInfo.reservedWord().getMessage(),
+                            UsernameExceptionInfo.reservedWord().getDomainErrorCode()
+                    )
             );
         }
     }

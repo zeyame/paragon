@@ -39,8 +39,16 @@ public class PasswordTests {
 
         private static Stream<Arguments> invalidPasswords() {
             return Stream.of(
-                    Arguments.of(null, PasswordExceptionInfo.missingValue().getMessage(), 105001),
-                    Arguments.of("", PasswordExceptionInfo.missingValue().getMessage(), 105001)
+                    Arguments.of(
+                            null,
+                            PasswordExceptionInfo.missingValue().getMessage(),
+                            PasswordExceptionInfo.missingValue().getDomainErrorCode()
+                    ),
+                    Arguments.of(
+                            "",
+                            PasswordExceptionInfo.missingValue().getMessage(),
+                            PasswordExceptionInfo.missingValue().getDomainErrorCode()
+                    )
             );
         }
     }

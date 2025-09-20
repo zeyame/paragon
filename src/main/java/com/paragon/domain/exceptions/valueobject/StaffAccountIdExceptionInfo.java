@@ -15,6 +15,9 @@ public class StaffAccountIdExceptionInfo extends DomainExceptionInfo {
     }
 
     public static StaffAccountIdExceptionInfo invalidFormat() {
-        return new StaffAccountIdExceptionInfo("Staff acocunt ID should be of valid UUID format.", 102002);
+        return new StaffAccountIdExceptionInfo(
+                "Staff account ID should be of valid UUID format.",
+                102002
+        );
     }
 }

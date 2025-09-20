@@ -5,8 +5,11 @@ import com.paragon.domain.events.DomainEvent;
 import com.paragon.domain.exceptions.aggregate.StaffAccountException;
 import com.paragon.domain.exceptions.aggregate.StaffAccountExceptionInfo;
 import com.paragon.domain.models.valueobjects.*;
+import lombok.Getter;
+
 import java.time.Instant;
 
+@Getter
 public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccountId> {
 
     private Username username;
@@ -19,27 +22,30 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     private StaffAccountStatus status;
     private FailedLoginAttempts failedLoginAttempts;
     private Instant lockedUntil;
+    private Instant lastLoginAt;
+    private final StaffAccountId registeredBy;
+    private StaffAccountId disabledBy;
 
-    private StaffAccount(StaffAccountId id, Username username, Email email, Password password, OrderAccessDuration orderAccessDuration, ModmailTranscriptAccessDuration modmailTranscriptAccessDuration, StaffAccountStatus status, FailedLoginAttempts failedLoginAttempts, Instant lockedUntil) {
+    private StaffAccount(StaffAccountId id, Username username, Email email, Password password, Instant passwordIssuedAt, boolean isTempPassword, OrderAccessDuration orderAccessDuration, ModmailTranscriptAccessDuration modmailTranscriptAccessDuration, StaffAccountStatus status, FailedLoginAttempts failedLoginAttempts, Instant lockedUntil, Instant lastLoginAt, StaffAccountId registeredBy, StaffAccountId disabledBy) {
         super(id);
         this.username = username;
         this.email = email;
         this.password = password;
+        this.passwordIssuedAt = passwordIssuedAt;
+        this.isTempPassword = isTempPassword;
         this.orderAccessDuration = orderAccessDuration;
         this.modmailTranscriptAccessDuration = modmailTranscriptAccessDuration;
         this.status = status;
         this.failedLoginAttempts = failedLoginAttempts;
         this.lockedUntil = lockedUntil;
+        this.lastLoginAt = lastLoginAt;
+        this.registeredBy = registeredBy;
+        this.disabledBy = disabledBy;
     }
 
-    public static StaffAccount registerWithEmail(Username username, Email email, Password password, OrderAccessDuration orderAccessDuration, ModmailTranscriptAccessDuration modmailTranscriptAccessDuration) {
+    public static StaffAccount register(Username username, Email email, Password password, OrderAccessDuration orderAccessDuration, ModmailTranscriptAccessDuration modmailTranscriptAccessDuration, StaffAccountId registeredBy) {
         assertValidRegistration(username, password, orderAccessDuration, modmailTranscriptAccessDuration);
-        return new StaffAccount(StaffAccountId.generate(), username, email, password, orderAccessDuration, modmailTranscriptAccessDuration, StaffAccountStatus.ACTIVE, FailedLoginAttempts.initial(), null);
-    }
-
-    public static StaffAccount registerWithoutEmail(Username username, Password password, OrderAccessDuration orderAccessDuration, ModmailTranscriptAccessDuration modmailTranscriptAccessDuration) {
-        assertValidRegistration(username, password, orderAccessDuration, modmailTranscriptAccessDuration);
-        return new StaffAccount(StaffAccountId.generate(), username, null, password, orderAccessDuration, modmailTranscriptAccessDuration, StaffAccountStatus.ACTIVE, FailedLoginAttempts.initial(), null);
+        return new StaffAccount(StaffAccountId.generate(), username, email, password, Instant.now(), true, orderAccessDuration, modmailTranscriptAccessDuration, StaffAccountStatus.REGISTERED, FailedLoginAttempts.initial(), null, null, registeredBy, null);
     }
 
     private static void assertValidRegistration(Username username, Password password, OrderAccessDuration orderAccessDuration, ModmailTranscriptAccessDuration modmailTranscriptAccessDuration) {

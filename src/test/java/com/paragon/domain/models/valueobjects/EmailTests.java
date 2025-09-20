@@ -38,13 +38,13 @@ public class EmailTests {
 
         private static Stream<Arguments> invalidEmails() {
             return Stream.of(
-                    Arguments.of(null, EmailExceptionInfo.missingValue().getMessage(), 104001),
-                    Arguments.of("", EmailExceptionInfo.missingValue().getMessage(), 104001),
-                    Arguments.of("a".repeat(310) + "@example.com", EmailExceptionInfo.lengthOutOfRange().getMessage(), 104002),
-                    Arguments.of("plainaddress", EmailExceptionInfo.invalidFormat().getMessage(), 104003),
-                    Arguments.of("@no-local-part.com", EmailExceptionInfo.invalidFormat().getMessage(), 104003),
-                    Arguments.of("no-at-symbol.com", EmailExceptionInfo.invalidFormat().getMessage(), 104003),
-                    Arguments.of("space in@domain.com", EmailExceptionInfo.invalidFormat().getMessage(), 104003)
+                    Arguments.of(null, EmailExceptionInfo.missingValue().getMessage(), EmailExceptionInfo.missingValue().getDomainErrorCode()),
+                    Arguments.of("", EmailExceptionInfo.missingValue().getMessage(), EmailExceptionInfo.missingValue().getDomainErrorCode()),
+                    Arguments.of("a".repeat(310) + "@example.com", EmailExceptionInfo.lengthOutOfRange().getMessage(), EmailExceptionInfo.lengthOutOfRange().getDomainErrorCode()),
+                    Arguments.of("plainaddress", EmailExceptionInfo.invalidFormat().getMessage(), EmailExceptionInfo.invalidFormat().getDomainErrorCode()),
+                    Arguments.of("@no-local-part.com", EmailExceptionInfo.invalidFormat().getMessage(), EmailExceptionInfo.invalidFormat().getDomainErrorCode()),
+                    Arguments.of("no-at-symbol.com", EmailExceptionInfo.invalidFormat().getMessage(), EmailExceptionInfo.invalidFormat().getDomainErrorCode()),
+                    Arguments.of("space in@domain.com", EmailExceptionInfo.invalidFormat().getMessage(), EmailExceptionInfo.invalidFormat().getDomainErrorCode())
             );
         }
     }

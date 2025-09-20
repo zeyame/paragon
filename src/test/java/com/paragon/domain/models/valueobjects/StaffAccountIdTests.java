@@ -42,12 +42,13 @@ public class StaffAccountIdTests {
             // Given
             String id = "";
             String expectedErrorMessage = StaffAccountIdExceptionInfo.missingValue().getMessage();
+            int expectedErrorCode = StaffAccountIdExceptionInfo.missingValue().getDomainErrorCode();
 
             // When & Then
             assertThatExceptionOfType(StaffAccountIdException.class)
                     .isThrownBy(() -> StaffAccountId.from(id))
                     .extracting("message", "domainErrorCode")
-                    .containsExactly(expectedErrorMessage, 102001);
+                    .containsExactly(expectedErrorMessage, expectedErrorCode);
         }
 
         @Test
@@ -55,12 +56,13 @@ public class StaffAccountIdTests {
             // Given
             String id = "invalid-id";
             String expectedErrorMessage = StaffAccountIdExceptionInfo.invalidFormat().getMessage();
+            int expectedErrorCode = StaffAccountIdExceptionInfo.invalidFormat().getDomainErrorCode();
 
             // When & Then
             assertThatExceptionOfType(StaffAccountIdException.class)
                     .isThrownBy(() -> StaffAccountId.from(id))
                     .extracting("message", "domainErrorCode")
-                    .containsExactly(expectedErrorMessage, 102002);
+                    .containsExactly(expectedErrorMessage, expectedErrorCode);
         }
     }
 }
