@@ -5,9 +5,7 @@ import com.paragon.domain.events.DomainEvent;
 import com.paragon.domain.exceptions.aggregate.StaffAccountException;
 import com.paragon.domain.exceptions.aggregate.StaffAccountExceptionInfo;
 import com.paragon.domain.models.valueobjects.*;
-
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccountId> {
 
@@ -19,8 +17,10 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     private OrderAccessDuration orderAccessDuration;
     private ModmailTranscriptAccessDuration modmailTranscriptAccessDuration;
     private StaffAccountStatus status;
+    private FailedLoginAttempts failedLoginAttempts;
+    private Instant lockedUntil;
 
-    private StaffAccount(StaffAccountId id, Username username, Email email, Password password, OrderAccessDuration orderAccessDuration, ModmailTranscriptAccessDuration modmailTranscriptAccessDuration, StaffAccountStatus status) {
+    private StaffAccount(StaffAccountId id, Username username, Email email, Password password, OrderAccessDuration orderAccessDuration, ModmailTranscriptAccessDuration modmailTranscriptAccessDuration, StaffAccountStatus status, FailedLoginAttempts failedLoginAttempts, Instant lockedUntil) {
         super(id);
         this.username = username;
         this.email = email;
@@ -28,16 +28,18 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         this.orderAccessDuration = orderAccessDuration;
         this.modmailTranscriptAccessDuration = modmailTranscriptAccessDuration;
         this.status = status;
+        this.failedLoginAttempts = failedLoginAttempts;
+        this.lockedUntil = lockedUntil;
     }
 
     public static StaffAccount registerWithEmail(Username username, Email email, Password password, OrderAccessDuration orderAccessDuration, ModmailTranscriptAccessDuration modmailTranscriptAccessDuration) {
         assertValidRegistration(username, password, orderAccessDuration, modmailTranscriptAccessDuration);
-        return new StaffAccount(StaffAccountId.generate(), username, email, password, orderAccessDuration, modmailTranscriptAccessDuration, StaffAccountStatus.ACTIVE);
+        return new StaffAccount(StaffAccountId.generate(), username, email, password, orderAccessDuration, modmailTranscriptAccessDuration, StaffAccountStatus.ACTIVE, FailedLoginAttempts.initial(), null);
     }
 
     public static StaffAccount registerWithoutEmail(Username username, Password password, OrderAccessDuration orderAccessDuration, ModmailTranscriptAccessDuration modmailTranscriptAccessDuration) {
         assertValidRegistration(username, password, orderAccessDuration, modmailTranscriptAccessDuration);
-        return new StaffAccount(StaffAccountId.generate(), username, null, password, orderAccessDuration, modmailTranscriptAccessDuration, StaffAccountStatus.ACTIVE);
+        return new StaffAccount(StaffAccountId.generate(), username, null, password, orderAccessDuration, modmailTranscriptAccessDuration, StaffAccountStatus.ACTIVE, FailedLoginAttempts.initial(), null);
     }
 
     private static void assertValidRegistration(Username username, Password password, OrderAccessDuration orderAccessDuration, ModmailTranscriptAccessDuration modmailTranscriptAccessDuration) {

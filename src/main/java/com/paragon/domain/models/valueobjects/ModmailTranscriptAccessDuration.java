@@ -27,7 +27,7 @@ public class ModmailTranscriptAccessDuration extends ValueObject {
 
     @Override
     protected List<Object> getEqualityComponents() {
-        return List.of();
+        return List.of(value);
     }
 
     private static void assertValidDuration(Duration value) {
