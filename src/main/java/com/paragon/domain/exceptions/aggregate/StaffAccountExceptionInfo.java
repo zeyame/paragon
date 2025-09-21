@@ -34,4 +34,11 @@ public class StaffAccountExceptionInfo extends DomainExceptionInfo {
                 10004
         );
     }
+
+    public static StaffAccountExceptionInfo atLeastOnePermissionRequired() {
+        return new StaffAccountExceptionInfo(
+                "At least one permission must be assigned to a staff account.",
+                10005
+        );
+    }
 }

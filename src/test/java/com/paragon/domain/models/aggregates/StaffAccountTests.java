@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 
 import java.time.Duration;
+import java.util.HashSet;
+import java.util.Set;
 
 public class StaffAccountTests {
     @Nested
@@ -19,6 +21,7 @@ public class StaffAccountTests {
         private OrderAccessDuration orderAccessDuration;
         private ModmailTranscriptAccessDuration modmailTranscriptAccessDuration;
         private StaffAccountId registeredBy;
+        private Set<PermissionId> permissionIds;
 
         Register() {
             username = Username.of("john_doe");
@@ -27,12 +30,13 @@ public class StaffAccountTests {
             orderAccessDuration = OrderAccessDuration.of(Duration.ofDays(5));
             modmailTranscriptAccessDuration = ModmailTranscriptAccessDuration.of(Duration.ofDays(10));
             registeredBy = StaffAccountId.generate();
+            permissionIds = Set.of(PermissionId.generate(), PermissionId.generate());
         }
 
         @Test
         void givenValidInputWithoutEmail_shouldCreateStaffAccount() {
             // When
-            StaffAccount staffAccount = StaffAccount.register(username, null, password, orderAccessDuration, modmailTranscriptAccessDuration, registeredBy);
+            StaffAccount staffAccount = StaffAccount.register(username, null, password, orderAccessDuration, modmailTranscriptAccessDuration, registeredBy, permissionIds);
 
             // Then
             assertThat(staffAccount).isNotNull();
@@ -48,12 +52,13 @@ public class StaffAccountTests {
             assertThat(staffAccount.getLockedUntil()).isNull();
             assertThat(staffAccount.getLastLoginAt()).isNull();
             assertThat(staffAccount.getRegisteredBy()).isEqualTo(registeredBy);
+            assertThat(staffAccount.getPermissionIds()).isEqualTo(permissionIds);
         }
 
         @Test
         void givenValidInputWithEmail_shouldCreateStaffAccount() {
             // When
-            StaffAccount staffAccount = StaffAccount.register(username, email, password, orderAccessDuration, modmailTranscriptAccessDuration, registeredBy);
+            StaffAccount staffAccount = StaffAccount.register(username, email, password, orderAccessDuration, modmailTranscriptAccessDuration, registeredBy, permissionIds);
 
             // Then
             assertThat(staffAccount).isNotNull();
@@ -69,6 +74,7 @@ public class StaffAccountTests {
             assertThat(staffAccount.getLockedUntil()).isNull();
             assertThat(staffAccount.getLastLoginAt()).isNull();
             assertThat(staffAccount.getRegisteredBy()).isEqualTo(registeredBy);
+            assertThat(staffAccount.getPermissionIds()).isEqualTo(permissionIds);
         }
 
         @Test
@@ -79,7 +85,7 @@ public class StaffAccountTests {
 
             // When & Then
             assertThatExceptionOfType(StaffAccountException.class)
-                    .isThrownBy(() -> StaffAccount.register(null, email, password, orderAccessDuration, modmailTranscriptAccessDuration, registeredBy))
+                    .isThrownBy(() -> StaffAccount.register(null, email, password, orderAccessDuration, modmailTranscriptAccessDuration, registeredBy, permissionIds))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(expectedErrorMessage, expectedErrorCode);
         }
@@ -92,7 +98,7 @@ public class StaffAccountTests {
 
             // When & Then
             assertThatExceptionOfType(StaffAccountException.class)
-                    .isThrownBy(() -> StaffAccount.register(username, email, null, orderAccessDuration, modmailTranscriptAccessDuration, registeredBy))
+                    .isThrownBy(() -> StaffAccount.register(username, email, null, orderAccessDuration, modmailTranscriptAccessDuration, registeredBy, permissionIds))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(expectedErrorMessage, expectedErrorCode);
         }
@@ -105,7 +111,7 @@ public class StaffAccountTests {
 
             // When & Then
             assertThatExceptionOfType(StaffAccountException.class)
-                    .isThrownBy(() -> StaffAccount.register(username, email, password, null, modmailTranscriptAccessDuration, registeredBy))
+                    .isThrownBy(() -> StaffAccount.register(username, email, password, null, modmailTranscriptAccessDuration, registeredBy, permissionIds))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(expectedErrorMessage, expectedErrorCode);
         }
@@ -118,7 +124,20 @@ public class StaffAccountTests {
 
             // When & Then
             assertThatExceptionOfType(StaffAccountException.class)
-                    .isThrownBy(() -> StaffAccount.register(username, email, password, orderAccessDuration, null, registeredBy))
+                    .isThrownBy(() -> StaffAccount.register(username, email, password, orderAccessDuration, null, registeredBy, permissionIds))
+                    .extracting("message", "domainErrorCode")
+                    .containsExactly(expectedErrorMessage, expectedErrorCode);
+        }
+
+        @Test
+        void givenNoPermissionAssigned_registrationShouldFail() {
+            // Given
+            String expectedErrorMessage = StaffAccountExceptionInfo.atLeastOnePermissionRequired().getMessage();
+            int expectedErrorCode = StaffAccountExceptionInfo.atLeastOnePermissionRequired().getDomainErrorCode();
+
+            // When & Then
+            assertThatExceptionOfType(StaffAccountException.class)
+                    .isThrownBy(() -> StaffAccount.register(username, email, password, orderAccessDuration, modmailTranscriptAccessDuration, registeredBy, new HashSet<>()))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(expectedErrorMessage, expectedErrorCode);
         }

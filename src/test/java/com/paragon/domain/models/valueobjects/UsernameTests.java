@@ -30,61 +30,25 @@ public class UsernameTests {
 
         @ParameterizedTest
         @MethodSource("invalidUsernames")
-        void shouldRejectInvalidUsernames(String invalidUsername, String expectedErrorMessage, int expectedErrorCode) {
+        void shouldRejectInvalidUsernames(String invalidUsername, UsernameExceptionInfo exceptionInfo) {
             // When & Then
             assertThatExceptionOfType(UsernameException.class)
                     .isThrownBy(() -> Username.of(invalidUsername))
                     .extracting("message", "domainErrorCode")
-                    .containsExactly(expectedErrorMessage, expectedErrorCode);
+                    .containsExactly(exceptionInfo.getMessage(), exceptionInfo.getDomainErrorCode());
         }
 
         private static Stream<Arguments> invalidUsernames() {
             return Stream.of(
-                    Arguments.of(
-                            null,
-                            UsernameExceptionInfo.missingValue().getMessage(),
-                            UsernameExceptionInfo.missingValue().getDomainErrorCode()
-                    ),
-                    Arguments.of(
-                            "",
-                            UsernameExceptionInfo.missingValue().getMessage(),
-                            UsernameExceptionInfo.missingValue().getDomainErrorCode()
-                    ),
-                    Arguments.of(
-                            "ab",
-                            UsernameExceptionInfo.lengthOutOfRange().getMessage(),
-                            UsernameExceptionInfo.lengthOutOfRange().getDomainErrorCode()
-                    ),
-                    Arguments.of(
-                            "thisusernameistoolongforme",
-                            UsernameExceptionInfo.lengthOutOfRange().getMessage(),
-                            UsernameExceptionInfo.lengthOutOfRange().getDomainErrorCode()
-                    ),
-                    Arguments.of(
-                            "inv@lid",
-                            UsernameExceptionInfo.invalidCharacters().getMessage(),
-                            UsernameExceptionInfo.invalidCharacters().getDomainErrorCode()
-                    ),
-                    Arguments.of(
-                            "double__underscores",
-                            UsernameExceptionInfo.consecutiveUnderscores().getMessage(),
-                            UsernameExceptionInfo.consecutiveUnderscores().getDomainErrorCode()
-                    ),
-                    Arguments.of(
-                            "1username",
-                            UsernameExceptionInfo.mustStartWithALetter().getMessage(),
-                            UsernameExceptionInfo.mustStartWithALetter().getDomainErrorCode()
-                    ),
-                    Arguments.of(
-                            "username_",
-                            UsernameExceptionInfo.mustNotEndWithUnderscore().getMessage(),
-                            UsernameExceptionInfo.mustNotEndWithUnderscore().getDomainErrorCode()
-                    ),
-                    Arguments.of(
-                            "admin",
-                            UsernameExceptionInfo.reservedWord().getMessage(),
-                            UsernameExceptionInfo.reservedWord().getDomainErrorCode()
-                    )
+                    Arguments.of(null, UsernameExceptionInfo.missingValue()),
+                    Arguments.of("", UsernameExceptionInfo.missingValue()),
+                    Arguments.of("ab", UsernameExceptionInfo.lengthOutOfRange()),
+                    Arguments.of("thisusernameistoolongforme", UsernameExceptionInfo.lengthOutOfRange()),
+                    Arguments.of("inv@lid", UsernameExceptionInfo.invalidCharacters()),
+                    Arguments.of("double__underscores", UsernameExceptionInfo.consecutiveUnderscores()),
+                    Arguments.of("1username", UsernameExceptionInfo.mustStartWithALetter()),
+                    Arguments.of("username_", UsernameExceptionInfo.mustNotEndWithUnderscore()),
+                    Arguments.of("admin", UsernameExceptionInfo.reservedWord())
             );
         }
     }

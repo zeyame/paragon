@@ -8,6 +8,7 @@ import com.paragon.domain.models.valueobjects.*;
 import lombok.Getter;
 
 import java.time.Instant;
+import java.util.Set;
 
 @Getter
 public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccountId> {
@@ -25,8 +26,9 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     private Instant lastLoginAt;
     private final StaffAccountId registeredBy;
     private StaffAccountId disabledBy;
+    private final Set<PermissionId> permissionIds;
 
-    private StaffAccount(StaffAccountId id, Username username, Email email, Password password, Instant passwordIssuedAt, boolean isTempPassword, OrderAccessDuration orderAccessDuration, ModmailTranscriptAccessDuration modmailTranscriptAccessDuration, StaffAccountStatus status, FailedLoginAttempts failedLoginAttempts, Instant lockedUntil, Instant lastLoginAt, StaffAccountId registeredBy, StaffAccountId disabledBy) {
+    private StaffAccount(StaffAccountId id, Username username, Email email, Password password, Instant passwordIssuedAt, boolean isTempPassword, OrderAccessDuration orderAccessDuration, ModmailTranscriptAccessDuration modmailTranscriptAccessDuration, StaffAccountStatus status, FailedLoginAttempts failedLoginAttempts, Instant lockedUntil, Instant lastLoginAt, StaffAccountId registeredBy, StaffAccountId disabledBy, Set<PermissionId> permissionIds) {
         super(id);
         this.username = username;
         this.email = email;
@@ -41,14 +43,25 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         this.lastLoginAt = lastLoginAt;
         this.registeredBy = registeredBy;
         this.disabledBy = disabledBy;
+        this.permissionIds = permissionIds;
     }
 
-    public static StaffAccount register(Username username, Email email, Password password, OrderAccessDuration orderAccessDuration, ModmailTranscriptAccessDuration modmailTranscriptAccessDuration, StaffAccountId registeredBy) {
-        assertValidRegistration(username, password, orderAccessDuration, modmailTranscriptAccessDuration);
-        return new StaffAccount(StaffAccountId.generate(), username, email, password, Instant.now(), true, orderAccessDuration, modmailTranscriptAccessDuration, StaffAccountStatus.REGISTERED, FailedLoginAttempts.initial(), null, null, registeredBy, null);
+    public static StaffAccount register(Username username, Email email, Password password, OrderAccessDuration orderAccessDuration,
+                                        ModmailTranscriptAccessDuration modmailTranscriptAccessDuration,
+                                        StaffAccountId registeredBy, Set<PermissionId> permissionIds)
+    {
+        assertValidRegistration(username, password, orderAccessDuration, modmailTranscriptAccessDuration, permissionIds);
+        return new StaffAccount(
+                StaffAccountId.generate(), username, email, password, Instant.now(), true,
+                orderAccessDuration, modmailTranscriptAccessDuration, StaffAccountStatus.REGISTERED,
+                FailedLoginAttempts.initial(), null, null, registeredBy, null, permissionIds
+        );
     }
 
-    private static void assertValidRegistration(Username username, Password password, OrderAccessDuration orderAccessDuration, ModmailTranscriptAccessDuration modmailTranscriptAccessDuration) {
+    private static void assertValidRegistration(Username username, Password password, OrderAccessDuration orderAccessDuration,
+                                                ModmailTranscriptAccessDuration modmailTranscriptAccessDuration,
+                                                Set<PermissionId> permissionIds)
+    {
         if (username == null) {
             throw new StaffAccountException(StaffAccountExceptionInfo.usernameRequired());
         }
@@ -60,6 +73,9 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         }
         if (modmailTranscriptAccessDuration == null) {
             throw new StaffAccountException(StaffAccountExceptionInfo.modmailTranscriptAccessDurationRequired());
+        }
+        if (permissionIds == null || permissionIds.isEmpty()) {
+            throw new StaffAccountException(StaffAccountExceptionInfo.atLeastOnePermissionRequired());
         }
     }
 }

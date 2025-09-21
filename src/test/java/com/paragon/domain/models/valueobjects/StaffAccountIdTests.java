@@ -4,7 +4,12 @@ import com.paragon.domain.exceptions.valueobject.StaffAccountIdException;
 import com.paragon.domain.exceptions.valueobject.StaffAccountIdExceptionInfo;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -37,32 +42,22 @@ public class StaffAccountIdTests {
                     .isEqualTo(expectedUuid);
         }
 
-        @Test
-        void givenEmptyStringId_whenFromIsCalled_thenThrowsStaffAccountIdException() {
-            // Given
-            String id = "";
-            String expectedErrorMessage = StaffAccountIdExceptionInfo.missingValue().getMessage();
-            int expectedErrorCode = StaffAccountIdExceptionInfo.missingValue().getDomainErrorCode();
-
+        @ParameterizedTest
+        @MethodSource("invalidInputs")
+        void givenInvalidStringId_whenFromIsCalled_thenThrowsStaffAccountIdException(String invalidId, StaffAccountIdExceptionInfo exceptionInfo) {
             // When & Then
             assertThatExceptionOfType(StaffAccountIdException.class)
-                    .isThrownBy(() -> StaffAccountId.from(id))
+                    .isThrownBy(() -> StaffAccountId.from(invalidId))
                     .extracting("message", "domainErrorCode")
-                    .containsExactly(expectedErrorMessage, expectedErrorCode);
+                    .containsExactly(exceptionInfo.getMessage(), exceptionInfo.getDomainErrorCode());
         }
 
-        @Test
-        void givenInvalidStringIdFormat_whenFromIsCalled_thenThrowsStaffAccountIdException() {
-            // Given
-            String id = "invalid-id";
-            String expectedErrorMessage = StaffAccountIdExceptionInfo.invalidFormat().getMessage();
-            int expectedErrorCode = StaffAccountIdExceptionInfo.invalidFormat().getDomainErrorCode();
-
-            // When & Then
-            assertThatExceptionOfType(StaffAccountIdException.class)
-                    .isThrownBy(() -> StaffAccountId.from(id))
-                    .extracting("message", "domainErrorCode")
-                    .containsExactly(expectedErrorMessage, expectedErrorCode);
+        private static Stream<Arguments> invalidInputs() {
+            return Stream.of(
+                    Arguments.of(null, StaffAccountIdExceptionInfo.missingValue()),
+                    Arguments.of("", StaffAccountIdExceptionInfo.missingValue()),
+                    Arguments.of("invalid-format", StaffAccountIdExceptionInfo.invalidFormat())
+            );
         }
     }
 }

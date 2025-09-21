@@ -37,4 +37,12 @@ public class StaffAccountExceptionInfoTests {
         assertThat(info.getMessage()).isEqualTo("Modmail transcript access duration is required for registration.");
         assertThat(info.getDomainErrorCode()).isEqualTo(10004);
     }
+
+    @Test
+    void atLeastOnePermissionRequired_shouldHaveExpectedCodeAndMessage() {
+        StaffAccountExceptionInfo info = StaffAccountExceptionInfo.atLeastOnePermissionRequired();
+
+        assertThat(info.getMessage()).isEqualTo("At least one permission must be assigned to a staff account.");
+        assertThat(info.getDomainErrorCode()).isEqualTo(10005);
+    }
 }
