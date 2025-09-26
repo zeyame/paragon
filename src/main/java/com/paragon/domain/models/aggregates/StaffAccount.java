@@ -17,7 +17,6 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     private Email email;
     private Password password;
     private Instant passwordIssuedAt;
-    private boolean isTempPassword;
     private OrderAccessDuration orderAccessDuration;
     private ModmailTranscriptAccessDuration modmailTranscriptAccessDuration;
     private StaffAccountStatus status;
@@ -27,14 +26,29 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     private final StaffAccountId registeredBy;
     private StaffAccountId disabledBy;
     private final Set<PermissionId> permissionIds;
+    private Version version;
 
-    private StaffAccount(StaffAccountId id, Username username, Email email, Password password, Instant passwordIssuedAt, boolean isTempPassword, OrderAccessDuration orderAccessDuration, ModmailTranscriptAccessDuration modmailTranscriptAccessDuration, StaffAccountStatus status, FailedLoginAttempts failedLoginAttempts, Instant lockedUntil, Instant lastLoginAt, StaffAccountId registeredBy, StaffAccountId disabledBy, Set<PermissionId> permissionIds) {
+    private StaffAccount(StaffAccountId id,
+                         Username username,
+                         Email email,
+                         Password password,
+                         Instant passwordIssuedAt,
+                         OrderAccessDuration orderAccessDuration,
+                         ModmailTranscriptAccessDuration modmailTranscriptAccessDuration,
+                         StaffAccountStatus status,
+                         FailedLoginAttempts failedLoginAttempts,
+                         Instant lockedUntil,
+                         Instant lastLoginAt,
+                         StaffAccountId registeredBy,
+                         StaffAccountId disabledBy,
+                         Set<PermissionId> permissionIds,
+                         Version version)
+    {
         super(id);
         this.username = username;
         this.email = email;
         this.password = password;
         this.passwordIssuedAt = passwordIssuedAt;
-        this.isTempPassword = isTempPassword;
         this.orderAccessDuration = orderAccessDuration;
         this.modmailTranscriptAccessDuration = modmailTranscriptAccessDuration;
         this.status = status;
@@ -44,6 +58,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         this.registeredBy = registeredBy;
         this.disabledBy = disabledBy;
         this.permissionIds = permissionIds;
+        this.version = version;
     }
 
     public static StaffAccount register(Username username, Email email, Password password, OrderAccessDuration orderAccessDuration,
@@ -52,10 +67,14 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     {
         assertValidRegistration(username, password, orderAccessDuration, modmailTranscriptAccessDuration, permissionIds);
         return new StaffAccount(
-                StaffAccountId.generate(), username, email, password, Instant.now(), true,
-                orderAccessDuration, modmailTranscriptAccessDuration, StaffAccountStatus.REGISTERED,
-                FailedLoginAttempts.initial(), null, null, registeredBy, null, permissionIds
+                StaffAccountId.generate(), username, email, password, Instant.now(),
+                orderAccessDuration, modmailTranscriptAccessDuration, StaffAccountStatus.PENDING_PASSWORD_CHANGE,
+                FailedLoginAttempts.initial(), null, null, registeredBy, null, permissionIds, Version.initial()
         );
+    }
+
+    public boolean hasPermission(PermissionId permissionId) {
+        return permissionIds.contains(permissionId);
     }
 
     private static void assertValidRegistration(Username username, Password password, OrderAccessDuration orderAccessDuration,

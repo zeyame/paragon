@@ -1,7 +1,7 @@
 package com.paragon.domain.enums;
 
 public enum StaffAccountStatus {
-    REGISTERED,
+    PENDING_PASSWORD_CHANGE,
     ACTIVE,
     DISABLED,
     LOCKED

@@ -7,17 +7,10 @@ public class ModmailTranscriptAccessDurationExceptionInfo extends DomainExceptio
         super(message, domainErrorCode);
     }
 
-    public static ModmailTranscriptAccessDurationExceptionInfo missingValue() {
-        return new ModmailTranscriptAccessDurationExceptionInfo(
-                "Modmail transcript access duration cannot be null or empty.",
-                107001
-        );
-    }
-
     public static ModmailTranscriptAccessDurationExceptionInfo mustBePositive() {
         return new ModmailTranscriptAccessDurationExceptionInfo(
                 "Modmail transcript access duration must be greater than zero",
-                107002
+                107001
         );
     }
 }

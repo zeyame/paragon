@@ -21,43 +21,27 @@ public class ModmailTranscriptAccessDurationTests {
         @ValueSource(ints = {3, 5, 10, 20, 28})
         void shouldCreateValidDuration(int validDuration) {
             // Given
-            Duration duration = Duration.ofDays(validDuration);
+            Duration expectedDuration = Duration.ofDays(validDuration);
 
             // When
-            ModmailTranscriptAccessDuration accessDuration = ModmailTranscriptAccessDuration.of(duration);
+            ModmailTranscriptAccessDuration accessDuration = ModmailTranscriptAccessDuration.from(validDuration);
 
             // Then
-            assertThat(accessDuration.getValue()).isEqualTo(duration);
+            assertThat(accessDuration.getValue()).isEqualTo(expectedDuration);
         }
 
         @ParameterizedTest
-        @MethodSource("invalidDurations")
-        void shouldRejectInvalidDurations(Duration invalidDuration, String expectedErrorMessage, int expectedErrorCode) {
+        @ValueSource(ints = {0, -1})
+        void shouldRejectInvalidDurations(int invalidDuration) {
+            // Given
+            String expectedErrorMessage = ModmailTranscriptAccessDurationExceptionInfo.mustBePositive().getMessage();
+            int expectedErrorCode = ModmailTranscriptAccessDurationExceptionInfo.mustBePositive().getDomainErrorCode();
+
             // When & Then
             assertThatExceptionOfType(ModmailTranscriptAccessDurationException.class)
-                    .isThrownBy(() -> ModmailTranscriptAccessDuration.of(invalidDuration))
+                    .isThrownBy(() -> ModmailTranscriptAccessDuration.from(invalidDuration))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(expectedErrorMessage, expectedErrorCode);
-        }
-
-        private static Stream<Arguments> invalidDurations() {
-            return Stream.of(
-                    Arguments.of(
-                            null,
-                            ModmailTranscriptAccessDurationExceptionInfo.missingValue().getMessage(),
-                            ModmailTranscriptAccessDurationExceptionInfo.missingValue().getDomainErrorCode()
-                    ),
-                    Arguments.of(
-                            Duration.ZERO,
-                            ModmailTranscriptAccessDurationExceptionInfo.mustBePositive().getMessage(),
-                            ModmailTranscriptAccessDurationExceptionInfo.mustBePositive().getDomainErrorCode()
-                    ),
-                    Arguments.of(
-                            Duration.ofDays(-1),
-                            ModmailTranscriptAccessDurationExceptionInfo.mustBePositive().getMessage(),
-                            ModmailTranscriptAccessDurationExceptionInfo.mustBePositive().getDomainErrorCode()
-                    )
-            );
         }
     }
 }

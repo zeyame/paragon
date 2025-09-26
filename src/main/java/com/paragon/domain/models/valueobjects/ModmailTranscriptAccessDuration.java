@@ -2,8 +2,6 @@ package com.paragon.domain.models.valueobjects;
 
 import com.paragon.domain.exceptions.valueobject.ModmailTranscriptAccessDurationException;
 import com.paragon.domain.exceptions.valueobject.ModmailTranscriptAccessDurationExceptionInfo;
-import com.paragon.domain.exceptions.valueobject.OrderAccessDurationException;
-import com.paragon.domain.exceptions.valueobject.OrderAccessDurationExceptionInfo;
 
 import java.time.Duration;
 import java.util.List;
@@ -16,9 +14,9 @@ public class ModmailTranscriptAccessDuration extends ValueObject {
         this.value = value;
     }
 
-    public static ModmailTranscriptAccessDuration of(Duration value) {
+    public static ModmailTranscriptAccessDuration from(int value) {
         assertValidDuration(value);
-        return new ModmailTranscriptAccessDuration(value);
+        return new ModmailTranscriptAccessDuration(Duration.ofDays(value));
     }
 
     public Duration getValue() {
@@ -30,11 +28,8 @@ public class ModmailTranscriptAccessDuration extends ValueObject {
         return List.of(value);
     }
 
-    private static void assertValidDuration(Duration value) {
-        if (value == null) {
-            throw new ModmailTranscriptAccessDurationException(ModmailTranscriptAccessDurationExceptionInfo.missingValue());
-        }
-        if (value.isNegative() || value.isZero()) {
+    private static void assertValidDuration(int value) {
+        if (value <= 0) {
             throw new ModmailTranscriptAccessDurationException(ModmailTranscriptAccessDurationExceptionInfo.mustBePositive());
         }
     }

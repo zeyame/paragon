@@ -13,20 +13,17 @@ public class OrderAccessDuration extends ValueObject {
         this.value = value;
     }
 
-    public static OrderAccessDuration of(Duration value) {
+    public static OrderAccessDuration from(int value) {
         assertValidDuration(value);
-        return new OrderAccessDuration(value);
+        return new OrderAccessDuration(Duration.ofDays(value));
     }
 
     public Duration getValue() {
         return value;
     }
 
-    private static void assertValidDuration(Duration value) {
-        if (value == null) {
-            throw new OrderAccessDurationException(OrderAccessDurationExceptionInfo.missingValue());
-        }
-        if (value.isNegative() || value.isZero()) {
+    private static void assertValidDuration(int value) {
+        if (value <= 0) {
             throw new OrderAccessDurationException(OrderAccessDurationExceptionInfo.mustBePositive());
         }
     }

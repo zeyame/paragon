@@ -7,17 +7,10 @@ public class OrderAccessDurationExceptionInfo extends DomainExceptionInfo {
         super(message, domainErrorCode);
     }
 
-    public static OrderAccessDurationExceptionInfo missingValue() {
-        return new OrderAccessDurationExceptionInfo(
-                "Order access duration cannot be null or empty.",
-                106001
-        );
-    }
-
     public static OrderAccessDurationExceptionInfo mustBePositive() {
         return new OrderAccessDurationExceptionInfo(
                 "Order access duration must be greater than zero",
-                106002
+                106001
         );
     }
 }
