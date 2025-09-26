@@ -26,6 +26,10 @@ public class Permission extends Entity<PermissionId> {
         return new Permission(PermissionId.generate(), code, category, description);
     }
 
+    public static Permission createFrom(PermissionId id, PermissionCode code, PermissionCategory category, String description) {
+        return new Permission(id, code, category, description);
+    }
+
     private static void assertValidPermission(PermissionCode code, PermissionCategory category) {
         if (code == null) {
             throw new PermissionException(PermissionExceptionInfo.codeRequired());

@@ -9,8 +9,12 @@ public class Version extends ValueObject {
     private final int value;
 
     private Version(int value) {
-        assertVersionNumber(value);
         this.value = value;
+    }
+
+    public static Version of(int value) {
+        assertVersionNumber(value);
+        return new Version(value);
     }
 
     public static Version initial() {
@@ -30,7 +34,7 @@ public class Version extends ValueObject {
         return List.of(value);
     }
 
-    private void assertVersionNumber(int value) {
+    private static void assertVersionNumber(int value) {
         if (value < 1) {
             throw new VersionException(VersionExceptionInfo.mustBeAtleastOne());
         }

@@ -15,6 +15,13 @@ public class PermissionId extends ValueObject {
         this.value = value;
     }
 
+    public static PermissionId of(UUID value) {
+        if (value == null) {
+            throw new PermissionIdException(PermissionIdExceptionInfo.missingValue());
+        }
+        return new PermissionId(value);
+    }
+
     public static PermissionId from(String value) {
         assertValidPermissionId(value);
         return new PermissionId(UUID.fromString(value));

@@ -23,7 +23,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     private FailedLoginAttempts failedLoginAttempts;
     private Instant lockedUntil;
     private Instant lastLoginAt;
-    private final StaffAccountId registeredBy;
+    private final StaffAccountId createdBy;
     private StaffAccountId disabledBy;
     private final Set<PermissionId> permissionIds;
     private Version version;
@@ -39,7 +39,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
                          FailedLoginAttempts failedLoginAttempts,
                          Instant lockedUntil,
                          Instant lastLoginAt,
-                         StaffAccountId registeredBy,
+                         StaffAccountId createdBy,
                          StaffAccountId disabledBy,
                          Set<PermissionId> permissionIds,
                          Version version)
@@ -55,7 +55,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         this.failedLoginAttempts = failedLoginAttempts;
         this.lockedUntil = lockedUntil;
         this.lastLoginAt = lastLoginAt;
-        this.registeredBy = registeredBy;
+        this.createdBy = createdBy;
         this.disabledBy = disabledBy;
         this.permissionIds = permissionIds;
         this.version = version;
@@ -63,15 +63,33 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
 
     public static StaffAccount register(Username username, Email email, Password password, OrderAccessDuration orderAccessDuration,
                                         ModmailTranscriptAccessDuration modmailTranscriptAccessDuration,
-                                        StaffAccountId registeredBy, Set<PermissionId> permissionIds)
+                                        StaffAccountId createdBy, Set<PermissionId> permissionIds)
     {
         assertValidRegistration(username, password, orderAccessDuration, modmailTranscriptAccessDuration, permissionIds);
         return new StaffAccount(
                 StaffAccountId.generate(), username, email, password, Instant.now(),
                 orderAccessDuration, modmailTranscriptAccessDuration, StaffAccountStatus.PENDING_PASSWORD_CHANGE,
-                FailedLoginAttempts.initial(), null, null, registeredBy, null, permissionIds, Version.initial()
+                FailedLoginAttempts.initial(), null, null, createdBy, null, permissionIds, Version.initial()
         );
     }
+
+    public static StaffAccount createFrom(StaffAccountId id, Username username, Email email, Password password,
+                                          Instant passwordIssuedAt, OrderAccessDuration orderAccessDuration,
+                                          ModmailTranscriptAccessDuration modmailTranscriptAccessDuration,
+                                          StaffAccountStatus status, FailedLoginAttempts failedLoginAttempts,
+                                          Instant lockedUntil, Instant lastLoginAt, StaffAccountId createdBy,
+                                          StaffAccountId disabledBy, Set<PermissionId> permissionIds, Version version) {
+        return new StaffAccount(
+                id, username, email, password,
+                passwordIssuedAt, orderAccessDuration,
+                modmailTranscriptAccessDuration,
+                status, failedLoginAttempts,
+                lockedUntil, lastLoginAt,
+                createdBy, disabledBy,
+                permissionIds, version
+        );
+    }
+
 
     public boolean hasPermission(PermissionId permissionId) {
         return permissionIds.contains(permissionId);

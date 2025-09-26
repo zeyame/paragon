@@ -65,7 +65,7 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
                     staffAccount.getId().getValue(),
                     staffAccount.getUsername().getValue(),
                     staffAccount.getStatus(),
-                    staffAccount.getRegisteredBy().getValue()
+                    staffAccount.getCreatedBy().getValue()
             );
 
             return new RegisterStaffAccountCommandResponse(

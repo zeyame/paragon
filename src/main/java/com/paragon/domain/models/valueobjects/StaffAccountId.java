@@ -13,6 +13,13 @@ public class StaffAccountId extends ValueObject {
         this.value = value;
     }
 
+    public static StaffAccountId of(UUID value) {
+        if (value == null) {
+            throw new StaffAccountIdException(StaffAccountIdExceptionInfo.missingValue());
+        }
+        return new StaffAccountId(value);
+    }
+
     public static StaffAccountId from(String rawId) {
         assertValidStaffAccountId(rawId);
         return new StaffAccountId(UUID.fromString(rawId));

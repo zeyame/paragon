@@ -49,7 +49,7 @@ public class StaffAccountTests {
             assertThat(staffAccount.getFailedLoginAttempts().getValue()).isZero();
             assertThat(staffAccount.getLockedUntil()).isNull();
             assertThat(staffAccount.getLastLoginAt()).isNull();
-            assertThat(staffAccount.getRegisteredBy()).isEqualTo(registeredBy);
+            assertThat(staffAccount.getCreatedBy()).isEqualTo(registeredBy);
             assertThat(staffAccount.getPermissionIds()).isEqualTo(permissionIds);
         }
 
@@ -70,7 +70,7 @@ public class StaffAccountTests {
             assertThat(staffAccount.getFailedLoginAttempts().getValue()).isZero();
             assertThat(staffAccount.getLockedUntil()).isNull();
             assertThat(staffAccount.getLastLoginAt()).isNull();
-            assertThat(staffAccount.getRegisteredBy()).isEqualTo(registeredBy);
+            assertThat(staffAccount.getCreatedBy()).isEqualTo(registeredBy);
             assertThat(staffAccount.getPermissionIds()).isEqualTo(permissionIds);
         }
 
