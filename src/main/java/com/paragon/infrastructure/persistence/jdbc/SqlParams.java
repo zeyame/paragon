@@ -1,5 +1,6 @@
 package com.paragon.infrastructure.persistence.jdbc;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,6 +13,6 @@ public class SqlParams {
     }
 
     public Map<String, Object> build() {
-        return Map.copyOf(values);
+        return Collections.unmodifiableMap(new HashMap<>(values));
     }
 }

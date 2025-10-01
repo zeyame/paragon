@@ -24,7 +24,9 @@ public record StaffAccountDao(
         UUID createdBy,
         UUID disabledBy,
         List<UUID> permissionIds,
-        int version
+        int version,
+        Instant createdAtUtc,
+        Instant updatedAtUtc
 ) {
 
     public StaffAccount toStaffAccount(List<PermissionId> permissionIds) {

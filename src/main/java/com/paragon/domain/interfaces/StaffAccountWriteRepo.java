@@ -6,6 +6,6 @@ import com.paragon.domain.models.valueobjects.StaffAccountId;
 import java.util.Optional;
 
 public interface StaffAccountWriteRepo {
-    boolean create(StaffAccount staffAccount);
+    void create(StaffAccount staffAccount);
     Optional<StaffAccount> getById(StaffAccountId staffAccountId);
 }

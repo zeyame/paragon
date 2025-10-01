@@ -35,10 +35,17 @@ public class StaffAccountExceptionInfo extends DomainExceptionInfo {
         );
     }
 
+    public static StaffAccountExceptionInfo createdByRequired() {
+        return new StaffAccountExceptionInfo(
+                "Every staff account must be created by an existing staff account. 'createdBy' cannot be null.",
+                10005
+        );
+    }
+
     public static StaffAccountExceptionInfo atLeastOnePermissionRequired() {
         return new StaffAccountExceptionInfo(
                 "At least one permission must be assigned to a staff account.",
-                10005
+                10006
         );
     }
 }

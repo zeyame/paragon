@@ -39,10 +39,18 @@ public class StaffAccountExceptionInfoTests {
     }
 
     @Test
+    void createdByStaffAccountIdRequired_shouldHaveExpectedCodeAndMessage() {
+        StaffAccountExceptionInfo info = StaffAccountExceptionInfo.createdByRequired();
+
+        assertThat(info.getMessage()).isEqualTo("Every staff account must be created by an existing staff account. 'createdBy' cannot be null.");
+        assertThat(info.getDomainErrorCode()).isEqualTo(10005);
+    }
+
+    @Test
     void atLeastOnePermissionRequired_shouldHaveExpectedCodeAndMessage() {
         StaffAccountExceptionInfo info = StaffAccountExceptionInfo.atLeastOnePermissionRequired();
 
         assertThat(info.getMessage()).isEqualTo("At least one permission must be assigned to a staff account.");
-        assertThat(info.getDomainErrorCode()).isEqualTo(10005);
+        assertThat(info.getDomainErrorCode()).isEqualTo(10006);
     }
 }

@@ -65,7 +65,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
                                         ModmailTranscriptAccessDuration modmailTranscriptAccessDuration,
                                         StaffAccountId createdBy, Set<PermissionId> permissionIds)
     {
-        assertValidRegistration(username, password, orderAccessDuration, modmailTranscriptAccessDuration, permissionIds);
+        assertValidRegistration(username, password, orderAccessDuration, modmailTranscriptAccessDuration, createdBy, permissionIds);
         return new StaffAccount(
                 StaffAccountId.generate(), username, email, password, Instant.now(),
                 orderAccessDuration, modmailTranscriptAccessDuration, StaffAccountStatus.PENDING_PASSWORD_CHANGE,
@@ -96,7 +96,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     }
 
     private static void assertValidRegistration(Username username, Password password, OrderAccessDuration orderAccessDuration,
-                                                ModmailTranscriptAccessDuration modmailTranscriptAccessDuration,
+                                                ModmailTranscriptAccessDuration modmailTranscriptAccessDuration, StaffAccountId createdBy,
                                                 Set<PermissionId> permissionIds)
     {
         if (username == null) {
@@ -110,6 +110,9 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         }
         if (modmailTranscriptAccessDuration == null) {
             throw new StaffAccountException(StaffAccountExceptionInfo.modmailTranscriptAccessDurationRequired());
+        }
+        if (createdBy == null) {
+            throw new StaffAccountException(StaffAccountExceptionInfo.createdByRequired());
         }
         if (permissionIds == null || permissionIds.isEmpty()) {
             throw new StaffAccountException(StaffAccountExceptionInfo.atLeastOnePermissionRequired());

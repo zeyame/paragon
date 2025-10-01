@@ -7,9 +7,11 @@ import com.paragon.infrastructure.persistence.daos.PermissionIdDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountDao;
 import com.paragon.infrastructure.persistence.jdbc.SqlParams;
 import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
+import com.paragon.infrastructure.persistence.jdbc.WriteQuery;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,8 +24,10 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
         this.jdbcHelper = jdbcHelper;
     }
 
-    public boolean create(StaffAccount staffAccount) {
-        String sql = """
+    public void create(StaffAccount staffAccount) {
+        List<WriteQuery> queries = new ArrayList<>();
+
+        String accountSql = """
             INSERT INTO staff_accounts
             (id, username, email, password, password_issued_at,
              order_access_duration, modmail_transcript_access_duration,
@@ -36,7 +40,7 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
              :disabledBy, :version, :createdAtUtc, :updatedAtUtc)
         """;
 
-        SqlParams params = new SqlParams()
+        SqlParams accountParams = new SqlParams()
                 .add("id", staffAccount.getId().getValue())
                 .add("username", staffAccount.getUsername().getValue())
                 .add("email", staffAccount.getEmail().getValue())
@@ -53,9 +57,25 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
                 .add("createdAtUtc", Instant.now())
                 .add("updatedAtUtc", Instant.now());
 
+        queries.add(new WriteQuery(accountSql, accountParams));
 
-        int rows = jdbcHelper.execute(sql, params);
-        return rows == 1;
+        List<PermissionId> permissionIds = new ArrayList<>(staffAccount.getPermissionIds());
+        String joinTableSql = """
+            INSERT INTO staff_account_permissions
+            (staff_account_id, permission_id, assigned_by, assigned_at_utc)
+            VALUES
+            (:staffAccountId, :permissionId, :assignedBy, :assignedAtUtc)
+        """;
+        for (PermissionId id : permissionIds) {
+            SqlParams joinTableParams = new SqlParams()
+                    .add("staffAccountId", staffAccount.getId().getValue())
+                    .add("permissionId", id.getValue())
+                    .add("assignedBy", staffAccount.getCreatedBy())
+                    .add("assignedAtUtc", Instant.now());
+            queries.add(new WriteQuery(joinTableSql, joinTableParams));
+        }
+
+        jdbcHelper.executeMultiple(queries);
     }
 
     @Override
