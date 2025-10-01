@@ -11,6 +11,7 @@ import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.constants.SystemPermissions;
 import com.paragon.domain.models.entities.Permission;
 import com.paragon.domain.models.valueobjects.*;
+import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -26,7 +27,7 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
     private final AppExceptionHandler appExceptionHandler;
     private static final Logger log = LoggerFactory.getLogger(RegisterStaffAccountCommandHandler.class);
 
-    RegisterStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo, PermissionReadRepo permissionReadRepo, AppExceptionHandler appExceptionHandler) {
+    public RegisterStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo, PermissionReadRepo permissionReadRepo, AppExceptionHandler appExceptionHandler) {
         this.staffAccountWriteRepo = staffAccountWriteRepo;
         this.permissionReadRepo = permissionReadRepo;
         this.appExceptionHandler = appExceptionHandler;
@@ -47,7 +48,6 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
                 log.warn("Staff account registration request denied: requestingStaffId='{}' lacked MANAGE_ACCOUNTS permission.", command.id());
                 throw new AppException(AppExceptionInfo.permissionAccessDenied("registration"));
             }
-
 
             StaffAccount staffAccount = StaffAccount.register(
                     Username.of(command.username()),
@@ -78,6 +78,10 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
             log.error("Staff account registration failed for requestingStaffId={}: domain rule violation - {}",
                     command.id(), ex.getMessage());
             throw appExceptionHandler.handleDomainException(ex);
+        } catch (InfraException ex) {
+            log.error("Staff account registration failed for requestingStaffId={}: infrastructure related error occurred - {}",
+                    command.id(), ex.getMessage());
+            throw appExceptionHandler.handleInfraException(ex);
         }
     }
 }

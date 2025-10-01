@@ -24,12 +24,12 @@ import static org.mockito.Mockito.*;
 public class StaffAccountWriteRepoTests {
     @Nested
     class Create {
-        private final WriteJdbcHelper jdbcHelper;
+        private final WriteJdbcHelper jdbcHelperMock;
         private final StaffAccountWriteRepoImpl sut;
 
         public Create() {
-            this.jdbcHelper = mock(WriteJdbcHelper.class);
-            this.sut = new StaffAccountWriteRepoImpl(jdbcHelper);
+            this.jdbcHelperMock = mock(WriteJdbcHelper.class);
+            this.sut = new StaffAccountWriteRepoImpl(jdbcHelperMock);
         }
 
         @Test
@@ -42,7 +42,7 @@ public class StaffAccountWriteRepoTests {
             sut.create(account);
 
             // Then
-            verify(jdbcHelper, times(1)).executeMultiple(captor.capture());
+            verify(jdbcHelperMock, times(1)).executeMultiple(captor.capture());
             List<WriteQuery> queries = captor.getValue();
 
             assertThat(queries.size()).isEqualTo(account.getPermissionIds().size() + 1); // 1 for account insertion + N for permission ids
@@ -65,7 +65,7 @@ public class StaffAccountWriteRepoTests {
             sut.create(account);
 
             // Then
-            verify(jdbcHelper, times(1)).executeMultiple(captor.capture());
+            verify(jdbcHelperMock, times(1)).executeMultiple(captor.capture());
             List<WriteQuery> queries = captor.getValue();
 
             List<PermissionId> permissionIds = account
@@ -87,7 +87,7 @@ public class StaffAccountWriteRepoTests {
         void shouldPropagateInfraException_whenJdbcHelperThrows() {
             // Given
             doThrow(InfraException.class)
-                    .when(jdbcHelper)
+                    .when(jdbcHelperMock)
                     .executeMultiple(anyList());
 
             // When & Then
