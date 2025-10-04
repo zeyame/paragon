@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.*;
 
 public class FailedLoginAttemptsTests {
     @Nested
-    class of {
+    class Of {
         @ParameterizedTest
         @ValueSource(ints = {0, 2, 3, 5})
         void shouldCreateFailedLoginAttempts_whenAttemptNumberIsValid(int validAttemptNumber) {
@@ -21,10 +21,24 @@ public class FailedLoginAttemptsTests {
             assertThat(failedLoginAttempts.getValue()).isEqualTo(validAttemptNumber);
         }
 
-        @ParameterizedTest
-        @ValueSource(ints = {-1, FailedLoginAttempts.MAX_ATTEMPTS + 1})
-        void shouldRejectOutOfRangeAttemptNumbers(int invalidAttemptNumber) {
+        @Test
+        void givenNegativeAttemptNumber_whenOfIsCalled_shouldThrowFailedLoginAttemptsException() {
             // Given
+            int invalidAttemptNumber = -1;
+            String expectedErrorMessage = FailedLoginAttemptsExceptionInfo.invalidAttemptNumber().getMessage();
+            int expectedErrorCode = FailedLoginAttemptsExceptionInfo.invalidAttemptNumber().getDomainErrorCode();
+
+            // When & Then
+            assertThatExceptionOfType(FailedLoginAttemptsException.class)
+                    .isThrownBy(() -> FailedLoginAttempts.of(invalidAttemptNumber))
+                    .extracting("message", "domainErrorCode")
+                    .containsExactly(expectedErrorMessage, expectedErrorCode);
+        }
+
+        @Test
+        void givenAttemptNumberAboveLimit_whenOfIsCalled_shouldThrowFailedLoginAttemptsException() {
+            // Given
+            int invalidAttemptNumber = 100;
             String expectedErrorMessage = FailedLoginAttemptsExceptionInfo.invalidAttemptNumber().getMessage();
             int expectedErrorCode = FailedLoginAttemptsExceptionInfo.invalidAttemptNumber().getDomainErrorCode();
 
@@ -65,7 +79,7 @@ public class FailedLoginAttemptsTests {
         @Test
         void shouldFailToIncrement_whenMaxAttemptNumberHasBeenReached() {
             // Given
-            FailedLoginAttempts failedLoginAttempts = FailedLoginAttempts.of(FailedLoginAttempts.MAX_ATTEMPTS);
+            FailedLoginAttempts failedLoginAttempts = FailedLoginAttempts.of(5);
 
             String expectedErrorMessage = FailedLoginAttemptsExceptionInfo.maxAttemptsReached().getMessage();
             int expectedErrorCode = FailedLoginAttemptsExceptionInfo.maxAttemptsReached().getDomainErrorCode();
@@ -98,7 +112,7 @@ public class FailedLoginAttemptsTests {
         @Test
         void shouldReturnTrue_whenMaxAttemptNumberHasBeenReached() {
             // Given
-            FailedLoginAttempts failedLoginAttempts = FailedLoginAttempts.of(FailedLoginAttempts.MAX_ATTEMPTS);
+            FailedLoginAttempts failedLoginAttempts = FailedLoginAttempts.of(5);
 
             // When & Then
             assertThat(failedLoginAttempts.hasReachedMax()).isTrue();
@@ -107,7 +121,7 @@ public class FailedLoginAttemptsTests {
         @Test
         void shouldReturnFalse_whenMaxAttemptNumberHasNotBeenReached() {
             // Given
-            FailedLoginAttempts failedLoginAttempts = FailedLoginAttempts.of(FailedLoginAttempts.MAX_ATTEMPTS - 1);
+            FailedLoginAttempts failedLoginAttempts = FailedLoginAttempts.of(1);
 
             // When & Then
             assertThat(failedLoginAttempts.hasReachedMax()).isFalse();

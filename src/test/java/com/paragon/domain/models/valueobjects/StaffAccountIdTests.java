@@ -14,18 +14,38 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.*;
 
 public class StaffAccountIdTests {
-
     @Nested
-    class Generate {
+    class Of {
         @Test
-        void whenGenerateIsCalled_thenReturnsValidStaffAccountId() {
+        void givenValidUUID_whenOfIsCalled_thenReturnsValidStaffAccountId() {
             // Given
-            StaffAccountId staffAccountId = StaffAccountId.generate();
+            UUID expectedUuid = UUID.randomUUID();
 
             // When & Then
-            assertThat(staffAccountId.getValue().toString())
-                    .isNotNull()
-                    .hasSize(36);
+            assertThat(StaffAccountId.of(expectedUuid).getValue())
+                    .isEqualTo(expectedUuid);
+        }
+
+        @Test
+        void givenSameUUID_whenOfIsCalledTwice_thenIdsAreEqual() {
+            UUID uuid = UUID.randomUUID();
+            StaffAccountId staffAccountId1 = StaffAccountId.of(uuid);
+            StaffAccountId staffAccountId2 = StaffAccountId.of(uuid);
+
+            assertThat(staffAccountId1).isEqualTo(staffAccountId2);
+        }
+
+        @Test
+        void givenNullId_whenOfIsCalled_thenThrowsStaffAccountIdException() {
+            // Given
+            String expectedErrorMessage = StaffAccountIdExceptionInfo.missingValue().getMessage();
+            int expectedErrorCode = StaffAccountIdExceptionInfo.missingValue().getDomainErrorCode();
+
+            // When & Then
+            assertThatExceptionOfType(StaffAccountIdException.class)
+                    .isThrownBy(() -> StaffAccountId.of(null))
+                    .extracting("message", "domainErrorCode")
+                    .containsExactly(expectedErrorMessage, expectedErrorCode);
         }
     }
 
@@ -58,6 +78,20 @@ public class StaffAccountIdTests {
                     Arguments.of("", StaffAccountIdExceptionInfo.missingValue()),
                     Arguments.of("invalid-format", StaffAccountIdExceptionInfo.invalidFormat())
             );
+        }
+    }
+
+    @Nested
+    class Generate {
+        @Test
+        void whenGenerateIsCalled_thenReturnsValidStaffAccountId() {
+            // Given
+            StaffAccountId staffAccountId = StaffAccountId.generate();
+
+            // When & Then
+            assertThat(staffAccountId.getValue().toString())
+                    .isNotNull()
+                    .hasSize(36);
         }
     }
 }

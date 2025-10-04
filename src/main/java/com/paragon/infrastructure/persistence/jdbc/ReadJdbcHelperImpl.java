@@ -2,10 +2,12 @@ package com.paragon.infrastructure.persistence.jdbc;
 
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 
+@Component
 public class ReadJdbcHelperImpl implements ReadJdbcHelper {
     private final NamedParameterJdbcTemplate jdbc;
 

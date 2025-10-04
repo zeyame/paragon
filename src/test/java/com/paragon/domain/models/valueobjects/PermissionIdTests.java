@@ -2,6 +2,8 @@ package com.paragon.domain.models.valueobjects;
 
 import com.paragon.domain.exceptions.valueobject.PermissionIdException;
 import com.paragon.domain.exceptions.valueobject.PermissionIdExceptionInfo;
+import com.paragon.domain.exceptions.valueobject.StaffAccountIdException;
+import com.paragon.domain.exceptions.valueobject.StaffAccountIdExceptionInfo;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -16,16 +18,37 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class PermissionIdTests {
     @Nested
-    class Generate {
+    class Of {
         @Test
-        void whenGenerateIsCalled_thenReturnsValidPermissionId() {
+        void givenValidUUID_whenOfIsCalled_thenReturnsValidPermissionId() {
             // Given
-            PermissionId permissionId = PermissionId.generate();
+            UUID expectedUuid = UUID.randomUUID();
 
             // When & Then
-            assertThat(permissionId.getValue().toString())
-                    .isNotNull()
-                    .hasSize(36);
+            assertThat(PermissionId.of(expectedUuid).getValue())
+                    .isEqualTo(expectedUuid);
+        }
+
+        @Test
+        void givenSameUUID_whenOfIsCalledTwice_thenIdsAreEqual() {
+            UUID uuid = UUID.randomUUID();
+            PermissionId permissionId1 = PermissionId.of(uuid);
+            PermissionId permissionId2 = PermissionId.of(uuid);
+
+            assertThat(permissionId1).isEqualTo(permissionId2);
+        }
+
+        @Test
+        void givenNullId_whenOfIsCalled_thenThrowsPermissionIdException() {
+            // Given
+            String expectedErrorMessage = PermissionIdExceptionInfo.missingValue().getMessage();
+            int expectedErrorCode = PermissionIdExceptionInfo.missingValue().getDomainErrorCode();
+
+            // When & Then
+            assertThatExceptionOfType(PermissionIdException.class)
+                    .isThrownBy(() -> PermissionId.of(null))
+                    .extracting("message", "domainErrorCode")
+                    .containsExactly(expectedErrorMessage, expectedErrorCode);
         }
     }
 
@@ -59,4 +82,19 @@ public class PermissionIdTests {
             );
         }
     }
+
+    @Nested
+    class Generate {
+        @Test
+        void whenGenerateIsCalled_thenReturnsValidPermissionId() {
+            // Given
+            PermissionId permissionId = PermissionId.generate();
+
+            // When & Then
+            assertThat(permissionId.getValue().toString())
+                    .isNotNull()
+                    .hasSize(36);
+        }
+    }
+
 }

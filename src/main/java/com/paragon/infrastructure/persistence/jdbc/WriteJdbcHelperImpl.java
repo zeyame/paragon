@@ -1,15 +1,16 @@
 package com.paragon.infrastructure.persistence.jdbc;
 
-import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.exceptions.InfraExceptionHandler;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
+@Component
 public class WriteJdbcHelperImpl implements WriteJdbcHelper {
     private final NamedParameterJdbcTemplate jdbc;
     private final InfraExceptionHandler infraExceptionHandler;

@@ -7,7 +7,7 @@ import java.util.List;
 
 public class FailedLoginAttempts extends ValueObject {
     private final int value;
-    public final static int MAX_ATTEMPTS = 5;
+    private final static int MAX_ATTEMPTS = 5;
 
     private FailedLoginAttempts(int value) {
         this.value = value;

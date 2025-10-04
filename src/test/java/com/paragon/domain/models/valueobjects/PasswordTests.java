@@ -29,7 +29,11 @@ public class PasswordTests {
 
         @ParameterizedTest
         @MethodSource("invalidPasswords")
-        void shouldRejectInvalidPasswords(String invalidPassword, String expectedErrorMessage, int expectedErrorCode) {
+        void shouldRejectInvalidPasswords(String invalidPassword, PasswordExceptionInfo exceptionInfo) {
+            // Given
+            String expectedErrorMessage = exceptionInfo.getMessage();
+            int expectedErrorCode = exceptionInfo.getDomainErrorCode();
+
             // When & Then
             assertThatExceptionOfType(PasswordException.class)
                     .isThrownBy(() -> Password.of(invalidPassword))
@@ -39,16 +43,8 @@ public class PasswordTests {
 
         private static Stream<Arguments> invalidPasswords() {
             return Stream.of(
-                    Arguments.of(
-                            null,
-                            PasswordExceptionInfo.missingValue().getMessage(),
-                            PasswordExceptionInfo.missingValue().getDomainErrorCode()
-                    ),
-                    Arguments.of(
-                            "",
-                            PasswordExceptionInfo.missingValue().getMessage(),
-                            PasswordExceptionInfo.missingValue().getDomainErrorCode()
-                    )
+                    Arguments.of(null, PasswordExceptionInfo.missingValue()),
+                    Arguments.of("", PasswordExceptionInfo.missingValue())
             );
         }
     }

@@ -2,10 +2,12 @@ package com.paragon.domain.models.valueobjects;
 
 import com.paragon.domain.exceptions.valueobject.EmailException;
 import com.paragon.domain.exceptions.valueobject.EmailExceptionInfo;
+import lombok.Getter;
 
 import java.util.List;
 import java.util.regex.Pattern;
 
+@Getter
 public class Email extends ValueObject {
     private final String value;
     private static final Pattern EMAIL_PATTERN =
@@ -18,10 +20,6 @@ public class Email extends ValueObject {
     public static Email of(String value) {
         assertValidEmail(value);
         return new Email(value);
-    }
-
-    public String getValue() {
-        return value;
     }
 
     @Override

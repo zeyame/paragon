@@ -2,12 +2,14 @@ package com.paragon.domain.models.valueobjects;
 
 import com.paragon.domain.exceptions.valueobject.PasswordException;
 import com.paragon.domain.exceptions.valueobject.PasswordExceptionInfo;
+import lombok.Getter;
 
 import java.util.List;
 
 /**
  * Password VO always represents a hashed password
  */
+@Getter
 public class Password extends ValueObject {
     private final String value;
 
@@ -18,10 +20,6 @@ public class Password extends ValueObject {
     public static Password of(String value) {
         assertValidPassword(value);
         return new Password(value);
-    }
-
-    public String getValue() {
-        return value;
     }
 
     @Override

@@ -3,7 +3,6 @@ package com.paragon.application.commands.registerstaffaccount;
 import java.util.List;
 
 public record RegisterStaffAccountCommand(
-        String id,
         String username,
         String email,
         String tempPassword,

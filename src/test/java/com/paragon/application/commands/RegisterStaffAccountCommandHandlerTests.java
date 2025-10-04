@@ -6,7 +6,12 @@ import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccoun
 import com.paragon.application.common.exceptions.AppException;
 import com.paragon.application.common.exceptions.AppExceptionHandler;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
+import com.paragon.application.context.ActorContext;
+import com.paragon.application.events.EventBus;
 import com.paragon.application.queries.repositoryinterfaces.PermissionReadRepo;
+import com.paragon.domain.enums.StaffAccountStatus;
+import com.paragon.domain.events.DomainEvent;
+import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
@@ -19,6 +24,7 @@ import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,30 +34,37 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 public class RegisterStaffAccountCommandHandlerTests {
-    private RegisterStaffAccountCommandHandler sut;
-    private StaffAccountWriteRepo staffAccountWriteRepoMock;
-    private PermissionReadRepo permissionReadRepoMock;
-    private AppExceptionHandler appExceptionHandlerMock;
-    private RegisterStaffAccountCommand command;
-    private StaffAccount registeringAccount;
-    private Permission manageAccountsPermission;
+    private final RegisterStaffAccountCommandHandler sut;
+    private final StaffAccountWriteRepo staffAccountWriteRepoMock;
+    private final PermissionReadRepo permissionReadRepoMock;
+    private final ActorContext actorContextMock;
+    private final EventBus eventBusMock;
+    private final AppExceptionHandler appExceptionHandlerMock;
+    private final RegisterStaffAccountCommand command;
+    private final StaffAccount requestingStaffAccount;
+    private final Permission manageAccountsPermission;
 
     public RegisterStaffAccountCommandHandlerTests() {
         staffAccountWriteRepoMock = mock(StaffAccountWriteRepo.class);
         permissionReadRepoMock = mock(PermissionReadRepo.class);
+        actorContextMock = mock(ActorContext.class);
+        eventBusMock = mock(EventBus.class);
         appExceptionHandlerMock = mock(AppExceptionHandler.class);
 
-        sut = new RegisterStaffAccountCommandHandler(staffAccountWriteRepoMock, permissionReadRepoMock, appExceptionHandlerMock);
+        sut = new RegisterStaffAccountCommandHandler(staffAccountWriteRepoMock, permissionReadRepoMock, actorContextMock, eventBusMock, appExceptionHandlerMock);
 
         command = createValidRegisterStaffAccountCommand();
 
+        String registeringStaffAccountId = UUID.randomUUID().toString();
+        when(actorContextMock.getActorId()).thenReturn(registeringStaffAccountId);
+
         String manageAccountsPermissionId = UUID.randomUUID().toString();
-        registeringAccount = new StaffAccountFixture()
-                .withId(command.id())
+        requestingStaffAccount = new StaffAccountFixture()
+                .withId(registeringStaffAccountId)
                 .withPermissionIds(List.of(manageAccountsPermissionId))
                 .build();
-        when(staffAccountWriteRepoMock.getById(StaffAccountId.from(command.id())))
-                .thenReturn(Optional.of(registeringAccount));
+        when(staffAccountWriteRepoMock.getById(StaffAccountId.from(registeringStaffAccountId)))
+                .thenReturn(Optional.of(requestingStaffAccount));
 
         manageAccountsPermission = new PermissionFixture()
                 .withId(manageAccountsPermissionId)
@@ -80,12 +93,38 @@ public class RegisterStaffAccountCommandHandlerTests {
     }
 
     @Test
+    void givenValidCommand_shouldPublishStaffAccountRegisteredEvent() {
+        // Given
+        ArgumentCaptor<List<DomainEvent>> domainEventsCaptor =  ArgumentCaptor.forClass(List.class);
+
+        // When
+        sut.handle(command);
+
+        // Then
+        verify(eventBusMock, times(1)).publishAll(domainEventsCaptor.capture());
+
+        List<DomainEvent> publishedEvents = domainEventsCaptor.getValue();
+        assertThat(publishedEvents.size()).isEqualTo(1);
+
+        DomainEvent event = publishedEvents.getFirst();
+        assertThat(event).isInstanceOf(StaffAccountRegisteredEvent.class);
+
+        StaffAccountRegisteredEvent registeredEvent = (StaffAccountRegisteredEvent) event;
+        assertThat(registeredEvent.getUsername().getValue()).isEqualTo(command.username());
+        assertThat(registeredEvent.getPassword().getValue()).isEqualTo(command.tempPassword());
+        assertThat(registeredEvent.getOrderAccessDuration().getValueInDays()).isEqualTo(command.orderAccessDuration());
+        assertThat(registeredEvent.getModmailTranscriptAccessDuration().getValueInDays()).isEqualTo(command.modmailTranscriptAccessDuration());
+        assertThat(registeredEvent.getStatus()).isEqualTo(StaffAccountStatus.PENDING_PASSWORD_CHANGE);
+        assertThat(registeredEvent.getCreatedBy()).isEqualTo(requestingStaffAccount.getId());
+    }
+
+    @Test
     void whenRegisteringStaffAccountDoesNotExist_shouldThrowAppException() {
         // Given
         when(staffAccountWriteRepoMock.getById(any(StaffAccountId.class)))
                 .thenReturn(Optional.empty());
 
-        AppException expectedAppException = new AppException(AppExceptionInfo.staffAccountNotFound(command.id()));
+        AppException expectedAppException = new AppException(AppExceptionInfo.staffAccountNotFound(requestingStaffAccount.getId().getValue().toString()));
 
         // When & Then
         assertThatThrownBy(() -> sut.handle(command))
@@ -96,10 +135,10 @@ public class RegisterStaffAccountCommandHandlerTests {
     void whenRegisteringStaffAccountDoesNotHaveRequiredPermissions_shouldThrowAppException() {
         // Given
         StaffAccount accountLackingPermissions = new StaffAccountFixture()
-                .withId(command.id())
+                .withId(UUID.randomUUID().toString())
                 .withPermissionIds(List.of()) // no permission
                 .build();
-        when(staffAccountWriteRepoMock.getById(StaffAccountId.from(command.id())))
+        when(staffAccountWriteRepoMock.getById(any(StaffAccountId.class)))
                 .thenReturn(Optional.of(accountLackingPermissions));
 
         AppException expectedAppException = new AppException(AppExceptionInfo.permissionAccessDenied("registration"));
@@ -112,8 +151,7 @@ public class RegisterStaffAccountCommandHandlerTests {
     @Test
     void whenDomainExceptionIsThrown_shouldCatchAndTranslateToAppException() {
         // Given
-        command = new RegisterStaffAccountCommand(
-                UUID.randomUUID().toString(),
+        RegisterStaffAccountCommand command = new RegisterStaffAccountCommand(
                 "", // forces a domain exception (UsernameException)
                 "testuser@example.com",
                 "TempPass123!",
@@ -147,7 +185,6 @@ public class RegisterStaffAccountCommandHandlerTests {
 
     private RegisterStaffAccountCommand createValidRegisterStaffAccountCommand() {
         return new RegisterStaffAccountCommand(
-                UUID.randomUUID().toString(),
                 "testuser",
                 "testuser@example.com",
                 "TempPass123!",

@@ -3,6 +3,7 @@ package com.paragon.domain.models.valueobjects;
 import com.paragon.domain.exceptions.valueobject.OrderAccessDurationException;
 import com.paragon.domain.exceptions.valueobject.OrderAccessDurationExceptionInfo;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -39,6 +40,18 @@ public class OrderAccessDurationTests {
                     .isThrownBy(() -> OrderAccessDuration.from(invalidDuration))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(expectedErrorMessage, expectedErrorCode);
+        }
+    }
+
+    @Nested
+    class GetValueInDays {
+        @Test
+        void shouldReturnValueInDays() {
+            // When
+            OrderAccessDuration accessDuration = OrderAccessDuration.from(5);
+
+            // Then
+            assertThat(accessDuration.getValueInDays()).isEqualTo(5);
         }
     }
 }

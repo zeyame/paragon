@@ -2,12 +2,13 @@ package com.paragon.domain.models.valueobjects;
 
 import com.paragon.domain.exceptions.valueobject.ModmailTranscriptAccessDurationException;
 import com.paragon.domain.exceptions.valueobject.ModmailTranscriptAccessDurationExceptionInfo;
+import lombok.Getter;
 
 import java.time.Duration;
 import java.util.List;
 
+@Getter
 public class ModmailTranscriptAccessDuration extends ValueObject {
-
     private final Duration value;
 
     private ModmailTranscriptAccessDuration(Duration value) {
@@ -19,8 +20,8 @@ public class ModmailTranscriptAccessDuration extends ValueObject {
         return new ModmailTranscriptAccessDuration(Duration.ofDays(value));
     }
 
-    public Duration getValue() {
-        return value;
+    public long getValueInDays() {
+        return value.toDays();
     }
 
     @Override

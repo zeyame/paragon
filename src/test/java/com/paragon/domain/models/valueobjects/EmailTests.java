@@ -28,7 +28,11 @@ public class EmailTests {
 
         @ParameterizedTest
         @MethodSource("invalidEmails")
-        void shouldRejectInvalidEmails(String invalidEmail, String expectedErrorMessage, int expectedErrorCode) {
+        void shouldRejectInvalidEmails(String invalidEmail, EmailExceptionInfo exceptionInfo) {
+            // Given
+            String expectedErrorMessage = exceptionInfo.getMessage();
+            int expectedErrorCode = exceptionInfo.getDomainErrorCode();
+
             // When & Then
             assertThatExceptionOfType(EmailException.class)
                     .isThrownBy(() -> Email.of(invalidEmail))
@@ -38,13 +42,13 @@ public class EmailTests {
 
         private static Stream<Arguments> invalidEmails() {
             return Stream.of(
-                    Arguments.of(null, EmailExceptionInfo.missingValue().getMessage(), EmailExceptionInfo.missingValue().getDomainErrorCode()),
-                    Arguments.of("", EmailExceptionInfo.missingValue().getMessage(), EmailExceptionInfo.missingValue().getDomainErrorCode()),
-                    Arguments.of("a".repeat(310) + "@example.com", EmailExceptionInfo.lengthOutOfRange().getMessage(), EmailExceptionInfo.lengthOutOfRange().getDomainErrorCode()),
-                    Arguments.of("plainaddress", EmailExceptionInfo.invalidFormat().getMessage(), EmailExceptionInfo.invalidFormat().getDomainErrorCode()),
-                    Arguments.of("@no-local-part.com", EmailExceptionInfo.invalidFormat().getMessage(), EmailExceptionInfo.invalidFormat().getDomainErrorCode()),
-                    Arguments.of("no-at-symbol.com", EmailExceptionInfo.invalidFormat().getMessage(), EmailExceptionInfo.invalidFormat().getDomainErrorCode()),
-                    Arguments.of("space in@domain.com", EmailExceptionInfo.invalidFormat().getMessage(), EmailExceptionInfo.invalidFormat().getDomainErrorCode())
+                    Arguments.of(null, EmailExceptionInfo.missingValue()),
+                    Arguments.of("", EmailExceptionInfo.missingValue()),
+                    Arguments.of("a".repeat(310) + "@example.com", EmailExceptionInfo.lengthOutOfRange()),
+                    Arguments.of("plainaddress", EmailExceptionInfo.invalidFormat()),
+                    Arguments.of("@no-local-part.com", EmailExceptionInfo.invalidFormat()),
+                    Arguments.of("no-at-symbol.com", EmailExceptionInfo.invalidFormat()),
+                    Arguments.of("space in@domain.com", EmailExceptionInfo.invalidFormat())
             );
         }
     }

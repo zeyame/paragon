@@ -2,10 +2,12 @@ package com.paragon.domain.models.valueobjects;
 
 import com.paragon.domain.exceptions.valueobject.OrderAccessDurationException;
 import com.paragon.domain.exceptions.valueobject.OrderAccessDurationExceptionInfo;
+import lombok.Getter;
 
 import java.time.Duration;
 import java.util.List;
 
+@Getter
 public class OrderAccessDuration extends ValueObject {
     private final Duration value;
 
@@ -18,8 +20,8 @@ public class OrderAccessDuration extends ValueObject {
         return new OrderAccessDuration(Duration.ofDays(value));
     }
 
-    public Duration getValue() {
-        return value;
+    public long getValueInDays() {
+        return value.toDays();
     }
 
     private static void assertValidDuration(int value) {

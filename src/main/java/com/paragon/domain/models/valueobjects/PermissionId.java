@@ -7,6 +7,7 @@ import lombok.Getter;
 import java.util.List;
 import java.util.UUID;
 
+@Getter
 public class PermissionId extends ValueObject {
 
     private final UUID value;
@@ -29,10 +30,6 @@ public class PermissionId extends ValueObject {
 
     public static PermissionId generate() {
         return new PermissionId(UUID.randomUUID());
-    }
-
-    public UUID getValue() {
-        return value;
     }
 
     @Override

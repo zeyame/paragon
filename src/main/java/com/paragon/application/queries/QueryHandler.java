@@ -1,4 +1,4 @@
-package com.paragon.application.queries.repositoryinterfaces;
+package com.paragon.application.queries;
 
 public interface QueryHandler<TQuery, TQueryResponse> {
     TQueryResponse handle(TQuery query);

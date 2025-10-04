@@ -31,11 +31,9 @@ public class StaffAccountController {
     @PostMapping
     @Async("taskExecutor")
     public CompletableFuture<ResponseEntity<ResponseDto<RegisterStaffAccountResponseDto>>> register(@RequestBody RegisterStaffAccountRequestDto requestDto) {
-        String staffId = ClaimsUtil.getStaffId();
+        log.info("Received request to register a new staff account.");
 
-        log.info("Received request to register a new staff account from a staff account with id '{}'", staffId);
-
-        var command = createRegisterStaffAccountCommand(staffId, requestDto);
+        var command = createRegisterStaffAccountCommand(requestDto);
         var commandResponse = registerStaffAccountCommandHandler.handle(command);
 
         var responseDto = new ResponseDto<RegisterStaffAccountResponseDto>(
@@ -46,9 +44,8 @@ public class StaffAccountController {
         return CompletableFuture.completedFuture(ResponseEntity.ok(responseDto));
     }
 
-    private RegisterStaffAccountCommand createRegisterStaffAccountCommand(String staffId, RegisterStaffAccountRequestDto requestDto) {
+    private RegisterStaffAccountCommand createRegisterStaffAccountCommand(RegisterStaffAccountRequestDto requestDto) {
         return new RegisterStaffAccountCommand(
-                staffId,
                 requestDto.username(),
                 requestDto.email(),
                 requestDto.tempPassword(),

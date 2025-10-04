@@ -4,7 +4,10 @@ import com.paragon.application.commands.CommandHandler;
 import com.paragon.application.common.exceptions.AppException;
 import com.paragon.application.common.exceptions.AppExceptionHandler;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
+import com.paragon.application.context.ActorContext;
+import com.paragon.application.events.EventBus;
 import com.paragon.application.queries.repositoryinterfaces.PermissionReadRepo;
+import com.paragon.domain.events.DomainEvent;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
@@ -16,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -24,28 +28,35 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
 
     private final StaffAccountWriteRepo staffAccountWriteRepo;
     private final PermissionReadRepo permissionReadRepo;
+    private final ActorContext actorContext;
+    private final EventBus eventBus;
     private final AppExceptionHandler appExceptionHandler;
     private static final Logger log = LoggerFactory.getLogger(RegisterStaffAccountCommandHandler.class);
 
-    public RegisterStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo, PermissionReadRepo permissionReadRepo, AppExceptionHandler appExceptionHandler) {
+    public RegisterStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo, PermissionReadRepo permissionReadRepo,
+                                              ActorContext actorContext, EventBus eventBus, AppExceptionHandler appExceptionHandler
+    ) {
         this.staffAccountWriteRepo = staffAccountWriteRepo;
         this.permissionReadRepo = permissionReadRepo;
+        this.actorContext = actorContext;
+        this.eventBus = eventBus;
         this.appExceptionHandler = appExceptionHandler;
     }
 
     @Override
     public RegisterStaffAccountCommandResponse handle(RegisterStaffAccountCommand command) {
+        String requestingStaffId = actorContext.getActorId();
         try {
-            Optional<StaffAccount> optional = staffAccountWriteRepo.getById(StaffAccountId.from(command.id()));
+            Optional<StaffAccount> optional = staffAccountWriteRepo.getById(StaffAccountId.from(requestingStaffId));
             if (optional.isEmpty()) {
-                log.error("Staff account registration failed: requestingStaffId='{}' does not exist.", command.id());
-                throw new AppException(AppExceptionInfo.staffAccountNotFound(command.id()));
+                log.error("Staff account registration failed: requestingStaffId='{}' does not exist.", requestingStaffId);
+                throw new AppException(AppExceptionInfo.staffAccountNotFound(requestingStaffId));
             }
             StaffAccount requestingStaffAccount = optional.get();
 
             Permission permission = permissionReadRepo.getByCode(SystemPermissions.MANAGE_ACCOUNTS).get();
             if (!requestingStaffAccount.hasPermission(permission.getId())) {
-                log.warn("Staff account registration request denied: requestingStaffId='{}' lacked MANAGE_ACCOUNTS permission.", command.id());
+                log.warn("Staff account registration request denied: requestingStaffId='{}' lacked MANAGE_ACCOUNTS permission.", requestingStaffId);
                 throw new AppException(AppExceptionInfo.permissionAccessDenied("registration"));
             }
 
@@ -59,6 +70,8 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
                     command.permissionsIds().stream().map(PermissionId::from).collect(Collectors.toSet())
             );
             staffAccountWriteRepo.create(staffAccount);
+
+            eventBus.publishAll(staffAccount.dequeueUncommittedEvents());
 
             log.info(
                     "Staff account registered: id={}, username={}, status={}, registeredBy={}",
@@ -76,11 +89,11 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
             );
         } catch (DomainException ex) {
             log.error("Staff account registration failed for requestingStaffId={}: domain rule violation - {}",
-                    command.id(), ex.getMessage());
+                    requestingStaffId, ex.getMessage(), ex);
             throw appExceptionHandler.handleDomainException(ex);
         } catch (InfraException ex) {
             log.error("Staff account registration failed for requestingStaffId={}: infrastructure related error occurred - {}",
-                    command.id(), ex.getMessage());
+                    requestingStaffId, ex.getMessage(), ex);
             throw appExceptionHandler.handleInfraException(ex);
         }
     }

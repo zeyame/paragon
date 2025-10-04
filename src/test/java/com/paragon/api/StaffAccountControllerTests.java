@@ -12,11 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
-
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -30,7 +25,6 @@ public class StaffAccountControllerTests {
     class Register {
         private final StaffAccountController sut;
         private final RegisterStaffAccountCommandHandler registerStaffAccountCommandHandlerMock;
-        private final String registeringStaffId;
         private final RegisterStaffAccountCommandResponse commandResponse;
 
         public Register() {
@@ -42,15 +36,6 @@ public class StaffAccountControllerTests {
             );
             when(registerStaffAccountCommandHandlerMock.handle(any(RegisterStaffAccountCommand.class)))
                     .thenReturn(commandResponse);
-
-            registeringStaffId = "staff-id";
-            Jwt jwt = Jwt.withTokenValue("fake-token")
-                    .header("alg", "none")
-                    .claim("staff_id", registeringStaffId)
-                    .build();
-
-            Authentication auth = new UsernamePasswordAuthenticationToken(jwt, jwt.getTokenValue());
-            SecurityContextHolder.getContext().setAuthentication(auth);
         }
 
         @Test
@@ -128,7 +113,6 @@ public class StaffAccountControllerTests {
 
         private RegisterStaffAccountCommand createRegisterStaffAccountCommandFrom(RegisterStaffAccountRequestDto request) {
             return new RegisterStaffAccountCommand(
-                    registeringStaffId,
                     request.username(),
                     request.email(),
                     request.tempPassword(),

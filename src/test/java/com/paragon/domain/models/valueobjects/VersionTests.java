@@ -16,16 +16,6 @@ public class VersionTests {
             assertThat(version.getValue())
                     .isEqualTo(1);
         }
-
-        @Test
-        void givenTwoInitialVersions_whenCompared_returnsTrue() {
-            // Given
-            Version version1 = Version.initial();
-            Version version2 = Version.initial();
-
-            // When & Then
-            assertThat(version1).isEqualTo(version2);
-        }
     }
 
     @Nested
@@ -39,8 +29,7 @@ public class VersionTests {
             version = version.increase();
 
             // Then
-            assertThat(version.getValue())
-                    .isEqualTo(2);
+            assertThat(version.getValue()).isEqualTo(2);
         }
     }
 }

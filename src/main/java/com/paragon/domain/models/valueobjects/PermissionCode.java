@@ -2,9 +2,11 @@ package com.paragon.domain.models.valueobjects;
 
 import com.paragon.domain.exceptions.valueobject.PermissionCodeException;
 import com.paragon.domain.exceptions.valueobject.PermissionCodeExceptionInfo;
+import lombok.Getter;
 
 import java.util.List;
 
+@Getter
 public class PermissionCode extends ValueObject {
     private final String value;
 
@@ -15,10 +17,6 @@ public class PermissionCode extends ValueObject {
     public static PermissionCode of(String value) {
         assertValidPermissionCode(value);
         return new PermissionCode(value.toUpperCase());
-    }
-
-    public String getValue() {
-        return value;
     }
 
     @Override

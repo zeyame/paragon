@@ -27,7 +27,7 @@ public class PermissionTests {
         @ParameterizedTest
         @ValueSource(strings = {"", "Some description of the permission"})
         void givenValidInputWithOrWithoutDescription_shouldCreatePermission(String description) {
-            // Given
+            // When
             Permission permission = Permission.create(code, category, description);
 
             // Then
@@ -38,6 +38,18 @@ public class PermissionTests {
         }
 
         @Test
+        void shouldGenerateUniquePermissionId() {
+            // Given
+            Permission permission1 = Permission.create(SystemPermissions.MANAGE_ACCOUNTS, PermissionCategory.ACCOUNTS, "description");
+            Permission permission2 = Permission.create(SystemPermissions.APPROVE_PASSWORD_CHANGE, PermissionCategory.ACCOUNTS, "description");
+
+            // When
+            assertThat(permission1.getId()).isNotNull();
+            assertThat(permission2.getId()).isNotNull();
+            assertThat(permission1.getId()).isNotEqualTo(permission2.getId());
+        }
+
+        @Test
         void givenMissingCode_creationShouldFail() {
             // Given
             String expectedErrorMessage = PermissionExceptionInfo.codeRequired().getMessage();
@@ -45,7 +57,7 @@ public class PermissionTests {
 
             // When & Then
             assertThatExceptionOfType(PermissionException.class)
-                    .isThrownBy(() -> Permission.create(null, category, ""))
+                    .isThrownBy(() -> Permission.create(null, category, "description"))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(expectedErrorMessage, expectedErrorCode);
         }
@@ -58,7 +70,7 @@ public class PermissionTests {
 
             // When & Then
             assertThatExceptionOfType(PermissionException.class)
-                    .isThrownBy(() -> Permission.create(code, null, ""))
+                    .isThrownBy(() -> Permission.create(code, null, "description"))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(expectedErrorMessage, expectedErrorCode);
         }

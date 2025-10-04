@@ -3,14 +3,11 @@ package com.paragon.domain.models.valueobjects;
 import com.paragon.domain.exceptions.valueobject.ModmailTranscriptAccessDurationException;
 import com.paragon.domain.exceptions.valueobject.ModmailTranscriptAccessDurationExceptionInfo;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.Duration;
-import java.util.stream.Stream;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -42,6 +39,18 @@ public class ModmailTranscriptAccessDurationTests {
                     .isThrownBy(() -> ModmailTranscriptAccessDuration.from(invalidDuration))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(expectedErrorMessage, expectedErrorCode);
+        }
+    }
+
+    @Nested
+    class GetValueInDays {
+        @Test
+        void shouldReturnValueInDays() {
+            // When
+            ModmailTranscriptAccessDuration accessDuration = ModmailTranscriptAccessDuration.from(5);
+
+            // Then
+            assertThat(accessDuration.getValueInDays()).isEqualTo(5);
         }
     }
 }

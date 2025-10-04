@@ -2,9 +2,11 @@ package com.paragon.domain.models.valueobjects;
 
 import com.paragon.domain.exceptions.valueobject.VersionException;
 import com.paragon.domain.exceptions.valueobject.VersionExceptionInfo;
+import lombok.Getter;
 
 import java.util.List;
 
+@Getter
 public class Version extends ValueObject {
     private final int value;
 
@@ -23,10 +25,6 @@ public class Version extends ValueObject {
 
     public Version increase() {
         return new Version(value + 1);
-    }
-
-    public int getValue() {
-        return value;
     }
 
     @Override

@@ -75,6 +75,18 @@ public class StaffAccountTests {
         }
 
         @Test
+        void shouldGenerateUniqueStaffAccountId() {
+            // When
+            StaffAccount staffAccount1 = StaffAccount.register(username, email, password, orderAccessDuration, modmailTranscriptAccessDuration, createdBy, permissionIds);
+            StaffAccount staffAccount2 = StaffAccount.register(username, email, password, orderAccessDuration, modmailTranscriptAccessDuration, createdBy, permissionIds);
+
+            // Then
+            assertThat(staffAccount1.getId()).isNotNull();
+            assertThat(staffAccount2.getId()).isNotNull();
+            assertThat(staffAccount1.getId()).isNotEqualTo(staffAccount2.getId());
+        }
+
+        @Test
         void givenMissingUsername_registrationShouldFail() {
             // Given
             String expectedErrorMessage = StaffAccountExceptionInfo.usernameRequired().getMessage();

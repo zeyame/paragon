@@ -2,6 +2,7 @@ package com.paragon.domain.models.aggregates;
 
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.events.DomainEvent;
+import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
 import com.paragon.domain.exceptions.aggregate.StaffAccountException;
 import com.paragon.domain.exceptions.aggregate.StaffAccountExceptionInfo;
 import com.paragon.domain.models.valueobjects.*;
@@ -66,11 +67,13 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
                                         StaffAccountId createdBy, Set<PermissionId> permissionIds)
     {
         assertValidRegistration(username, password, orderAccessDuration, modmailTranscriptAccessDuration, createdBy, permissionIds);
-        return new StaffAccount(
+        StaffAccount account = new StaffAccount(
                 StaffAccountId.generate(), username, email, password, Instant.now(),
                 orderAccessDuration, modmailTranscriptAccessDuration, StaffAccountStatus.PENDING_PASSWORD_CHANGE,
                 FailedLoginAttempts.initial(), null, null, createdBy, null, permissionIds, Version.initial()
         );
+        account.enqueue(new StaffAccountRegisteredEvent(account));
+        return account;
     }
 
     public static StaffAccount createFrom(StaffAccountId id, Username username, Email email, Password password,

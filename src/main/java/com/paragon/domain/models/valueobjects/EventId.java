@@ -2,10 +2,12 @@ package com.paragon.domain.models.valueobjects;
 
 import com.paragon.domain.exceptions.valueobject.EventIdException;
 import com.paragon.domain.exceptions.valueobject.EventIdExceptionInfo;
+import lombok.Getter;
 
 import java.util.List;
 import java.util.UUID;
 
+@Getter
 public class EventId extends ValueObject {
     private final UUID value;
 
@@ -16,10 +18,6 @@ public class EventId extends ValueObject {
 
     public static EventId generate() {
         return new EventId(UUID.randomUUID());
-    }
-
-    public UUID getValue() {
-        return value;
     }
 
     @Override
