@@ -13,8 +13,10 @@ import com.paragon.domain.models.entities.AuditTrailEntry;
 import com.paragon.domain.models.valueobjects.AuditEntryTargetId;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 @Slf4j
+@Component
 public class StaffAccountRegisteredEventAuditHandler implements EventHandler<StaffAccountRegisteredEvent> {
     private final AuditTrailWriteRepo auditTrailWriteRepo;
     private final RequestMetadataProvider requestMetadataProvider;

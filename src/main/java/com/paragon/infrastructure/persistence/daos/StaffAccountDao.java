@@ -23,13 +23,12 @@ public record StaffAccountDao(
         Instant lastLoginAt,
         UUID createdBy,
         UUID disabledBy,
-        List<UUID> permissionIds,
         int version,
         Instant createdAtUtc,
         Instant updatedAtUtc
 ) {
 
-    public StaffAccount toStaffAccount(List<PermissionId> permissionIds) {
+    public StaffAccount toStaffAccount(List<PermissionCode> permissionCodes) {
         return StaffAccount.createFrom(
                 StaffAccountId.of(id),
                 Username.of(username),
@@ -44,7 +43,7 @@ public record StaffAccountDao(
                 lastLoginAt,
                 StaffAccountId.of(createdBy),
                 disabledBy != null ? StaffAccountId.of(disabledBy) : null,
-                new HashSet<>(permissionIds),
+                new HashSet<>(permissionCodes),
                 Version.of(version)
         );
     }

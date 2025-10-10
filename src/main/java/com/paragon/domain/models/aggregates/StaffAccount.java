@@ -5,6 +5,7 @@ import com.paragon.domain.events.DomainEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
 import com.paragon.domain.exceptions.aggregate.StaffAccountException;
 import com.paragon.domain.exceptions.aggregate.StaffAccountExceptionInfo;
+import com.paragon.domain.models.constants.SystemPermissions;
 import com.paragon.domain.models.valueobjects.*;
 import lombok.Getter;
 
@@ -26,7 +27,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     private Instant lastLoginAt;
     private final StaffAccountId createdBy;
     private StaffAccountId disabledBy;
-    private final Set<PermissionId> permissionIds;
+    private final Set<PermissionCode> permissionCodes;
     private Version version;
 
     private StaffAccount(StaffAccountId id,
@@ -42,7 +43,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
                          Instant lastLoginAt,
                          StaffAccountId createdBy,
                          StaffAccountId disabledBy,
-                         Set<PermissionId> permissionIds,
+                         Set<PermissionCode> permissionCodes,
                          Version version)
     {
         super(id);
@@ -58,19 +59,19 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         this.lastLoginAt = lastLoginAt;
         this.createdBy = createdBy;
         this.disabledBy = disabledBy;
-        this.permissionIds = permissionIds;
+        this.permissionCodes = permissionCodes;
         this.version = version;
     }
 
     public static StaffAccount register(Username username, Email email, Password password, OrderAccessDuration orderAccessDuration,
                                         ModmailTranscriptAccessDuration modmailTranscriptAccessDuration,
-                                        StaffAccountId createdBy, Set<PermissionId> permissionIds)
+                                        StaffAccountId createdBy, Set<PermissionCode> permissionCodes)
     {
-        assertValidRegistration(username, password, orderAccessDuration, modmailTranscriptAccessDuration, createdBy, permissionIds);
+        assertValidRegistration(username, password, orderAccessDuration, modmailTranscriptAccessDuration, createdBy, permissionCodes);
         StaffAccount account = new StaffAccount(
                 StaffAccountId.generate(), username, email, password, Instant.now(),
                 orderAccessDuration, modmailTranscriptAccessDuration, StaffAccountStatus.PENDING_PASSWORD_CHANGE,
-                FailedLoginAttempts.initial(), null, null, createdBy, null, permissionIds, Version.initial()
+                FailedLoginAttempts.initial(), null, null, createdBy, null, permissionCodes, Version.initial()
         );
         account.enqueue(new StaffAccountRegisteredEvent(account));
         return account;
@@ -81,7 +82,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
                                           ModmailTranscriptAccessDuration modmailTranscriptAccessDuration,
                                           StaffAccountStatus status, FailedLoginAttempts failedLoginAttempts,
                                           Instant lockedUntil, Instant lastLoginAt, StaffAccountId createdBy,
-                                          StaffAccountId disabledBy, Set<PermissionId> permissionIds, Version version) {
+                                          StaffAccountId disabledBy, Set<PermissionCode> permissionCodes, Version version) {
         return new StaffAccount(
                 id, username, email, password,
                 passwordIssuedAt, orderAccessDuration,
@@ -89,18 +90,17 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
                 status, failedLoginAttempts,
                 lockedUntil, lastLoginAt,
                 createdBy, disabledBy,
-                permissionIds, version
+                permissionCodes, version
         );
     }
 
-
-    public boolean hasPermission(PermissionId permissionId) {
-        return permissionIds.contains(permissionId);
+    public boolean canRegisterOtherStaffAccounts() {
+        return permissionCodes.contains(SystemPermissions.MANAGE_ACCOUNTS);
     }
 
     private static void assertValidRegistration(Username username, Password password, OrderAccessDuration orderAccessDuration,
                                                 ModmailTranscriptAccessDuration modmailTranscriptAccessDuration, StaffAccountId createdBy,
-                                                Set<PermissionId> permissionIds)
+                                                Set<PermissionCode> permissionCodes)
     {
         if (username == null) {
             throw new StaffAccountException(StaffAccountExceptionInfo.usernameRequired());
@@ -117,7 +117,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         if (createdBy == null) {
             throw new StaffAccountException(StaffAccountExceptionInfo.createdByRequired());
         }
-        if (permissionIds == null || permissionIds.isEmpty()) {
+        if (permissionCodes == null || permissionCodes.isEmpty()) {
             throw new StaffAccountException(StaffAccountExceptionInfo.atLeastOnePermissionRequired());
         }
     }

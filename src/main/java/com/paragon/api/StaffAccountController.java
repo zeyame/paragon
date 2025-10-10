@@ -3,7 +3,6 @@ package com.paragon.api;
 import com.paragon.api.dtos.ResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
-import com.paragon.api.security.ClaimsUtil;
 import com.paragon.application.commands.CommandHandler;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommand;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandResponse;
@@ -51,7 +50,7 @@ public class StaffAccountController {
                 requestDto.tempPassword(),
                 requestDto.orderAccessDuration(),
                 requestDto.modmailTranscriptAccessDuration(),
-                requestDto.permissionIds()
+                requestDto.permissionCodes()
         );
     }
 

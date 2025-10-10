@@ -1,11 +1,26 @@
+server:
+  port: 8080
 spring:
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          secret-key: a-string-secret-at-least-256-bits-long
+  datasource:
+    write:
+      url: ${SPRING_DATASOURCE_WRITE_URL}
+      username: ${SPRING_DATASOURCE_USERNAME}
+      password: ${SPRING_DATASOURCE_PASSWORD}
+    read:
+      url: ${SPRING_DATASOURCE_READ_URL}
+      username: ${SPRING_DATASOURCE_USERNAME}
+      password: ${SPRING_DATASOURCE_PASSWORD}
+
+
+  flyway:
+    enabled: false
 
 logging:
-  file:
-    name: logs/paragon.log
   level:
-    root: INFO
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG

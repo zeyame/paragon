@@ -1,0 +1,93 @@
+services:
+  db_write:
+    image: postgres:16
+    container_name: paragon_db_write
+    environment:
+      POSTGRES_DB: paragon_write
+      POSTGRES_USER: paragon_user
+      POSTGRES_PASSWORD: paragon_password
+    command: >
+      postgres -c wal_level=replica -c max_wal_senders=5 -c wal_keep_size=64
+    ports:
+      - "5432:5432"
+    volumes:
+      - paragon_write_data:/var/lib/postgresql/data
+      - ./init-primary.sh:/docker-entrypoint-initdb.d/init-primary.sh
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "paragon_user", "-d", "paragon_write" ]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+      start_period: 10s
+
+  db_read:
+    image: postgres:16
+    container_name: paragon_db_read
+    environment:
+      POSTGRES_USER: paragon_user
+      POSTGRES_PASSWORD: paragon_password
+      PGPASSWORD: paragon_password
+    entrypoint: >
+      bash -c "
+        rm -rf /var/lib/postgresql/data/* &&
+        until gosu postgres pg_basebackup -h db_write -D /var/lib/postgresql/data -U paragon_user -Fp -Xs -R -P; do
+          echo 'Waiting for primary to be ready...';
+          sleep 5;
+        done &&
+        chown -R postgres:postgres /var/lib/postgresql/data &&
+        exec docker-entrypoint.sh postgres
+      "
+    depends_on:
+      db_write:
+        condition: service_healthy
+    ports:
+      - "5433:5432"
+    volumes:
+      - paragon_read_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "paragon_user" ]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+      start_period: 15s
+
+  flyway:
+    image: flyway/flyway:10
+    container_name: paragon_flyway
+    depends_on:
+      db_write:
+        condition: service_healthy
+      db_read:
+        condition: service_healthy
+    command: >
+      -url=jdbc:postgresql://db_write:5432/paragon_write
+      -user=paragon_user
+      -password=paragon_password
+      -locations=filesystem:/flyway/sql
+      -validateMigrationNaming=true
+      migrate
+    volumes:
+      - ./src/main/resources/db/migration:/flyway/sql
+
+  app:
+    build: .
+    container_name: paragon_app
+    depends_on:
+      flyway:
+        condition: service_completed_successfully
+      db_write:
+        condition: service_healthy
+      db_read:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_WRITE_URL: jdbc:postgresql://db_write:5432/paragon_write
+      SPRING_DATASOURCE_READ_URL: jdbc:postgresql://db_read:5432/paragon_write
+      SPRING_DATASOURCE_USERNAME: paragon_user
+      SPRING_DATASOURCE_PASSWORD: paragon_password
+    ports:
+      - "8080:8080"
+
+volumes:
+  paragon_write_data:
+  paragon_read_data:

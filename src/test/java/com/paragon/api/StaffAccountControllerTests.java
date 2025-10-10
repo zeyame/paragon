@@ -118,7 +118,7 @@ public class StaffAccountControllerTests {
                     request.tempPassword(),
                     request.orderAccessDuration(),
                     request.modmailTranscriptAccessDuration(),
-                    request.permissionIds()
+                    request.permissionCodes()
             );
         }
     }

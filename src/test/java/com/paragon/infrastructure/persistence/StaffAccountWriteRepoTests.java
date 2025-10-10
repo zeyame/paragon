@@ -2,6 +2,7 @@ package com.paragon.infrastructure.persistence;
 
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.models.aggregates.StaffAccount;
+import com.paragon.domain.models.constants.SystemPermissions;
 import com.paragon.domain.models.valueobjects.*;
 import com.paragon.infrastructure.persistence.daos.StaffAccountDao;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
@@ -45,7 +46,7 @@ public class StaffAccountWriteRepoTests {
             verify(jdbcHelperMock, times(1)).executeMultiple(captor.capture());
             List<WriteQuery> queries = captor.getValue();
 
-            assertThat(queries.size()).isEqualTo(account.getPermissionIds().size() + 1); // 1 for account insertion + N for permission ids
+            assertThat(queries.size()).isEqualTo(account.getPermissionCodes().size() + 1); // 1 for account insertion + N for permission ids
 
             WriteQuery insertQuery = queries.getFirst();
             assertThat(insertQuery.sql()).contains("INSERT INTO staff_accounts");
@@ -68,17 +69,17 @@ public class StaffAccountWriteRepoTests {
             verify(jdbcHelperMock, times(1)).executeMultiple(captor.capture());
             List<WriteQuery> queries = captor.getValue();
 
-            List<PermissionId> permissionIds = account
-                    .getPermissionIds()
+            List<PermissionCode> permissionCodes = account
+                    .getPermissionCodes()
                     .stream()
                     .toList();
 
-            for (PermissionId permissionId : permissionIds) {
+            for (PermissionCode permissionCode : permissionCodes) {
                 assertThat(queries)
                         .anySatisfy(q -> {
                             assertThat(q.sql()).contains(("INSERT INTO staff_account_permissions"));
                             assertThat(q.params().build().get("staffAccountId")).isEqualTo(account.getId().getValue());
-                            assertThat(q.params().build().get("permissionId")).isEqualTo(permissionId.getValue());
+                            assertThat(q.params().build().get("permissionCode")).isEqualTo(permissionCode.getValue());
                         });
             }
         }
@@ -183,7 +184,7 @@ public class StaffAccountWriteRepoTests {
                 Instant.parse("2024-01-03T12:00:00Z"),
                 StaffAccountId.of(UUID.randomUUID()),
                 null,
-                Set.of(PermissionId.of(UUID.randomUUID()), PermissionId.of(UUID.randomUUID())),
+                Set.of(SystemPermissions.MANAGE_ACCOUNTS, SystemPermissions.APPROVE_PASSWORD_CHANGE),
                 Version.of(1)
         );
     }
@@ -203,7 +204,6 @@ public class StaffAccountWriteRepoTests {
                 Instant.parse("2024-01-03T12:00:00Z"),
                 UUID.randomUUID(),
                 null,
-                List.of(UUID.randomUUID(), UUID.randomUUID()),
                 1,
                 Instant.parse("2024-01-02T12:00:00Z"),
                 Instant.parse("2024-01-03T12:00:00Z")

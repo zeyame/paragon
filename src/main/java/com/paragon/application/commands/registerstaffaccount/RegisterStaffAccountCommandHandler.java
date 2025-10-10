@@ -11,15 +11,11 @@ import com.paragon.domain.events.DomainEvent;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
-import com.paragon.domain.models.constants.SystemPermissions;
-import com.paragon.domain.models.entities.Permission;
 import com.paragon.domain.models.valueobjects.*;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -27,17 +23,15 @@ import java.util.stream.Collectors;
 public class RegisterStaffAccountCommandHandler implements CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> {
 
     private final StaffAccountWriteRepo staffAccountWriteRepo;
-    private final PermissionReadRepo permissionReadRepo;
     private final ActorContext actorContext;
     private final EventBus eventBus;
     private final AppExceptionHandler appExceptionHandler;
     private static final Logger log = LoggerFactory.getLogger(RegisterStaffAccountCommandHandler.class);
 
-    public RegisterStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo, PermissionReadRepo permissionReadRepo,
-                                              ActorContext actorContext, EventBus eventBus, AppExceptionHandler appExceptionHandler
+    public RegisterStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo, ActorContext actorContext,
+                                              EventBus eventBus, AppExceptionHandler appExceptionHandler
     ) {
         this.staffAccountWriteRepo = staffAccountWriteRepo;
-        this.permissionReadRepo = permissionReadRepo;
         this.actorContext = actorContext;
         this.eventBus = eventBus;
         this.appExceptionHandler = appExceptionHandler;
@@ -54,8 +48,7 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
             }
             StaffAccount requestingStaffAccount = optional.get();
 
-            Permission permission = permissionReadRepo.getByCode(SystemPermissions.MANAGE_ACCOUNTS).get();
-            if (!requestingStaffAccount.hasPermission(permission.getId())) {
+            if (!requestingStaffAccount.canRegisterOtherStaffAccounts()) {
                 log.warn("Staff account registration request denied: requestingStaffId='{}' lacked MANAGE_ACCOUNTS permission.", requestingStaffId);
                 throw new AppException(AppExceptionInfo.permissionAccessDenied("registration"));
             }
@@ -67,7 +60,7 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
                     OrderAccessDuration.from(command.orderAccessDuration()),
                     ModmailTranscriptAccessDuration.from(command.modmailTranscriptAccessDuration()),
                     requestingStaffAccount.getId(),
-                    command.permissionsIds().stream().map(PermissionId::from).collect(Collectors.toSet())
+                    command.permissionCodes().stream().map(PermissionCode::of).collect(Collectors.toSet())
             );
             staffAccountWriteRepo.create(staffAccount);
 

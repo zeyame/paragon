@@ -20,6 +20,6 @@ public record RegisterStaffAccountRequestDto (
     @JsonProperty("modmail_transcript_access_duration")
     int modmailTranscriptAccessDuration,
 
-    @JsonProperty("permission_ids")
-    List<String> permissionIds
+    @JsonProperty("permission_codes")
+    List<String> permissionCodes
 ) {}

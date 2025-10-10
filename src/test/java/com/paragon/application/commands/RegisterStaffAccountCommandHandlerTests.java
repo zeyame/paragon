@@ -8,7 +8,6 @@ import com.paragon.application.common.exceptions.AppExceptionHandler;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.context.ActorContext;
 import com.paragon.application.events.EventBus;
-import com.paragon.application.queries.repositoryinterfaces.PermissionReadRepo;
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.events.DomainEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
@@ -16,15 +15,12 @@ import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.constants.SystemPermissions;
-import com.paragon.domain.models.entities.Permission;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
-import com.paragon.helpers.PermissionFixture;
 import com.paragon.helpers.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,41 +32,31 @@ import static org.mockito.Mockito.*;
 public class RegisterStaffAccountCommandHandlerTests {
     private final RegisterStaffAccountCommandHandler sut;
     private final StaffAccountWriteRepo staffAccountWriteRepoMock;
-    private final PermissionReadRepo permissionReadRepoMock;
     private final ActorContext actorContextMock;
     private final EventBus eventBusMock;
     private final AppExceptionHandler appExceptionHandlerMock;
     private final RegisterStaffAccountCommand command;
     private final StaffAccount requestingStaffAccount;
-    private final Permission manageAccountsPermission;
 
     public RegisterStaffAccountCommandHandlerTests() {
         staffAccountWriteRepoMock = mock(StaffAccountWriteRepo.class);
-        permissionReadRepoMock = mock(PermissionReadRepo.class);
         actorContextMock = mock(ActorContext.class);
         eventBusMock = mock(EventBus.class);
         appExceptionHandlerMock = mock(AppExceptionHandler.class);
 
-        sut = new RegisterStaffAccountCommandHandler(staffAccountWriteRepoMock, permissionReadRepoMock, actorContextMock, eventBusMock, appExceptionHandlerMock);
+        sut = new RegisterStaffAccountCommandHandler(staffAccountWriteRepoMock, actorContextMock, eventBusMock, appExceptionHandlerMock);
 
         command = createValidRegisterStaffAccountCommand();
 
-        String registeringStaffAccountId = UUID.randomUUID().toString();
-        when(actorContextMock.getActorId()).thenReturn(registeringStaffAccountId);
+        String requestingStaffAccountId = UUID.randomUUID().toString();
+        when(actorContextMock.getActorId()).thenReturn(requestingStaffAccountId);
 
-        String manageAccountsPermissionId = UUID.randomUUID().toString();
         requestingStaffAccount = new StaffAccountFixture()
-                .withId(registeringStaffAccountId)
-                .withPermissionIds(List.of(manageAccountsPermissionId))
+                .withId(requestingStaffAccountId)
+                .withPermissionCodes(List.of(SystemPermissions.MANAGE_ACCOUNTS.getValue()))
                 .build();
-        when(staffAccountWriteRepoMock.getById(StaffAccountId.from(registeringStaffAccountId)))
+        when(staffAccountWriteRepoMock.getById(StaffAccountId.from(requestingStaffAccountId)))
                 .thenReturn(Optional.of(requestingStaffAccount));
-
-        manageAccountsPermission = new PermissionFixture()
-                .withId(manageAccountsPermissionId)
-                .build();
-        when(permissionReadRepoMock.getByCode(SystemPermissions.MANAGE_ACCOUNTS))
-                .thenReturn(Optional.of(manageAccountsPermission));
     }
 
     @Test
@@ -136,7 +122,7 @@ public class RegisterStaffAccountCommandHandlerTests {
         // Given
         StaffAccount accountLackingPermissions = new StaffAccountFixture()
                 .withId(UUID.randomUUID().toString())
-                .withPermissionIds(List.of()) // no permission
+                .withPermissionCodes(List.of()) // no permission
                 .build();
         when(staffAccountWriteRepoMock.getById(any(StaffAccountId.class)))
                 .thenReturn(Optional.of(accountLackingPermissions));

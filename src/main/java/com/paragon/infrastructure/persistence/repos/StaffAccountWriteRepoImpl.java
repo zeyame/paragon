@@ -3,7 +3,7 @@ package com.paragon.infrastructure.persistence.repos;
 import com.paragon.domain.interfaces.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.*;
-import com.paragon.infrastructure.persistence.daos.PermissionIdDao;
+import com.paragon.infrastructure.persistence.daos.PermissionCodeDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountDao;
 import com.paragon.infrastructure.persistence.jdbc.SqlParams;
 import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
@@ -59,17 +59,17 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
 
         queries.add(new WriteQuery(accountSql, accountParams));
 
-        List<PermissionId> permissionIds = new ArrayList<>(staffAccount.getPermissionIds());
+        List<PermissionCode> permissionCodes = new ArrayList<>(staffAccount.getPermissionCodes());
         String joinTableSql = """
             INSERT INTO staff_account_permissions
-            (staff_account_id, permission_id, assigned_by, assigned_at_utc)
+            (staff_account_id, permission_code, assigned_by, assigned_at_utc)
             VALUES
-            (:staffAccountId, :permissionId, :assignedBy, :assignedAtUtc)
+            (:staffAccountId, :permissionCode, :assignedBy, :assignedAtUtc)
         """;
-        for (PermissionId id : permissionIds) {
+        for (PermissionCode code : permissionCodes) {
             SqlParams joinTableParams = new SqlParams()
                     .add("staffAccountId", staffAccount.getId().getValue())
-                    .add("permissionId", id.getValue())
+                    .add("permissionCode", code.getValue())
                     .add("assignedBy", staffAccount.getCreatedBy())
                     .add("assignedAtUtc", Instant.now());
             queries.add(new WriteQuery(joinTableSql, joinTableParams));
@@ -85,20 +85,20 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
 
         Optional<StaffAccountDao> optional = jdbcHelper.queryFirstOrDefault(sql, params, StaffAccountDao.class);
         return optional.map(dao -> {
-                List<PermissionId> permissionIds = getPermissionsIdsBy(dao.id());
-                return dao.toStaffAccount(permissionIds);
+                List<PermissionCode> permissionCodes = getPermissionCodesBy(dao.id());
+                return dao.toStaffAccount(permissionCodes);
         });
     }
 
 
-    private List<PermissionId> getPermissionsIdsBy(UUID staffAccountId) {
-        String sql = "SELECT permission_id FROM staff_account_permissions WHERE staff_account_id = :id";
+    private List<PermissionCode> getPermissionCodesBy(UUID staffAccountId) {
+        String sql = "SELECT permission_code FROM staff_account_permissions WHERE staff_account_id = :id";
         SqlParams params = new SqlParams().add("id", staffAccountId);
 
-        List<PermissionIdDao> permissionIdDaos = jdbcHelper.query(sql, params, PermissionIdDao.class);
-        return permissionIdDaos
+        List<PermissionCodeDao> permissionCodeDaos = jdbcHelper.query(sql, params, PermissionCodeDao.class);
+        return permissionCodeDaos
                 .stream()
-                .map(PermissionIdDao::toPermissionId)
+                .map(PermissionCodeDao::toPermissionCode)
                 .toList();
     }
 }

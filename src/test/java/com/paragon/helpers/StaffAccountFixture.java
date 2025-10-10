@@ -23,7 +23,7 @@ public class StaffAccountFixture {
     private Instant lastLoginAt = null;
     private String createdBy = UUID.randomUUID().toString();
     private String disabledBy = null;
-    private List<String> permissionIds = List.of(UUID.randomUUID().toString());
+    private List<String> permissionCodes = List.of();
     private int version = 1;
 
     public StaffAccountFixture withId(String value) {
@@ -91,8 +91,8 @@ public class StaffAccountFixture {
         return this;
     }
 
-    public StaffAccountFixture withPermissionIds(List<String> values) {
-        this.permissionIds = values;
+    public StaffAccountFixture withPermissionCodes(List<String> values) {
+        this.permissionCodes = values;
         return this;
     }
 
@@ -116,7 +116,7 @@ public class StaffAccountFixture {
                 lastLoginAt,
                 StaffAccountId.from(createdBy),
                 disabledBy != null ? StaffAccountId.from(disabledBy) : null,
-                permissionIds.stream().map(PermissionId::from).collect(Collectors.toSet()),
+                permissionCodes.stream().map(PermissionCode::of).collect(Collectors.toSet()),
                 Version.of(version)
         );
     }

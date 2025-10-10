@@ -1,5 +1,6 @@
 package com.paragon.infrastructure.persistence.jdbc;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -9,6 +10,7 @@ import java.util.Optional;
 
 @Component
 public class ReadJdbcHelperImpl implements ReadJdbcHelper {
+    @Qualifier("readJdbcTemplate")
     private final NamedParameterJdbcTemplate jdbc;
 
     public ReadJdbcHelperImpl(NamedParameterJdbcTemplate jdbc) {
