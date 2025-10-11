@@ -1,4 +1,4 @@
-package com.paragon.helpers;
+package com.paragon.helpers.fixtures;
 
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.models.aggregates.StaffAccount;
@@ -23,7 +23,7 @@ public class StaffAccountFixture {
     private Instant lastLoginAt = null;
     private String createdBy = UUID.randomUUID().toString();
     private String disabledBy = null;
-    private List<String> permissionCodes = List.of();
+    private List<String> permissionCodes = List.of("VIEW_LOGIN_LOGS", "VIEW_ACCOUNTS_LIST");
     private int version = 1;
 
     public StaffAccountFixture withId(String value) {

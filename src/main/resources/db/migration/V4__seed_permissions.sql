@@ -2,7 +2,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 INSERT INTO permissions (id, code, category, description, created_at_utc, updated_at_utc) VALUES
     -- ACCOUNTS
-    (gen_random_uuid(), 'VIEW_ACCOUNT_LIST', 'ACCOUNTS', 'Can view the list of staff accounts', now(), now()),
+    (gen_random_uuid(), 'VIEW_ACCOUNTS_LIST', 'ACCOUNTS', 'Can view the list of staff accounts', now(), now()),
     (gen_random_uuid(), 'MANAGE_ACCOUNTS', 'ACCOUNTS', 'Can create, update, and delete staff accounts', now(), now()),
     (gen_random_uuid(), 'RESET_ACCOUNT_PASSWORD', 'ACCOUNTS', 'Can reset passwords for staff accounts', now(), now()),
     (gen_random_uuid(), 'APPROVE_PASSWORD_CHANGE', 'ACCOUNTS', 'Can approve staff password change requests', now(), now()),

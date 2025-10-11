@@ -10,6 +10,7 @@ import com.paragon.application.common.exceptions.AppException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import java.util.List;
@@ -26,10 +27,12 @@ public class StaffAccountControllerTests {
         private final StaffAccountController sut;
         private final RegisterStaffAccountCommandHandler registerStaffAccountCommandHandlerMock;
         private final RegisterStaffAccountCommandResponse commandResponse;
+        private final TaskExecutor taskExecutorMock;
 
         public Register() {
             registerStaffAccountCommandHandlerMock = mock(RegisterStaffAccountCommandHandler.class);
-            sut = new StaffAccountController(registerStaffAccountCommandHandlerMock);
+            taskExecutorMock = mock(TaskExecutor.class);
+            sut = new StaffAccountController(registerStaffAccountCommandHandlerMock, taskExecutorMock);
 
             commandResponse = new RegisterStaffAccountCommandResponse(
                     "id", "username123", "pending_password_change", 1
@@ -97,7 +100,7 @@ public class StaffAccountControllerTests {
 
             // When & Then
             assertThatThrownBy(() -> sut.register(request).join())
-                    .isInstanceOf(AppException.class);
+                    .hasCauseInstanceOf(AppException.class);
         }
 
         private RegisterStaffAccountRequestDto createValidRegisterStaffAccountRequest() {

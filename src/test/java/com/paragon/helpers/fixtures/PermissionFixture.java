@@ -1,4 +1,4 @@
-package com.paragon.helpers;
+package com.paragon.helpers.fixtures;
 
 import com.paragon.domain.enums.PermissionCategory;
 import com.paragon.domain.models.entities.Permission;

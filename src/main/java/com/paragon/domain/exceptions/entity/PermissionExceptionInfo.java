@@ -16,7 +16,7 @@ public class PermissionExceptionInfo extends DomainExceptionInfo {
 
     public static PermissionExceptionInfo categoryRequired() {
         return new PermissionExceptionInfo(
-                "Permission category is required when creating a permission",
+                "Permission category is required when creating a permission.",
                 200002
         );
     }

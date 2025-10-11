@@ -8,13 +8,13 @@ spring:
           secret-key: a-string-secret-at-least-256-bits-long
   datasource:
     write:
-      url: ${SPRING_DATASOURCE_WRITE_URL}
-      username: ${SPRING_DATASOURCE_USERNAME}
-      password: ${SPRING_DATASOURCE_PASSWORD}
+      url: ${SPRING_DATASOURCE_WRITE_URL:jdbc:postgresql://localhost:5432/paragon_write}
+      username: ${SPRING_DATASOURCE_USERNAME:paragon_user}
+      password: ${SPRING_DATASOURCE_PASSWORD:paragon_password}
     read:
-      url: ${SPRING_DATASOURCE_READ_URL}
-      username: ${SPRING_DATASOURCE_USERNAME}
-      password: ${SPRING_DATASOURCE_PASSWORD}
+      url: ${SPRING_DATASOURCE_READ_URL:jdbc:postgresql://localhost:5433/paragon_write}
+      username: ${SPRING_DATASOURCE_USERNAME:paragon_user}
+      password: ${SPRING_DATASOURCE_PASSWORD:paragon_password}
 
 
   flyway:

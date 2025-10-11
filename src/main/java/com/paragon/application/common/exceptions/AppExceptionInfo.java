@@ -30,5 +30,13 @@ public class AppExceptionInfo {
         );
     }
 
+    public static AppExceptionInfo staffAccountUsernameAlreadyExists(String username) {
+        return new AppExceptionInfo(
+                String.format("A staff account with username '%s' already exists.", username),
+                103,
+                AppExceptionStatusCode.RESOURCE_UNIQUENESS_VIOLATION
+        );
+    }
+
 
 }

@@ -7,7 +7,7 @@ import com.paragon.domain.enums.Outcome;
 import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
 import com.paragon.domain.interfaces.AuditTrailWriteRepo;
 import com.paragon.domain.models.entities.AuditTrailEntry;
-import com.paragon.helpers.StaffAccountFixture;
+import com.paragon.helpers.fixtures.StaffAccountFixture;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 

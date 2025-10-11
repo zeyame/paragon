@@ -15,8 +15,10 @@ import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.constants.SystemPermissions;
+import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
-import com.paragon.helpers.StaffAccountFixture;
+import com.paragon.domain.models.valueobjects.Username;
+import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -68,7 +70,7 @@ public class RegisterStaffAccountCommandHandlerTests {
         RegisterStaffAccountCommandResponse commandResponse = sut.handle(command);
 
         // Then
-        verify(staffAccountWriteRepoMock, times(1)).create(accountCaptor.capture());
+        verify(staffAccountWriteRepoMock).create(accountCaptor.capture());
         StaffAccount registeredAccount = accountCaptor.getValue();
 
         assertThat(commandResponse).isNotNull();
@@ -76,6 +78,26 @@ public class RegisterStaffAccountCommandHandlerTests {
         assertThat(commandResponse.username()).isEqualTo(registeredAccount.getUsername().getValue());
         assertThat(commandResponse.status()).isEqualTo(registeredAccount.getStatus().toString());
         assertThat(commandResponse.version()).isEqualTo(registeredAccount.getVersion().getValue());
+    }
+
+    @Test
+    void givenValidCommand_shouldPassCorrectArgumentsToRepo() {
+        // Given
+        ArgumentCaptor<StaffAccount> accountCaptor = ArgumentCaptor.forClass(StaffAccount.class);
+
+        // When
+        sut.handle(command);
+
+        // Then
+        verify(staffAccountWriteRepoMock, times(1)).create(accountCaptor.capture());
+        StaffAccount staffAccount = accountCaptor.getValue();
+
+        assertThat(staffAccount.getUsername().getValue()).isEqualTo(command.username());
+        assertThat(staffAccount.getEmail().getValue()).isEqualTo(command.email());
+        assertThat(staffAccount.getPassword().getValue()).isEqualTo(command.tempPassword());
+        assertThat(staffAccount.getOrderAccessDuration().getValueInDays()).isEqualTo(command.orderAccessDuration());
+        assertThat(staffAccount.getModmailTranscriptAccessDuration().getValueInDays()).isEqualTo(command.modmailTranscriptAccessDuration());
+        assertThat(staffAccount.getPermissionCodes().stream().map(PermissionCode::getValue).toList()).isEqualTo(command.permissionCodes());
     }
 
     @Test
@@ -105,7 +127,7 @@ public class RegisterStaffAccountCommandHandlerTests {
     }
 
     @Test
-    void whenRegisteringStaffAccountDoesNotExist_shouldThrowAppException() {
+    void whenRequestingStaffAccountDoesNotExist_shouldThrowAppException() {
         // Given
         when(staffAccountWriteRepoMock.getById(any(StaffAccountId.class)))
                 .thenReturn(Optional.empty());
@@ -118,7 +140,7 @@ public class RegisterStaffAccountCommandHandlerTests {
     }
 
     @Test
-    void whenRegisteringStaffAccountDoesNotHaveRequiredPermissions_shouldThrowAppException() {
+    void whenRequestingStaffAccountDoesNotHaveRequiredPermissions_shouldThrowAppException() {
         // Given
         StaffAccount accountLackingPermissions = new StaffAccountFixture()
                 .withId(UUID.randomUUID().toString())
@@ -128,6 +150,18 @@ public class RegisterStaffAccountCommandHandlerTests {
                 .thenReturn(Optional.of(accountLackingPermissions));
 
         AppException expectedAppException = new AppException(AppExceptionInfo.permissionAccessDenied("registration"));
+
+        // When & Then
+        assertThatThrownBy(() -> sut.handle(command))
+                .isEqualTo(expectedAppException);
+    }
+
+    @Test
+    void whenRegisteringStaffAccountUsernameAlreadyExists_shouldThrowAppException() {
+        // Given
+        when(staffAccountWriteRepoMock.getByUsername(any(Username.class))).thenReturn(Optional.of((StaffAccountFixture.validStaffAccount())));
+
+        AppException expectedAppException = new AppException(AppExceptionInfo.staffAccountUsernameAlreadyExists(command.username()));
 
         // When & Then
         assertThatThrownBy(() -> sut.handle(command))
@@ -176,7 +210,7 @@ public class RegisterStaffAccountCommandHandlerTests {
                 "TempPass123!",
                 7,
                 14,
-                List.of(UUID.randomUUID().toString())
+                List.of("MANAGE_ACCOUNTS")
         );
     }
 }

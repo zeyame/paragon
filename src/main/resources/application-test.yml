@@ -1,0 +1,18 @@
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          secret-key: a-string-secret-at-least-256-bits-long
+  datasource:
+    write:
+      url: jdbc:postgresql://localhost:5444/paragon_test
+      username: test_user
+      password: test_password
+    read:
+      url: jdbc:postgresql://localhost:5444/paragon_test
+      username: test_user
+      password: test_password
+
+  flyway:
+    enabled: false

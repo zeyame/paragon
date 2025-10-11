@@ -1,9 +1,10 @@
 package com.paragon.infrastructure.persistence.jdbc;
 
 import com.paragon.infrastructure.persistence.exceptions.InfraExceptionHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.DataClassRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,13 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Component
 public class WriteJdbcHelperImpl implements WriteJdbcHelper {
-    @Qualifier("writeJdbcTemplate")
     private final NamedParameterJdbcTemplate jdbc;
     private final InfraExceptionHandler infraExceptionHandler;
 
-    public WriteJdbcHelperImpl(NamedParameterJdbcTemplate jdbc, InfraExceptionHandler infraExceptionHandler) {
+    public WriteJdbcHelperImpl(@Qualifier("writeJdbcTemplate") NamedParameterJdbcTemplate jdbc, InfraExceptionHandler infraExceptionHandler) {
         this.jdbc = jdbc;
         this.infraExceptionHandler = infraExceptionHandler;
     }
@@ -39,6 +40,7 @@ public class WriteJdbcHelperImpl implements WriteJdbcHelper {
                 jdbc.update(query.sql(), query.params().build());
             }
         } catch (DataAccessException e) {
+            log.error("e: ", e);
             throw infraExceptionHandler.handleDatabaseException(e);
         }
     }
@@ -46,8 +48,9 @@ public class WriteJdbcHelperImpl implements WriteJdbcHelper {
     @Override
     public <T> List<T> query(String sql, SqlParams params, Class<T> type) {
         try {
-            return jdbc.query(sql, params.build(), BeanPropertyRowMapper.newInstance(type));
+            return jdbc.query(sql, params.build(), DataClassRowMapper.newInstance(type));
         } catch (DataAccessException e) {
+            log.error("e: ", e);
             throw infraExceptionHandler.handleDatabaseException(e);
         }
     }

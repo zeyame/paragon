@@ -48,7 +48,7 @@ public class UsernameTests {
                     Arguments.of("double__underscores", UsernameExceptionInfo.consecutiveUnderscores()),
                     Arguments.of("1username", UsernameExceptionInfo.mustStartWithALetter()),
                     Arguments.of("username_", UsernameExceptionInfo.mustNotEndWithUnderscore()),
-                    Arguments.of("admin", UsernameExceptionInfo.reservedWord())
+                    Arguments.of("root", UsernameExceptionInfo.reservedWord())
             );
         }
     }

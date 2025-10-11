@@ -9,7 +9,7 @@ import java.util.Set;
 public class Username extends ValueObject {
     private final String value;
     private static final Set<String> RESERVED = Set.of(
-            "admin", "root", "moderator", "system", "support"
+            "root", "moderator", "system", "support"
     );
 
     private Username(String value) {

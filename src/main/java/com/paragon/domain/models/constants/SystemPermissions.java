@@ -6,7 +6,7 @@ public final class SystemPermissions {
 
     private SystemPermissions() {}
 
-    public static final PermissionCode VIEW_ACCOUNT_LIST = PermissionCode.of("VIEW_ACCOUNT_LIST");
+    public static final PermissionCode VIEW_ACCOUNTS_LIST = PermissionCode.of("VIEW_ACCOUNTS_LIST");
     public static final PermissionCode MANAGE_ACCOUNTS = PermissionCode.of("MANAGE_ACCOUNTS");
     public static final PermissionCode RESET_ACCOUNT_PASSWORD = PermissionCode.of("RESET_ACCOUNT_PASSWORD");
     public static final PermissionCode APPROVE_PASSWORD_CHANGE = PermissionCode.of("APPROVE_PASSWORD_CHANGE");

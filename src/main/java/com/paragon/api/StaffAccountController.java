@@ -7,6 +7,8 @@ import com.paragon.application.commands.CommandHandler;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommand;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,26 +23,24 @@ import java.util.concurrent.CompletableFuture;
 @RequestMapping(("v1/staff-accounts"))
 public class StaffAccountController {
     private final CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> registerStaffAccountCommandHandler;
+    private final TaskExecutor taskExecutor;
 
     public StaffAccountController(
-            CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> registerStaffAccountCommandHandler) {
+            CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> registerStaffAccountCommandHandler, TaskExecutor taskExecutor) {
         this.registerStaffAccountCommandHandler = registerStaffAccountCommandHandler;
+        this.taskExecutor = Runnable::run;
     }
 
     @PostMapping
-    @Async("taskExecutor")
     public CompletableFuture<ResponseEntity<ResponseDto<RegisterStaffAccountResponseDto>>> register(@RequestBody RegisterStaffAccountRequestDto requestDto) {
         log.info("Received request to register a new staff account.");
 
-        var command = createRegisterStaffAccountCommand(requestDto);
-        var commandResponse = registerStaffAccountCommandHandler.handle(command);
-
-        var responseDto = new ResponseDto<RegisterStaffAccountResponseDto>(
-                createRegisterStaffAccountResponseDto(commandResponse),
-                null
-        );
-
-        return CompletableFuture.completedFuture(ResponseEntity.ok(responseDto));
+        return CompletableFuture.supplyAsync(() -> {
+            var command = createRegisterStaffAccountCommand(requestDto);
+            var commandResponse = registerStaffAccountCommandHandler.handle(command);
+            var responseDto = new ResponseDto<>(createRegisterStaffAccountResponseDto(commandResponse), null);
+            return ResponseEntity.ok(responseDto);
+        }, taskExecutor);
     }
 
     private RegisterStaffAccountCommand createRegisterStaffAccountCommand(RegisterStaffAccountRequestDto requestDto) {

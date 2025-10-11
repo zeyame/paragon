@@ -53,6 +53,8 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
                 throw new AppException(AppExceptionInfo.permissionAccessDenied("registration"));
             }
 
+            assertUniqueUsername(command.username());
+
             StaffAccount staffAccount = StaffAccount.register(
                     Username.of(command.username()),
                     command.email() != null ? Email.of(command.email()) : null,
@@ -88,6 +90,13 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
             log.error("Staff account registration failed for requestingStaffId={}: infrastructure related error occurred - {}",
                     requestingStaffId, ex.getMessage(), ex);
             throw appExceptionHandler.handleInfraException(ex);
+        }
+    }
+
+    private void assertUniqueUsername(String username) {
+        Optional<StaffAccount> optional = staffAccountWriteRepo.getByUsername(Username.of(username));
+        if (optional.isPresent()) {
+            throw new AppException(AppExceptionInfo.staffAccountUsernameAlreadyExists(username));
         }
     }
 }

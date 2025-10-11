@@ -4,6 +4,7 @@ import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.constants.SystemPermissions;
 import com.paragon.domain.models.valueobjects.*;
+import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.daos.StaffAccountDao;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.SqlParams;
@@ -36,7 +37,7 @@ public class StaffAccountWriteRepoTests {
         @Test
         void callsJdbcHelper_withExpectedNumberOfQueries() {
             // Given
-            var account = createStaffAccount();
+            var account = StaffAccountFixture.validStaffAccount();
             ArgumentCaptor<List<WriteQuery>> captor = ArgumentCaptor.forClass(List.class);
 
             // When
@@ -59,7 +60,7 @@ public class StaffAccountWriteRepoTests {
         @Test
         void insertsJoinTableEntries_forEachPermission() {
             // Given
-            var account = createStaffAccount();
+            var account = StaffAccountFixture.validStaffAccount();
             ArgumentCaptor<List<WriteQuery>> captor = ArgumentCaptor.forClass(List.class);
 
             // When
@@ -92,7 +93,7 @@ public class StaffAccountWriteRepoTests {
                     .executeMultiple(anyList());
 
             // When & Then
-            assertThatThrownBy(() -> sut.create(createStaffAccount()))
+            assertThatThrownBy(() -> sut.create(StaffAccountFixture.validStaffAccount()))
                     .isInstanceOf(InfraException.class);
         }
     }
@@ -169,24 +170,76 @@ public class StaffAccountWriteRepoTests {
         }
     }
 
-    private StaffAccount createStaffAccount() {
-        return StaffAccount.createFrom(
-                StaffAccountId.of(UUID.randomUUID()),
-                Username.of("testuser"),
-                Email.of("testuser@example.com"),
-                Password.of("SecurePass123!"),
-                Instant.parse("2024-01-01T12:00:00Z"),
-                OrderAccessDuration.from(7),
-                ModmailTranscriptAccessDuration.from(14),
-                StaffAccountStatus.PENDING_PASSWORD_CHANGE,
-                FailedLoginAttempts.of(2),
-                Instant.parse("2024-01-02T12:00:00Z"),
-                Instant.parse("2024-01-03T12:00:00Z"),
-                StaffAccountId.of(UUID.randomUUID()),
-                null,
-                Set.of(SystemPermissions.MANAGE_ACCOUNTS, SystemPermissions.APPROVE_PASSWORD_CHANGE),
-                Version.of(1)
-        );
+    @Nested
+    class GetByUsername {
+        private final WriteJdbcHelper jdbcHelper;
+        private final StaffAccountWriteRepoImpl sut;
+
+        public GetByUsername() {
+            this.jdbcHelper = mock(WriteJdbcHelper.class);
+            this.sut = new StaffAccountWriteRepoImpl(jdbcHelper);
+        }
+
+        @Test
+        void callsJdbcHelper_withExpectedSqlAndParams() {
+            // Given
+            Username username = Username.of("john_doe");
+            ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+            ArgumentCaptor<SqlParams> paramsCaptor = ArgumentCaptor.forClass(SqlParams.class);
+
+            // When
+            sut.getByUsername(username);
+
+            // Then
+            verify(jdbcHelper, times(1)).queryFirstOrDefault(sqlCaptor.capture(), paramsCaptor.capture(), eq(StaffAccountDao.class));
+
+            String sql = sqlCaptor.getValue();
+            SqlParams sqlParams = paramsCaptor.getValue();
+
+            assertThat(sql).isEqualTo("SELECT * FROM staff_accounts WHERE username = :username");
+            assertThat(sqlParams.build().get("username")).isEqualTo(username.getValue());
+        }
+
+        @Test
+        void returnsMappedStaffAccount_whenStaffAccountExists() {
+            // Given
+            StaffAccountDao staffAccountDao = createStaffAccountDao();
+            Username username = Username.of(staffAccountDao.username());
+
+            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParams.class), eq(StaffAccountDao.class)))
+                    .thenReturn(Optional.of(staffAccountDao));
+
+            // When
+            Optional<StaffAccount> optionalStaffAccount = sut.getByUsername(username);
+
+            // Then
+            assertThat(optionalStaffAccount).isPresent();
+            assertThat(optionalStaffAccount.get().getUsername()).isEqualTo(username);
+        }
+
+        @Test
+        void returnsEmptyOptional_whenStaffAccountIsMissing() {
+            // Given
+            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParams.class), eq(StaffAccountDao.class)))
+                    .thenReturn(Optional.empty());
+
+            // When
+            Optional<StaffAccount> result = sut.getByUsername(Username.of("john_doe"));
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void shouldPropagateInfraException_whenJdbcHelperThrows() {
+            // Given
+            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParams.class), eq(StaffAccountDao.class)))
+                    .thenThrow(InfraException.class);
+
+            // When & Then
+            assertThatThrownBy(() -> sut.getByUsername(Username.of("john_doe")))
+                    .isInstanceOf(InfraException.class);
+        }
     }
 
     private StaffAccountDao createStaffAccountDao() {
@@ -199,8 +252,8 @@ public class StaffAccountWriteRepoTests {
                 7,
                 14,
                 StaffAccountStatus.PENDING_PASSWORD_CHANGE.name(),
-                2,
-                Instant.parse("2024-01-02T12:00:00Z"),
+                0,
+                null,
                 Instant.parse("2024-01-03T12:00:00Z"),
                 UUID.randomUUID(),
                 null,

@@ -10,10 +10,9 @@ import java.util.Optional;
 
 @Component
 public class ReadJdbcHelperImpl implements ReadJdbcHelper {
-    @Qualifier("readJdbcTemplate")
     private final NamedParameterJdbcTemplate jdbc;
 
-    public ReadJdbcHelperImpl(NamedParameterJdbcTemplate jdbc) {
+    public ReadJdbcHelperImpl(@Qualifier("readJdbcTemplate") NamedParameterJdbcTemplate jdbc) {
         this.jdbc = jdbc;
     }
 

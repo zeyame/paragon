@@ -5,14 +5,13 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class AuditEntryIdExceptionInfoTests {
-
     @Test
     void missingValue_shouldHaveExpectedCodeAndMessage() {
         // When
         AuditEntryIdExceptionInfo exceptionInfo = AuditEntryIdExceptionInfo.missingValue();
 
         // Then
-        assertThat(exceptionInfo.getMessage()).isEqualTo("AuditTrailEntryId value is required and cannot be null or blank.");
+        assertThat(exceptionInfo.getMessage()).isEqualTo("AuditTrailEntryId value is required and cannot be missing.");
         assertThat(exceptionInfo.getDomainErrorCode()).isEqualTo(111001);
     }
 

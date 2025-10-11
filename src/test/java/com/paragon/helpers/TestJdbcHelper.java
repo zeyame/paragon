@@ -1,14 +1,16 @@
-package com.paragon.infrastructure.persistence.repos;
+package com.paragon.helpers;
 
-import com.paragon.domain.interfaces.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
-import com.paragon.domain.models.valueobjects.*;
+import com.paragon.domain.models.valueobjects.PermissionCode;
+import com.paragon.domain.models.valueobjects.StaffAccountId;
+import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.infrastructure.persistence.daos.PermissionCodeDao;
+import com.paragon.infrastructure.persistence.daos.PermissionDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountDao;
 import com.paragon.infrastructure.persistence.jdbc.SqlParams;
 import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.WriteQuery;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -16,29 +18,30 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@Repository
-public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
-    private final WriteJdbcHelper jdbcHelper;
+@Component
+public class TestJdbcHelper {
+    private final WriteJdbcHelper writeJdbcHelper;
 
-    public StaffAccountWriteRepoImpl(WriteJdbcHelper jdbcHelper) {
-        this.jdbcHelper = jdbcHelper;
+    public TestJdbcHelper(WriteJdbcHelper writeJdbcHelper) {
+        this.writeJdbcHelper = writeJdbcHelper;
     }
 
-    public void create(StaffAccount staffAccount) {
+    public void insertStaffAccount(StaffAccount staffAccount) {
         List<WriteQuery> queries = new ArrayList<>();
 
         String insertStaffAccountSql = """
-            INSERT INTO staff_accounts
-            (id, username, email, password, password_issued_at_utc,
-             order_access_duration, modmail_transcript_access_duration,
-             status, failed_login_attempts, locked_until_utc, last_login_at_utc, created_by,
-             disabled_by, version, created_at_utc, updated_at_utc)
-            VALUES
-            (:id, :username, :email, :password, :passwordIssuedAtUtc,
-             :orderAccessDuration, :modmailTranscriptAccessDuration,
-             :status, :failedLoginAttempts, :lockedUntilUtc, :lastLoginAtUtc, :createdBy,
-             :disabledBy, :version, :createdAtUtc, :updatedAtUtc)
-        """;
+                INSERT INTO staff_accounts (
+                    id, username, email, password, password_issued_at_utc,
+                    order_access_duration, modmail_transcript_access_duration,
+                    status, failed_login_attempts, locked_until_utc, last_login_at_utc,
+                    created_by, disabled_by, version, created_at_utc, updated_at_utc
+                ) VALUES (
+                    :id, :username, :email, :password, :passwordIssuedAtUtc,
+                    :orderAccessDuration, :modmailTranscriptAccessDuration,
+                    :status, :failedLoginAttempts, :lockedUntilUtc, :lastLoginAtUtc,
+                    :createdBy, :disabledBy, :version, :createdAtUtc, :updatedAtUtc
+                )
+                """;
 
         SqlParams insertStaffAccountParams = new SqlParams()
                 .add("id", staffAccount.getId().getValue())
@@ -76,41 +79,39 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
             queries.add(new WriteQuery(joinTableSql, joinTableParams));
         }
 
-        jdbcHelper.executeMultiple(queries);
+        writeJdbcHelper.executeMultiple(queries);
     }
 
-    @Override
-    public Optional<StaffAccount> getById(StaffAccountId staffAccountId) {
+    public Optional<StaffAccount> getStaffAccountById(StaffAccountId staffAccountId) {
         String sql = "SELECT * FROM staff_accounts WHERE id = :id";
         SqlParams params = new SqlParams().add("id", staffAccountId.getValue());
 
-        Optional<StaffAccountDao> optional = jdbcHelper.queryFirstOrDefault(sql, params, StaffAccountDao.class);
-        return optional.map(dao -> {
-                List<PermissionCode> permissionCodes = getPermissionCodesBy(dao.id());
-                return dao.toStaffAccount(permissionCodes);
-        });
-    }
+        Optional<StaffAccountDao> optionalDao =
+                writeJdbcHelper.queryFirstOrDefault(sql, params, StaffAccountDao.class);
 
-    @Override
-    public Optional<StaffAccount> getByUsername(Username username) {
-        String sql = "SELECT * FROM staff_accounts WHERE username = :username";
-        SqlParams params = new SqlParams().add("username", username.getValue());
-
-        Optional<StaffAccountDao> optional = jdbcHelper.queryFirstOrDefault(sql, params, StaffAccountDao.class);
-        return optional.map(dao -> {
-            List<PermissionCode> permissionCodes = getPermissionCodesBy(dao.id());
+        return optionalDao.map(dao -> {
+            List<PermissionCode> permissionCodes = getPermissionsForStaff(StaffAccountId.of(dao.id()));
             return dao.toStaffAccount(permissionCodes);
         });
     }
 
-    private List<PermissionCode> getPermissionCodesBy(UUID staffAccountId) {
-        String sql = "SELECT permission_code FROM staff_account_permissions WHERE staff_account_id = :id";
-        SqlParams params = new SqlParams().add("id", staffAccountId);
+    public Optional<StaffAccount> getStaffAccountByUsername(Username username) {
+        String sql = "SELECT * FROM staff_accounts WHERE username = :username";
+        SqlParams params = new SqlParams().add("username", username.getValue());
 
-        List<PermissionCodeDao> permissionCodeDaos = jdbcHelper.query(sql, params, PermissionCodeDao.class);
-        return permissionCodeDaos
-                .stream()
-                .map(PermissionCodeDao::toPermissionCode)
-                .toList();
+        Optional<StaffAccountDao> optionalDao = writeJdbcHelper.queryFirstOrDefault(sql, params, StaffAccountDao.class);
+
+        return optionalDao.map(dao -> {
+            List<PermissionCode> permissionCodes = getPermissionsForStaff(StaffAccountId.of(dao.id()));
+            return dao.toStaffAccount(permissionCodes);
+        });
+    }
+
+    public List<PermissionCode> getPermissionsForStaff(StaffAccountId staffAccountId) {
+        String sql = "SELECT permission_code FROM staff_account_permissions WHERE staff_account_id = :id";
+        SqlParams params = new SqlParams().add("id", staffAccountId.getValue());
+
+        List<PermissionCodeDao> daos = writeJdbcHelper.query(sql, params, PermissionCodeDao.class);
+        return daos.stream().map(PermissionCodeDao::toPermissionCode).toList();
     }
 }

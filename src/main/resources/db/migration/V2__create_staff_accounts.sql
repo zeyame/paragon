@@ -2,14 +2,15 @@ CREATE TABLE IF NOT EXISTS staff_accounts (
     id                              UUID PRIMARY KEY,
 
     username                        VARCHAR(64) NOT NULL,
-    email                           VARCHAR(255) NOT NULL,
+    email                           VARCHAR(255) NULL,
     password                        TEXT NOT NULL,
     password_issued_at_utc           TIMESTAMP WITH TIME ZONE,
     order_access_duration            INTEGER NOT NULL,
     modmail_transcript_access_duration INTEGER NOT NULL,
     status                          VARCHAR(32) NOT NULL,
     failed_login_attempts           INTEGER NOT NULL DEFAULT 0,
-    locked_until                    TIMESTAMP WITH TIME ZONE,
+    locked_until_utc                TIMESTAMP WITH TIME ZONE,
+    last_login_at_utc               TIMESTAMP WITH TIME ZONE,
 
     created_by                      UUID NOT NULL REFERENCES staff_accounts(id),
     disabled_by                     UUID REFERENCES staff_accounts(id),

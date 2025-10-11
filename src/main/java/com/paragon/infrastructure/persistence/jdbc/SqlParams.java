@@ -1,5 +1,7 @@
 package com.paragon.infrastructure.persistence.jdbc;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -8,7 +10,11 @@ public class SqlParams {
     private final Map<String, Object> values = new HashMap<>();
 
     public SqlParams add(String key, Object value) {
-        values.put(key, value);
+        if (value instanceof Instant instant) {
+            values.put(key, Timestamp.from(instant));
+        } else {
+            values.put(key, value);
+        }
         return this;
     }
 
