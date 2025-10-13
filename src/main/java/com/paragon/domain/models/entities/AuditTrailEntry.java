@@ -47,6 +47,22 @@ public class AuditTrailEntry extends Entity<AuditEntryId> {
         );
     }
 
+    public static AuditTrailEntry createFrom(AuditEntryId id, StaffAccountId actorId, AuditEntryActionType actionType,
+                                             AuditEntryTargetId targetId, AuditEntryTargetType targetType, Outcome outcome,
+                                             String ipAddress, String correlationId
+    ) {
+        return new AuditTrailEntry(
+                id,
+                actorId,
+                actionType,
+                targetId,
+                targetType,
+                outcome,
+                ipAddress,
+                correlationId
+        );
+    }
+
     private static void assertValidAuditTrailEntry(StaffAccountId actorId, AuditEntryActionType actionType, Outcome outcome) {
         if (actorId == null) {
             throw new AuditTrailEntryException(AuditTrailEntryExceptionInfo.actorIdRequired());

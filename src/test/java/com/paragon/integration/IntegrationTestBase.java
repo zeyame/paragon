@@ -25,6 +25,7 @@ public abstract class IntegrationTestBase {
 
     @AfterEach
     void cleanDynamicData() {
+        jdbc.execute("DELETE FROM audit_trail");
         jdbc.execute("DELETE FROM staff_accounts WHERE username != 'admin'");
     }
 }

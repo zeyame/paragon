@@ -69,7 +69,7 @@ public class StaffAccountWriteRepoTests {
             testJdbcHelper.insertStaffAccount(staffAccount);
 
             // When & Then
-            assertThatThrownBy(() -> sut.create(staffAccount))
+            assertThatThrownBy(() -> sut.create(staffAccount)) // inserting the account for a second time
                     .isInstanceOf(InfraException.class);
         }
     }

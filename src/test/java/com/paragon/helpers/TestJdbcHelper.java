@@ -1,11 +1,13 @@
 package com.paragon.helpers;
 
 import com.paragon.domain.models.aggregates.StaffAccount;
+import com.paragon.domain.models.entities.AuditTrailEntry;
+import com.paragon.domain.models.valueobjects.AuditEntryId;
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.domain.models.valueobjects.Username;
+import com.paragon.infrastructure.persistence.daos.AuditTrailEntryDao;
 import com.paragon.infrastructure.persistence.daos.PermissionCodeDao;
-import com.paragon.infrastructure.persistence.daos.PermissionDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountDao;
 import com.paragon.infrastructure.persistence.jdbc.SqlParams;
 import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
@@ -16,7 +18,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Component
 public class TestJdbcHelper {
@@ -113,5 +114,36 @@ public class TestJdbcHelper {
 
         List<PermissionCodeDao> daos = writeJdbcHelper.query(sql, params, PermissionCodeDao.class);
         return daos.stream().map(PermissionCodeDao::toPermissionCode).toList();
+    }
+
+    public void insertAuditTrailEntry(AuditTrailEntry auditTrailEntry) {
+        String sql = """
+            INSERT INTO audit_trail
+            (id, actor_id, action_type, target_id, target_type, outcome, ip_address, correlation_id, created_at_utc)
+            VALUES
+            (:id, :actorId, :actionType, :targetId, :targetType, :outcome, :ipAddress, :correlationId, :createdAtUtc)
+        """;
+
+        SqlParams params = new SqlParams()
+                .add("id", auditTrailEntry.getId().getValue())
+                .add("actorId", auditTrailEntry.getActorId().getValue())
+                .add("actionType", auditTrailEntry.getActionType().toString())
+                .add("targetId", auditTrailEntry.getTargetId() != null ? auditTrailEntry.getTargetId().getValue() : null)
+                .add("targetType", auditTrailEntry.getTargetType() != null ? auditTrailEntry.getTargetType().toString() : null)
+                .add("outcome", auditTrailEntry.getOutcome().toString())
+                .add("ipAddress", auditTrailEntry.getIpAddress())
+                .add("correlationId", auditTrailEntry.getCorrelationId())
+                .add("createdAtUtc", Instant.now());
+
+        writeJdbcHelper.execute(sql, params);
+    }
+
+    public Optional<AuditTrailEntry> getAuditTrailEntryById(AuditEntryId auditEntryId) {
+        String sql = "SELECT * FROM audit_trail WHERE id = :id";
+        SqlParams params = new SqlParams().add("id", auditEntryId.getValue());
+
+        Optional<AuditTrailEntryDao> optionalDao = writeJdbcHelper.queryFirstOrDefault(sql, params, AuditTrailEntryDao.class);
+
+        return optionalDao.map(AuditTrailEntryDao::toAuditTrailEntry);
     }
 }
