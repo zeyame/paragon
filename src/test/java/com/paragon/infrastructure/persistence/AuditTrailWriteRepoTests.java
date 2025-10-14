@@ -127,7 +127,7 @@ public class AuditTrailWriteRepoTests {
             verify(jdbcHelperMock, times(1)).execute(anyString(), paramsCaptor.capture());
             SqlParams params = paramsCaptor.getValue();
 
-            assertThat(params.build().get("outcome")).isEqualTo("FAILURE");
+            assertThat(params.build().get("outcome")).isEqualTo(outcome.toString());
         }
 
         @Test

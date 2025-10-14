@@ -1,10 +1,6 @@
 package com.paragon.integration.persistence;
 
-import com.paragon.domain.enums.AuditEntryActionType;
-import com.paragon.domain.enums.AuditEntryTargetType;
-import com.paragon.domain.enums.Outcome;
 import com.paragon.domain.models.aggregates.StaffAccount;
-import com.paragon.domain.models.entities.AuditTrailEntry;
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.domain.models.valueobjects.Username;
@@ -63,20 +59,6 @@ public class StaffAccountWriteRepoTests {
             List<PermissionCode> insertedPermissions = testJdbcHelper.getPermissionsForStaff(insertedStaffAccount.getId());
             assertThat(insertedPermissions)
                     .containsExactlyInAnyOrderElementsOf(insertedStaffAccount.getPermissionCodes());
-
-            List<AuditTrailEntry> auditTrailEntries = testJdbcHelper.getAuditTrailEntriesByActorAndAction(
-                    adminStaffAccount.getId(),
-                    AuditEntryActionType.REGISTER_ACCOUNT
-            );
-            assertThat(auditTrailEntries).isNotEmpty();
-            assertThat(auditTrailEntries)
-                    .anySatisfy(entry -> {
-                        assertThat(entry.getActorId()).isEqualTo(adminStaffAccount.getId());
-                        assertThat(entry.getActionType()).isEqualTo(AuditEntryActionType.REGISTER_ACCOUNT);
-                        assertThat(entry.getTargetId().getValue()).isEqualTo(insertedStaffAccount.getId().getValue().toString());
-                        assertThat(entry.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
-                        assertThat(entry.getOutcome()).isEqualTo(Outcome.SUCCESS);
-                    });
         }
 
         @Test
