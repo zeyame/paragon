@@ -1,7 +1,7 @@
 package com.paragon.infrastructure.persistence.jdbc;
 
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.DataClassRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +18,7 @@ public class ReadJdbcHelperImpl implements ReadJdbcHelper {
 
     @Override
     public <T> List<T> query(String sql, SqlParamsBuilder params, Class<T> type) {
-        return jdbc.query(sql, params.build(), BeanPropertyRowMapper.newInstance(type));
+        return jdbc.query(sql, params.build(), DataClassRowMapper.newInstance(type));
     }
 
     @Override

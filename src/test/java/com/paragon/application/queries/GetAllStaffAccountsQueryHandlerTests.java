@@ -4,7 +4,6 @@ import com.paragon.application.common.exceptions.AppException;
 import com.paragon.application.common.exceptions.AppExceptionHandler;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.context.ActorContext;
-import com.paragon.application.events.EventBus;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQuery;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryHandler;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryResponse;
@@ -29,7 +28,6 @@ public class GetAllStaffAccountsQueryHandlerTests {
     private final GetAllStaffAccountsQueryHandler sut;
     private final StaffAccountReadRepo staffAccountReadRepoMock;
     private final ActorContext actorContextMock;
-    private final EventBus eventBusMock;
     private final AppExceptionHandler appExceptionHandlerMock;
     private final GetAllStaffAccountsQuery query;
     private final String requestingStaffAccountId;
@@ -37,10 +35,9 @@ public class GetAllStaffAccountsQueryHandlerTests {
     public GetAllStaffAccountsQueryHandlerTests() {
         staffAccountReadRepoMock = mock(StaffAccountReadRepo.class);
         actorContextMock = mock(ActorContext.class);
-        eventBusMock = mock(EventBus.class);
         appExceptionHandlerMock = mock(AppExceptionHandler.class);
 
-        sut = new GetAllStaffAccountsQueryHandler(staffAccountReadRepoMock, actorContextMock, eventBusMock, appExceptionHandlerMock);
+        sut = new GetAllStaffAccountsQueryHandler(staffAccountReadRepoMock, actorContextMock, appExceptionHandlerMock);
 
         query = new GetAllStaffAccountsQuery();
 
@@ -88,6 +85,36 @@ public class GetAllStaffAccountsQueryHandlerTests {
         assertThat(summaries.get(0).status()).isEqualTo("active");
         assertThat(summaries.get(1).username()).isEqualTo("jane_smith");
         assertThat(summaries.get(1).status()).isEqualTo("pending_password_change");
+    }
+
+    @Test
+    void givenValidQuery_shouldCorrectlyMapReadModelsToSummaries() {
+        // Given
+        UUID expectedId = UUID.randomUUID();
+        Instant expectedTimestamp = Instant.now();
+        StaffAccountSummaryReadModel readModel = new StaffAccountSummaryReadModel(
+                expectedId,
+                "test_user",
+                "active",
+                15,
+                10,
+                expectedTimestamp
+        );
+        when(staffAccountReadRepoMock.findAllSummaries()).thenReturn(List.of(readModel));
+
+        // When
+        GetAllStaffAccountsQueryResponse response = sut.handle(query);
+
+        // Then
+        assertThat(response.staffAccountSummaries().size()).isEqualTo(1);
+
+        StaffAccountSummary summary = response.staffAccountSummaries().get(0);
+        assertThat(summary.id()).isEqualTo(expectedId);
+        assertThat(summary.username()).isEqualTo("test_user");
+        assertThat(summary.status()).isEqualTo("active");
+        assertThat(summary.orderAccessDuration()).isEqualTo(15);
+        assertThat(summary.modmailTranscriptAccessDuration()).isEqualTo(10);
+        assertThat(summary.createdAtUtc()).isEqualTo(expectedTimestamp);
     }
 
     @Test
@@ -198,35 +225,5 @@ public class GetAllStaffAccountsQueryHandlerTests {
                 .isInstanceOf(AppException.class);
 
         verify(appExceptionHandlerMock, times(1)).handleInfraException(infraException);
-    }
-
-    @Test
-    void givenValidQuery_shouldCorrectlyMapReadModelsToSummaries() {
-        // Given
-        UUID expectedId = UUID.randomUUID();
-        Instant expectedTimestamp = Instant.now();
-        StaffAccountSummaryReadModel readModel = new StaffAccountSummaryReadModel(
-                expectedId,
-                "test_user",
-                "active",
-                15,
-                10,
-                expectedTimestamp
-        );
-        when(staffAccountReadRepoMock.findAllSummaries()).thenReturn(List.of(readModel));
-
-        // When
-        GetAllStaffAccountsQueryResponse response = sut.handle(query);
-
-        // Then
-        assertThat(response.staffAccountSummaries().size()).isEqualTo(1);
-
-        StaffAccountSummary summary = response.staffAccountSummaries().get(0);
-        assertThat(summary.id()).isEqualTo(expectedId);
-        assertThat(summary.username()).isEqualTo("test_user");
-        assertThat(summary.status()).isEqualTo("active");
-        assertThat(summary.orderAccessDuration()).isEqualTo(15);
-        assertThat(summary.modmailTranscriptAccessDuration()).isEqualTo(10);
-        assertThat(summary.createdAtUtc()).isEqualTo(expectedTimestamp);
     }
 }

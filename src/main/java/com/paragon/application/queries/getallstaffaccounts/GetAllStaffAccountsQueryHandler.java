@@ -4,7 +4,6 @@ import com.paragon.application.common.exceptions.AppException;
 import com.paragon.application.common.exceptions.AppExceptionHandler;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.context.ActorContext;
-import com.paragon.application.events.EventBus;
 import com.paragon.application.queries.QueryHandler;
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo;
 import com.paragon.domain.exceptions.DomainException;
@@ -22,14 +21,12 @@ import java.util.List;
 public class GetAllStaffAccountsQueryHandler implements QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> {
     private final StaffAccountReadRepo staffAccountReadRepo;
     private final ActorContext actorContext;
-    private final EventBus eventBus;
     private final AppExceptionHandler appExceptionHandler;
     private static final Logger log = LoggerFactory.getLogger(GetAllStaffAccountsQueryHandler.class);
 
-    public GetAllStaffAccountsQueryHandler(StaffAccountReadRepo staffAccountReadRepo, ActorContext actorContext, EventBus eventBus, AppExceptionHandler appExceptionHandler) {
+    public GetAllStaffAccountsQueryHandler(StaffAccountReadRepo staffAccountReadRepo, ActorContext actorContext, AppExceptionHandler appExceptionHandler) {
         this.staffAccountReadRepo = staffAccountReadRepo;
         this.actorContext = actorContext;
-        this.eventBus = eventBus;
         this.appExceptionHandler = appExceptionHandler;
     }
 

@@ -33,6 +33,27 @@ public class StaffAccountWriteRepoTests {
         }
 
         @Test
+        void callsJdbcHelper_withCorrectInsertStaffAccountSqlStatementAndParams() {
+            // Given
+            var account = StaffAccountFixture.validStaffAccount();
+            ArgumentCaptor<List<WriteQuery>> captor = ArgumentCaptor.forClass(List.class);
+
+            // When
+            sut.create(account);
+            verify(jdbcHelperMock, times(1)).executeMultiple(captor.capture());
+            List<WriteQuery> queries = captor.getValue();
+
+            WriteQuery insertQuery = queries.getFirst();
+            var params = insertQuery.params().build();
+
+            assertThat(insertQuery.sql()).contains("INSERT INTO staff_accounts");
+            assertThat(params.get("id")).isEqualTo(account.getId().getValue());
+            assertThat(params.get("username")).isEqualTo(account.getUsername().getValue());
+            assertThat(params.get("password")).isEqualTo(account.getPassword().getValue());
+            assertThat(params.get("status")).isEqualTo(account.getStatus().toString());
+        }
+
+        @Test
         void callsJdbcHelper_withExpectedNumberOfQueries() {
             // Given
             var account = StaffAccountFixture.validStaffAccount();
@@ -46,13 +67,6 @@ public class StaffAccountWriteRepoTests {
             List<WriteQuery> queries = captor.getValue();
 
             assertThat(queries.size()).isEqualTo(account.getPermissionCodes().size() + 1); // 1 for account insertion + N for permission ids
-
-            WriteQuery insertQuery = queries.getFirst();
-            assertThat(insertQuery.sql()).contains("INSERT INTO staff_accounts");
-            assertThat(insertQuery.params().build().get("id")).isEqualTo(account.getId().getValue());
-            assertThat(insertQuery.params().build().get("username")).isEqualTo(account.getUsername().getValue());
-            assertThat(insertQuery.params().build().get("password")).isEqualTo(account.getPassword().getValue());
-            assertThat(insertQuery.params().build().get("status")).isEqualTo(account.getStatus().toString());
         }
 
         @Test
