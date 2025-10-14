@@ -1,5 +1,6 @@
 package com.paragon.helpers;
 
+import com.paragon.domain.enums.AuditEntryActionType;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.entities.AuditTrailEntry;
 import com.paragon.domain.models.valueobjects.AuditEntryId;
@@ -145,5 +146,15 @@ public class TestJdbcHelper {
         Optional<AuditTrailEntryDao> optionalDao = writeJdbcHelper.queryFirstOrDefault(sql, params, AuditTrailEntryDao.class);
 
         return optionalDao.map(AuditTrailEntryDao::toAuditTrailEntry);
+    }
+
+    public List<AuditTrailEntry> getAuditTrailEntriesByActorAndAction(StaffAccountId actorId, AuditEntryActionType actionType) {
+        String sql = "SELECT * FROM audit_trail WHERE actor_id = :actorId AND action_type = :actionType";
+        SqlParams params = new SqlParams()
+                .add("actorId", actorId.getValue())
+                .add("actionType", actionType.toString());
+
+        List<AuditTrailEntryDao> daos = writeJdbcHelper.query(sql, params, AuditTrailEntryDao.class);
+        return daos.stream().map(AuditTrailEntryDao::toAuditTrailEntry).toList();
     }
 }
