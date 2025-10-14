@@ -24,7 +24,7 @@ public class WriteJdbcHelperImpl implements WriteJdbcHelper {
     }
 
     @Override
-    public int execute(String sql, SqlParams params) {
+    public int execute(String sql, SqlParamsBuilder params) {
         try {
             return jdbc.update(sql, params.build());
         } catch (DataAccessException e) {
@@ -46,7 +46,7 @@ public class WriteJdbcHelperImpl implements WriteJdbcHelper {
     }
 
     @Override
-    public <T> List<T> query(String sql, SqlParams params, Class<T> type) {
+    public <T> List<T> query(String sql, SqlParamsBuilder params, Class<T> type) {
         try {
             return jdbc.query(sql, params.build(), DataClassRowMapper.newInstance(type));
         } catch (DataAccessException e) {
@@ -56,7 +56,7 @@ public class WriteJdbcHelperImpl implements WriteJdbcHelper {
     }
 
     @Override
-    public <T> Optional<T> queryFirstOrDefault(String sql, SqlParams params, Class<T> type) {
+    public <T> Optional<T> queryFirstOrDefault(String sql, SqlParamsBuilder params, Class<T> type) {
         List<T> result = query(sql, params, type);
         return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
     }

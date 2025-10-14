@@ -2,7 +2,7 @@ package com.paragon.infrastructure.persistence.repos;
 
 import com.paragon.domain.interfaces.AuditTrailWriteRepo;
 import com.paragon.domain.models.entities.AuditTrailEntry;
-import com.paragon.infrastructure.persistence.jdbc.SqlParams;
+import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
 import org.springframework.stereotype.Repository;
 
@@ -25,7 +25,7 @@ public class AuditTrailWriteRepoImpl implements AuditTrailWriteRepo {
             (:id, :actorId, :actionType, :targetId, :targetType, :outcome, :ipAddress, :correlationId, :createdAtUtc)
         """;
 
-        SqlParams params = new SqlParams()
+        SqlParamsBuilder params = new SqlParamsBuilder()
                 .add("id", auditTrailEntry.getId().getValue())
                 .add("actorId", auditTrailEntry.getActorId().getValue())
                 .add("actionType", auditTrailEntry.getActionType().toString())

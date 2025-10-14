@@ -6,10 +6,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SqlParams {
+public class SqlParamsBuilder {
     private final Map<String, Object> values = new HashMap<>();
 
-    public SqlParams add(String key, Object value) {
+    public SqlParamsBuilder add(String key, Object value) {
         if (value instanceof Instant instant) {
             values.put(key, Timestamp.from(instant));
         } else {

@@ -2,12 +2,11 @@ package com.paragon.infrastructure.persistence;
 
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.models.aggregates.StaffAccount;
-import com.paragon.domain.models.constants.SystemPermissions;
 import com.paragon.domain.models.valueobjects.*;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.daos.StaffAccountDao;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
-import com.paragon.infrastructure.persistence.jdbc.SqlParams;
+import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.WriteQuery;
 import com.paragon.infrastructure.persistence.repos.StaffAccountWriteRepoImpl;
@@ -17,7 +16,6 @@ import org.mockito.ArgumentCaptor;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
@@ -113,7 +111,7 @@ public class StaffAccountWriteRepoTests {
             // Given
             StaffAccountId staffAccountId = StaffAccountId.generate();
             ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
-            ArgumentCaptor<SqlParams> paramsCaptor = ArgumentCaptor.forClass(SqlParams.class);
+            ArgumentCaptor<SqlParamsBuilder> paramsCaptor = ArgumentCaptor.forClass(SqlParamsBuilder.class);
 
             // When
             sut.getById(staffAccountId);
@@ -122,7 +120,7 @@ public class StaffAccountWriteRepoTests {
             verify(jdbcHelper, times(1)).queryFirstOrDefault(sqlCaptor.capture(), paramsCaptor.capture(), eq(StaffAccountDao.class));
 
             String sql = sqlCaptor.getValue();
-            SqlParams sqlParams = paramsCaptor.getValue();
+            SqlParamsBuilder sqlParams = paramsCaptor.getValue();
 
             assertThat(sql).isEqualTo("SELECT * FROM staff_accounts WHERE id = :id");
             assertThat(sqlParams.build().get("id")).isEqualTo(staffAccountId.getValue());
@@ -134,7 +132,7 @@ public class StaffAccountWriteRepoTests {
             StaffAccountDao staffAccountDao = createStaffAccountDao();
             StaffAccountId staffAccountId = StaffAccountId.from(staffAccountDao.id().toString());
 
-            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParams.class), eq(StaffAccountDao.class)))
+            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountDao.class)))
                     .thenReturn(Optional.of(staffAccountDao));
 
             // When
@@ -148,7 +146,7 @@ public class StaffAccountWriteRepoTests {
         @Test
         void returnsEmptyOptional_whenStaffAccountIsMissing() {
             // Given
-            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParams.class), eq(StaffAccountDao.class)))
+            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountDao.class)))
                     .thenReturn(Optional.empty());
 
             // When
@@ -161,7 +159,7 @@ public class StaffAccountWriteRepoTests {
         @Test
         void shouldPropagateInfraException_whenJdbcHelperThrows() {
             // Given
-            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParams.class), eq(StaffAccountDao.class)))
+            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountDao.class)))
                     .thenThrow(InfraException.class);
 
             // When & Then
@@ -185,7 +183,7 @@ public class StaffAccountWriteRepoTests {
             // Given
             Username username = Username.of("john_doe");
             ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
-            ArgumentCaptor<SqlParams> paramsCaptor = ArgumentCaptor.forClass(SqlParams.class);
+            ArgumentCaptor<SqlParamsBuilder> paramsCaptor = ArgumentCaptor.forClass(SqlParamsBuilder.class);
 
             // When
             sut.getByUsername(username);
@@ -194,7 +192,7 @@ public class StaffAccountWriteRepoTests {
             verify(jdbcHelper, times(1)).queryFirstOrDefault(sqlCaptor.capture(), paramsCaptor.capture(), eq(StaffAccountDao.class));
 
             String sql = sqlCaptor.getValue();
-            SqlParams sqlParams = paramsCaptor.getValue();
+            SqlParamsBuilder sqlParams = paramsCaptor.getValue();
 
             assertThat(sql).isEqualTo("SELECT * FROM staff_accounts WHERE username = :username");
             assertThat(sqlParams.build().get("username")).isEqualTo(username.getValue());
@@ -206,7 +204,7 @@ public class StaffAccountWriteRepoTests {
             StaffAccountDao staffAccountDao = createStaffAccountDao();
             Username username = Username.of(staffAccountDao.username());
 
-            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParams.class), eq(StaffAccountDao.class)))
+            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountDao.class)))
                     .thenReturn(Optional.of(staffAccountDao));
 
             // When
@@ -220,7 +218,7 @@ public class StaffAccountWriteRepoTests {
         @Test
         void returnsEmptyOptional_whenStaffAccountIsMissing() {
             // Given
-            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParams.class), eq(StaffAccountDao.class)))
+            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountDao.class)))
                     .thenReturn(Optional.empty());
 
             // When
@@ -233,7 +231,7 @@ public class StaffAccountWriteRepoTests {
         @Test
         void shouldPropagateInfraException_whenJdbcHelperThrows() {
             // Given
-            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParams.class), eq(StaffAccountDao.class)))
+            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountDao.class)))
                     .thenThrow(InfraException.class);
 
             // When & Then

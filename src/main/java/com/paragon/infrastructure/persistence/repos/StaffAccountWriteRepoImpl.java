@@ -5,7 +5,7 @@ import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.*;
 import com.paragon.infrastructure.persistence.daos.PermissionCodeDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountDao;
-import com.paragon.infrastructure.persistence.jdbc.SqlParams;
+import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.WriteQuery;
 import org.springframework.stereotype.Repository;
@@ -40,7 +40,7 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
              :disabledBy, :version, :createdAtUtc, :updatedAtUtc)
         """;
 
-        SqlParams insertStaffAccountParams = new SqlParams()
+        SqlParamsBuilder insertStaffAccountParams = new SqlParamsBuilder()
                 .add("id", staffAccount.getId().getValue())
                 .add("username", staffAccount.getUsername().getValue())
                 .add("email", staffAccount.getEmail().getValue())
@@ -68,7 +68,7 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
             (:staffAccountId, :permissionCode, :assignedBy, :assignedAtUtc)
         """;
         for (PermissionCode code : permissionCodes) {
-            SqlParams joinTableParams = new SqlParams()
+            SqlParamsBuilder joinTableParams = new SqlParamsBuilder()
                     .add("staffAccountId", staffAccount.getId().getValue())
                     .add("permissionCode", code.getValue())
                     .add("assignedBy", staffAccount.getCreatedBy().getValue())
@@ -82,7 +82,7 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
     @Override
     public Optional<StaffAccount> getById(StaffAccountId staffAccountId) {
         String sql = "SELECT * FROM staff_accounts WHERE id = :id";
-        SqlParams params = new SqlParams().add("id", staffAccountId.getValue());
+        SqlParamsBuilder params = new SqlParamsBuilder().add("id", staffAccountId.getValue());
 
         Optional<StaffAccountDao> optional = jdbcHelper.queryFirstOrDefault(sql, params, StaffAccountDao.class);
         return optional.map(dao -> {
@@ -94,7 +94,7 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
     @Override
     public Optional<StaffAccount> getByUsername(Username username) {
         String sql = "SELECT * FROM staff_accounts WHERE username = :username";
-        SqlParams params = new SqlParams().add("username", username.getValue());
+        SqlParamsBuilder params = new SqlParamsBuilder().add("username", username.getValue());
 
         Optional<StaffAccountDao> optional = jdbcHelper.queryFirstOrDefault(sql, params, StaffAccountDao.class);
         return optional.map(dao -> {
@@ -105,7 +105,7 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
 
     private List<PermissionCode> getPermissionCodesBy(UUID staffAccountId) {
         String sql = "SELECT permission_code FROM staff_account_permissions WHERE staff_account_id = :id";
-        SqlParams params = new SqlParams().add("id", staffAccountId);
+        SqlParamsBuilder params = new SqlParamsBuilder().add("id", staffAccountId);
 
         List<PermissionCodeDao> permissionCodeDaos = jdbcHelper.query(sql, params, PermissionCodeDao.class);
         return permissionCodeDaos

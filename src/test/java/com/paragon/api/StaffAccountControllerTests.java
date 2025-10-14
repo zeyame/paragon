@@ -1,12 +1,15 @@
 package com.paragon.api;
 
 import com.paragon.api.dtos.ResponseDto;
+import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommand;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandHandler;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandResponse;
 import com.paragon.application.common.exceptions.AppException;
+import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQuery;
+import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryHandler;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -26,13 +29,13 @@ public class StaffAccountControllerTests {
     class Register {
         private final StaffAccountController sut;
         private final RegisterStaffAccountCommandHandler registerStaffAccountCommandHandlerMock;
+        private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
         private final RegisterStaffAccountCommandResponse commandResponse;
-        private final TaskExecutor taskExecutorMock;
 
         public Register() {
             registerStaffAccountCommandHandlerMock = mock(RegisterStaffAccountCommandHandler.class);
-            taskExecutorMock = mock(TaskExecutor.class);
-            sut = new StaffAccountController(registerStaffAccountCommandHandlerMock, taskExecutorMock);
+            getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
+            sut = new StaffAccountController(registerStaffAccountCommandHandlerMock, getAllStaffAccountsQueryHandlerMock);
 
             commandResponse = new RegisterStaffAccountCommandResponse(
                     "id", "username123", "pending_password_change", 1
@@ -123,6 +126,29 @@ public class StaffAccountControllerTests {
                     request.modmailTranscriptAccessDuration(),
                     request.permissionCodes()
             );
+        }
+    }
+
+    @Nested
+    class GetAll {
+        private final StaffAccountController sut;
+        private final RegisterStaffAccountCommandHandler registerStaffAccountCommandHandlerMock;
+        private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
+
+        public GetAll() {
+            registerStaffAccountCommandHandlerMock = mock(RegisterStaffAccountCommandHandler.class);
+            getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
+            sut = new StaffAccountController(registerStaffAccountCommandHandlerMock, getAllStaffAccountsQueryHandlerMock);
+        }
+
+        @Test
+        void getAllStaffAccounts_returnsOk() {
+            // When
+            CompletableFuture<ResponseEntity<ResponseDto<GetAllStaffAccountsResponseDto>>> futureDto = sut.getAll();
+
+            // Then
+            ResponseEntity<ResponseDto<GetAllStaffAccountsResponseDto>> completedResponse = futureDto.join();
+            assertThat(completedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
     }
 }

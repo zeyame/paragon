@@ -7,10 +7,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class InfraExceptionHandlerImpl implements InfraExceptionHandler {
-
     @Override
     public InfraException handleDatabaseException(DataAccessException e) {
-        log.error("e: ", e);
-        throw new InfraException(e.getMessage());
+        throw new InfraException();
     }
 }

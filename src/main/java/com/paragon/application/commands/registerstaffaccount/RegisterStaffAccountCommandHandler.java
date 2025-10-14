@@ -46,8 +46,8 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
                 log.error("Staff account registration failed: requestingStaffId='{}' does not exist.", requestingStaffId);
                 throw new AppException(AppExceptionInfo.staffAccountNotFound(requestingStaffId));
             }
-            StaffAccount requestingStaffAccount = optional.get();
 
+            StaffAccount requestingStaffAccount = optional.get();
             if (!requestingStaffAccount.canRegisterOtherStaffAccounts()) {
                 log.warn("Staff account registration request denied: requestingStaffId='{}' lacked MANAGE_ACCOUNTS permission.", requestingStaffId);
                 throw new AppException(AppExceptionInfo.permissionAccessDenied("registration"));

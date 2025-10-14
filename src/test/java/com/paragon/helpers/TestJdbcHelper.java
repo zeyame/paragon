@@ -10,7 +10,7 @@ import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.infrastructure.persistence.daos.AuditTrailEntryDao;
 import com.paragon.infrastructure.persistence.daos.PermissionCodeDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountDao;
-import com.paragon.infrastructure.persistence.jdbc.SqlParams;
+import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.WriteQuery;
 import org.springframework.stereotype.Component;
@@ -45,7 +45,7 @@ public class TestJdbcHelper {
                 )
                 """;
 
-        SqlParams insertStaffAccountParams = new SqlParams()
+        SqlParamsBuilder insertStaffAccountParams = new SqlParamsBuilder()
                 .add("id", staffAccount.getId().getValue())
                 .add("username", staffAccount.getUsername().getValue())
                 .add("email", staffAccount.getEmail().getValue())
@@ -73,7 +73,7 @@ public class TestJdbcHelper {
             (:staffAccountId, :permissionCode, :assignedBy, :assignedAtUtc)
         """;
         for (PermissionCode code : permissionCodes) {
-            SqlParams joinTableParams = new SqlParams()
+            SqlParamsBuilder joinTableParams = new SqlParamsBuilder()
                     .add("staffAccountId", staffAccount.getId().getValue())
                     .add("permissionCode", code.getValue())
                     .add("assignedBy", staffAccount.getCreatedBy().getValue())
@@ -86,7 +86,7 @@ public class TestJdbcHelper {
 
     public Optional<StaffAccount> getStaffAccountById(StaffAccountId staffAccountId) {
         String sql = "SELECT * FROM staff_accounts WHERE id = :id";
-        SqlParams params = new SqlParams().add("id", staffAccountId.getValue());
+        SqlParamsBuilder params = new SqlParamsBuilder().add("id", staffAccountId.getValue());
 
         Optional<StaffAccountDao> optionalDao =
                 writeJdbcHelper.queryFirstOrDefault(sql, params, StaffAccountDao.class);
@@ -99,7 +99,7 @@ public class TestJdbcHelper {
 
     public Optional<StaffAccount> getStaffAccountByUsername(Username username) {
         String sql = "SELECT * FROM staff_accounts WHERE username = :username";
-        SqlParams params = new SqlParams().add("username", username.getValue());
+        SqlParamsBuilder params = new SqlParamsBuilder().add("username", username.getValue());
 
         Optional<StaffAccountDao> optionalDao = writeJdbcHelper.queryFirstOrDefault(sql, params, StaffAccountDao.class);
 
@@ -111,7 +111,7 @@ public class TestJdbcHelper {
 
     public List<PermissionCode> getPermissionsForStaff(StaffAccountId staffAccountId) {
         String sql = "SELECT permission_code FROM staff_account_permissions WHERE staff_account_id = :id";
-        SqlParams params = new SqlParams().add("id", staffAccountId.getValue());
+        SqlParamsBuilder params = new SqlParamsBuilder().add("id", staffAccountId.getValue());
 
         List<PermissionCodeDao> daos = writeJdbcHelper.query(sql, params, PermissionCodeDao.class);
         return daos.stream().map(PermissionCodeDao::toPermissionCode).toList();
@@ -125,7 +125,7 @@ public class TestJdbcHelper {
             (:id, :actorId, :actionType, :targetId, :targetType, :outcome, :ipAddress, :correlationId, :createdAtUtc)
         """;
 
-        SqlParams params = new SqlParams()
+        SqlParamsBuilder params = new SqlParamsBuilder()
                 .add("id", auditTrailEntry.getId().getValue())
                 .add("actorId", auditTrailEntry.getActorId().getValue())
                 .add("actionType", auditTrailEntry.getActionType().toString())
@@ -141,7 +141,7 @@ public class TestJdbcHelper {
 
     public Optional<AuditTrailEntry> getAuditTrailEntryById(AuditEntryId auditEntryId) {
         String sql = "SELECT * FROM audit_trail WHERE id = :id";
-        SqlParams params = new SqlParams().add("id", auditEntryId.getValue());
+        SqlParamsBuilder params = new SqlParamsBuilder().add("id", auditEntryId.getValue());
 
         Optional<AuditTrailEntryDao> optionalDao = writeJdbcHelper.queryFirstOrDefault(sql, params, AuditTrailEntryDao.class);
 
@@ -150,7 +150,7 @@ public class TestJdbcHelper {
 
     public List<AuditTrailEntry> getAuditTrailEntriesByActorAndAction(StaffAccountId actorId, AuditEntryActionType actionType) {
         String sql = "SELECT * FROM audit_trail WHERE actor_id = :actorId AND action_type = :actionType";
-        SqlParams params = new SqlParams()
+        SqlParamsBuilder params = new SqlParamsBuilder()
                 .add("actorId", actorId.getValue())
                 .add("actionType", actionType.toString());
 
