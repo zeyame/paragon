@@ -6,8 +6,6 @@ import com.paragon.application.common.exceptions.AppExceptionHandler;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.context.ActorContext;
 import com.paragon.application.events.EventBus;
-import com.paragon.application.queries.repositoryinterfaces.PermissionReadRepo;
-import com.paragon.domain.events.DomainEvent;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;

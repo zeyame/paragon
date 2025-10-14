@@ -1,3 +1,3 @@
 package com.paragon.application.queries.getallstaffaccounts;
 
-public class GetAllStaffAccountsQuery {}
+public record GetAllStaffAccountsQuery() {}

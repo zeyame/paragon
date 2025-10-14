@@ -1,4 +1,5 @@
 package com.paragon.application.queries.getallstaffaccounts;
 
-public class GetAllStaffAccountsQueryResponse {
-}
+import java.util.List;
+
+public record GetAllStaffAccountsQueryResponse(List<StaffAccountSummary> staffAccountSummaries) {}

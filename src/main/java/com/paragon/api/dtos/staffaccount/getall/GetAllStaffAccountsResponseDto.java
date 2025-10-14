@@ -1,3 +1,5 @@
 package com.paragon.api.dtos.staffaccount.getall;
 
-public class GetAllStaffAccountsResponseDto {}
+import java.util.List;
+
+public record GetAllStaffAccountsResponseDto(List<StaffAccountSummaryResponseDto> staffAccountSummaryResponseDtos) {}

@@ -2,6 +2,7 @@ package com.paragon.api;
 
 import com.paragon.api.dtos.ResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
+import com.paragon.api.dtos.staffaccount.getall.StaffAccountSummaryResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
 import com.paragon.application.commands.CommandHandler;
@@ -10,6 +11,7 @@ import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccoun
 import com.paragon.application.queries.QueryHandler;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQuery;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryResponse;
+import com.paragon.application.queries.getallstaffaccounts.StaffAccountSummary;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.ResponseEntity;
@@ -75,7 +77,23 @@ public class StaffAccountController {
     }
 
     private GetAllStaffAccountsResponseDto createGetAllStaffAccountsResponseDto(GetAllStaffAccountsQueryResponse queryResponse) {
-        return new GetAllStaffAccountsResponseDto();
+        return new GetAllStaffAccountsResponseDto(
+                queryResponse.staffAccountSummaries()
+                        .stream()
+                        .map(this::toStaffAccountSummaryResponseDto)
+                        .toList()
+        );
+    }
+
+    private StaffAccountSummaryResponseDto toStaffAccountSummaryResponseDto(StaffAccountSummary staffAccountSummary) {
+        return new StaffAccountSummaryResponseDto(
+                staffAccountSummary.id(),
+                staffAccountSummary.username(),
+                staffAccountSummary.status(),
+                staffAccountSummary.orderAccessDuration(),
+                staffAccountSummary.modmailTranscriptAccessDuration(),
+                staffAccountSummary.createdAtUtc()
+        );
     }
 
 }

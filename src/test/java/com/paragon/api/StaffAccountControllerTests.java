@@ -2,6 +2,7 @@ package com.paragon.api;
 
 import com.paragon.api.dtos.ResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
+import com.paragon.api.dtos.staffaccount.getall.StaffAccountSummaryResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommand;
@@ -10,13 +11,18 @@ import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccoun
 import com.paragon.application.common.exceptions.AppException;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQuery;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryHandler;
+import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryResponse;
+import com.paragon.application.queries.getallstaffaccounts.StaffAccountSummary;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -134,11 +140,25 @@ public class StaffAccountControllerTests {
         private final StaffAccountController sut;
         private final RegisterStaffAccountCommandHandler registerStaffAccountCommandHandlerMock;
         private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
+        private final GetAllStaffAccountsQueryResponse queryResponse;
 
         public GetAll() {
             registerStaffAccountCommandHandlerMock = mock(RegisterStaffAccountCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
             sut = new StaffAccountController(registerStaffAccountCommandHandlerMock, getAllStaffAccountsQueryHandlerMock);
+
+            queryResponse = new GetAllStaffAccountsQueryResponse(List.of(
+                    new StaffAccountSummary(
+                            UUID.randomUUID(),
+                            "john_doe",
+                            "active",
+                            10,
+                            5,
+                            Instant.now()
+                    )
+            ));
+
+            when(getAllStaffAccountsQueryHandlerMock.handle(any(GetAllStaffAccountsQuery.class))).thenReturn(queryResponse);
         }
 
         @Test
@@ -149,6 +169,54 @@ public class StaffAccountControllerTests {
             // Then
             ResponseEntity<ResponseDto<GetAllStaffAccountsResponseDto>> completedResponse = futureDto.join();
             assertThat(completedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        }
+
+        @Test
+        void callsHandler_withCorrectQuery() {
+            // Given
+            ArgumentCaptor<GetAllStaffAccountsQuery> queryCaptor = ArgumentCaptor.forClass(GetAllStaffAccountsQuery.class);
+
+            // When
+            sut.getAll();
+
+            // Then
+            verify(getAllStaffAccountsQueryHandlerMock, times(1)).handle(queryCaptor.capture());
+            assertThat(queryCaptor.getValue()).isInstanceOf(GetAllStaffAccountsQuery.class);
+        }
+
+        @Test
+        void mapsQueryResponse_toCorrectResponseDto() {
+            // When
+            CompletableFuture<ResponseEntity<ResponseDto<GetAllStaffAccountsResponseDto>>> futureDto = sut.getAll();
+
+            // Then
+            ResponseDto<GetAllStaffAccountsResponseDto> responseDto = futureDto.join().getBody();
+            assertThat(responseDto.result()).isNotNull();
+            assertThat(responseDto.errorDto()).isNull();
+
+            GetAllStaffAccountsResponseDto actualResponseDto = responseDto.result();
+            assertThat(actualResponseDto.staffAccountSummaryResponseDtos().size())
+                    .isEqualTo(queryResponse.staffAccountSummaries().size());
+
+            StaffAccountSummaryResponseDto actualSummary = actualResponseDto.staffAccountSummaryResponseDtos().getFirst();
+            StaffAccountSummary expectedSummary = queryResponse.staffAccountSummaries().getFirst();
+
+            assertThat(actualSummary.id()).isEqualTo(expectedSummary.id());
+            assertThat(actualSummary.username()).isEqualTo(expectedSummary.username());
+            assertThat(actualSummary.status()).isEqualTo(expectedSummary.status());
+            assertThat(actualSummary.orderAccessDuration()).isEqualTo(expectedSummary.orderAccessDuration());
+            assertThat(actualSummary.modmailTranscriptAccessDuration()).isEqualTo(expectedSummary.modmailTranscriptAccessDuration());
+        }
+
+        @Test
+        void whenHandlerThrowsException_shouldPropagateException() {
+            // Given
+            when(getAllStaffAccountsQueryHandlerMock.handle(any(GetAllStaffAccountsQuery.class)))
+                    .thenThrow(AppException.class);
+
+            // When & Then
+            assertThatThrownBy(() -> sut.getAll().join())
+                    .hasCauseInstanceOf(AppException.class);
         }
     }
 }
