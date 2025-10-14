@@ -34,9 +34,9 @@ public class WriteJdbcHelperImpl implements WriteJdbcHelper {
 
     @Override
     @Transactional
-    public void executeMultiple(List<WriteQuery> queries) {
+    public void executeMultiple(List<SqlStatement> queries) {
         try {
-            for (WriteQuery query : queries) {
+            for (SqlStatement query : queries) {
                 jdbc.update(query.sql(), query.params().build());
             }
         } catch (DataAccessException e) {

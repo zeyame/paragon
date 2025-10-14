@@ -12,7 +12,7 @@ import com.paragon.infrastructure.persistence.daos.PermissionCodeDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountDao;
 import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
-import com.paragon.infrastructure.persistence.jdbc.WriteQuery;
+import com.paragon.infrastructure.persistence.jdbc.SqlStatement;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -29,7 +29,7 @@ public class TestJdbcHelper {
     }
 
     public void insertStaffAccount(StaffAccount staffAccount) {
-        List<WriteQuery> queries = new ArrayList<>();
+        List<SqlStatement> queries = new ArrayList<>();
 
         String insertStaffAccountSql = """
                 INSERT INTO staff_accounts (
@@ -63,7 +63,7 @@ public class TestJdbcHelper {
                 .add("createdAtUtc", Instant.now())
                 .add("updatedAtUtc", Instant.now());
 
-        queries.add(new WriteQuery(insertStaffAccountSql, insertStaffAccountParams));
+        queries.add(new SqlStatement(insertStaffAccountSql, insertStaffAccountParams));
 
         List<PermissionCode> permissionCodes = new ArrayList<>(staffAccount.getPermissionCodes());
         String joinTableSql = """
@@ -78,7 +78,7 @@ public class TestJdbcHelper {
                     .add("permissionCode", code.getValue())
                     .add("assignedBy", staffAccount.getCreatedBy().getValue())
                     .add("assignedAtUtc", Instant.now());
-            queries.add(new WriteQuery(joinTableSql, joinTableParams));
+            queries.add(new SqlStatement(joinTableSql, joinTableParams));
         }
 
         writeJdbcHelper.executeMultiple(queries);

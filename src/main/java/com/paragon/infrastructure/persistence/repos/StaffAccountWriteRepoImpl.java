@@ -7,7 +7,7 @@ import com.paragon.infrastructure.persistence.daos.PermissionCodeDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountDao;
 import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
-import com.paragon.infrastructure.persistence.jdbc.WriteQuery;
+import com.paragon.infrastructure.persistence.jdbc.SqlStatement;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -25,7 +25,7 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
     }
 
     public void create(StaffAccount staffAccount) {
-        List<WriteQuery> queries = new ArrayList<>();
+        List<SqlStatement> sqlStatements = new ArrayList<>();
 
         String insertStaffAccountSql = """
             INSERT INTO staff_accounts
@@ -58,7 +58,7 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
                 .add("createdAtUtc", Instant.now())
                 .add("updatedAtUtc", Instant.now());
 
-        queries.add(new WriteQuery(insertStaffAccountSql, insertStaffAccountParams));
+        sqlStatements.add(new SqlStatement(insertStaffAccountSql, insertStaffAccountParams));
 
         List<PermissionCode> permissionCodes = new ArrayList<>(staffAccount.getPermissionCodes());
         String joinTableSql = """
@@ -73,10 +73,10 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
                     .add("permissionCode", code.getValue())
                     .add("assignedBy", staffAccount.getCreatedBy().getValue())
                     .add("assignedAtUtc", Instant.now());
-            queries.add(new WriteQuery(joinTableSql, joinTableParams));
+            sqlStatements.add(new SqlStatement(joinTableSql, joinTableParams));
         }
 
-        jdbcHelper.executeMultiple(queries);
+        jdbcHelper.executeMultiple(sqlStatements);
     }
 
     @Override

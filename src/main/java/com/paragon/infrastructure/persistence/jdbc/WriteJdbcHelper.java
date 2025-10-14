@@ -5,7 +5,7 @@ import java.util.Optional;
 
 public interface WriteJdbcHelper {
     int execute(String sql, SqlParamsBuilder params);
-    void executeMultiple(List<WriteQuery> queries);
+    void executeMultiple(List<SqlStatement> queries);
     <T> List<T> query(String sql, SqlParamsBuilder params, Class<T> type);
     <T> Optional<T> queryFirstOrDefault(String sql, SqlParamsBuilder params, Class<T> type);
 }

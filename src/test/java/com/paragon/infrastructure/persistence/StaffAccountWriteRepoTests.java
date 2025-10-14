@@ -8,7 +8,7 @@ import com.paragon.infrastructure.persistence.daos.StaffAccountDao;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
-import com.paragon.infrastructure.persistence.jdbc.WriteQuery;
+import com.paragon.infrastructure.persistence.jdbc.SqlStatement;
 import com.paragon.infrastructure.persistence.repos.StaffAccountWriteRepoImpl;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -36,14 +36,14 @@ public class StaffAccountWriteRepoTests {
         void callsJdbcHelper_withCorrectInsertStaffAccountSqlStatementAndParams() {
             // Given
             var account = StaffAccountFixture.validStaffAccount();
-            ArgumentCaptor<List<WriteQuery>> captor = ArgumentCaptor.forClass(List.class);
+            ArgumentCaptor<List<SqlStatement>> captor = ArgumentCaptor.forClass(List.class);
 
             // When
             sut.create(account);
             verify(jdbcHelperMock, times(1)).executeMultiple(captor.capture());
-            List<WriteQuery> queries = captor.getValue();
+            List<SqlStatement> queries = captor.getValue();
 
-            WriteQuery insertQuery = queries.getFirst();
+            SqlStatement insertQuery = queries.getFirst();
             var params = insertQuery.params().build();
 
             assertThat(insertQuery.sql()).contains("INSERT INTO staff_accounts");
@@ -57,14 +57,14 @@ public class StaffAccountWriteRepoTests {
         void callsJdbcHelper_withExpectedNumberOfQueries() {
             // Given
             var account = StaffAccountFixture.validStaffAccount();
-            ArgumentCaptor<List<WriteQuery>> captor = ArgumentCaptor.forClass(List.class);
+            ArgumentCaptor<List<SqlStatement>> captor = ArgumentCaptor.forClass(List.class);
 
             // When
             sut.create(account);
 
             // Then
             verify(jdbcHelperMock, times(1)).executeMultiple(captor.capture());
-            List<WriteQuery> queries = captor.getValue();
+            List<SqlStatement> queries = captor.getValue();
 
             assertThat(queries.size()).isEqualTo(account.getPermissionCodes().size() + 1); // 1 for account insertion + N for permission ids
         }
@@ -73,14 +73,14 @@ public class StaffAccountWriteRepoTests {
         void insertsJoinTableEntries_forEachPermission() {
             // Given
             var account = StaffAccountFixture.validStaffAccount();
-            ArgumentCaptor<List<WriteQuery>> captor = ArgumentCaptor.forClass(List.class);
+            ArgumentCaptor<List<SqlStatement>> captor = ArgumentCaptor.forClass(List.class);
 
             // When
             sut.create(account);
 
             // Then
             verify(jdbcHelperMock, times(1)).executeMultiple(captor.capture());
-            List<WriteQuery> queries = captor.getValue();
+            List<SqlStatement> queries = captor.getValue();
 
             List<PermissionCode> permissionCodes = account
                     .getPermissionCodes()
