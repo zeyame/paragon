@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 public class StaffAccountFixture {
     private String id = UUID.randomUUID().toString();
     private String username = "testuser";
-    private String email = "testuser@example.com";
+    private String email = null;
     private String password = "SecurePass123!";
     private Instant passwordIssuedAt = Instant.now();
     private int orderAccessDuration = 7;
@@ -105,7 +105,7 @@ public class StaffAccountFixture {
         return StaffAccount.createFrom(
                 StaffAccountId.from(id),
                 Username.of(username),
-                Email.of(email),
+                email != null ? Email.of(email) : null,
                 Password.of(password),
                 passwordIssuedAt,
                 OrderAccessDuration.from(orderAccessDuration),

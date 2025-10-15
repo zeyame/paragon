@@ -48,7 +48,7 @@ public class TestJdbcHelper {
         SqlParamsBuilder insertStaffAccountParams = new SqlParamsBuilder()
                 .add("id", staffAccount.getId().getValue())
                 .add("username", staffAccount.getUsername().getValue())
-                .add("email", staffAccount.getEmail().getValue())
+                .add("email", staffAccount.getEmail() != null ? staffAccount.getEmail().getValue() : null)
                 .add("password", staffAccount.getPassword().getValue())
                 .add("passwordIssuedAtUtc", staffAccount.getPasswordIssuedAt())
                 .add("orderAccessDuration", staffAccount.getOrderAccessDuration().getValueInDays())
