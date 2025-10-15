@@ -4,10 +4,12 @@ import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.infrastructure.persistence.jdbc.ReadJdbcHelper;
+import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
@@ -19,7 +21,10 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
 
     @Override
     public boolean exists(StaffAccountId staffAccountId) {
-        return false;
+        String sql = "SELECT id FROM staff_accounts WHERE id = :id";
+        SqlParamsBuilder params = new SqlParamsBuilder().add("id", staffAccountId.getValue());
+
+        return readJdbcHelper.queryFirstOrDefault(sql, params, UUID.class).isPresent();
     }
 
     @Override
