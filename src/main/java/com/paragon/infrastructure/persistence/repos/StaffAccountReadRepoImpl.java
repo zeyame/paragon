@@ -40,6 +40,7 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
 
     @Override
     public List<StaffAccountSummaryReadModel> findAllSummaries() {
-        return List.of();
+        String sql = "SELECT id, username, status, order_access_duration, modmail_transcript_access_duration, created_at_utc FROM staff_accounts ORDER BY created_at_utc DESC";
+        return readJdbcHelper.query(sql, new SqlParamsBuilder(), StaffAccountSummaryReadModel.class);
     }
 }

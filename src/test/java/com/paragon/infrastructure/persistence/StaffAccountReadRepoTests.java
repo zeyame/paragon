@@ -5,11 +5,13 @@ import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.ReadJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
+import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
 import com.paragon.infrastructure.persistence.repos.StaffAccountReadRepoImpl;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -176,6 +178,91 @@ public class StaffAccountReadRepoTests {
 
     @Nested
     class FindAllSummaries {
+        private final ReadJdbcHelper readJdbcHelperMock;
+        private final StaffAccountReadRepoImpl sut;
 
+        public FindAllSummaries() {
+            this.readJdbcHelperMock = mock(ReadJdbcHelper.class);
+            this.sut = new StaffAccountReadRepoImpl(readJdbcHelperMock);
+        }
+
+        @Test
+        void callsJdbcHelper_withExpectedSql() {
+            // Given
+            ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+            ArgumentCaptor<SqlParamsBuilder> paramsCaptor = ArgumentCaptor.forClass(SqlParamsBuilder.class);
+
+            when(readJdbcHelperMock.query(anyString(), any(SqlParamsBuilder.class), any()))
+                    .thenReturn(List.of());
+
+            // When
+            sut.findAllSummaries();
+
+            // Then
+            verify(readJdbcHelperMock, times(1)).query(sqlCaptor.capture(), paramsCaptor.capture(), any());
+
+            String sql = sqlCaptor.getValue();
+            assertThat(sql).isEqualTo("SELECT id, username, status, order_access_duration, modmail_transcript_access_duration, created_at_utc FROM staff_accounts ORDER BY created_at_utc DESC");
+        }
+
+        @Test
+        void returnsListOfSummaries_whenStaffAccountsExist() {
+            // Given
+            StaffAccountSummaryReadModel summary1 = new StaffAccountSummaryReadModel(
+                    UUID.randomUUID(),
+                    "john_doe",
+                    "active",
+                    10,
+                    5,
+                    java.time.Instant.now()
+            );
+            StaffAccountSummaryReadModel summary2 = new StaffAccountSummaryReadModel(
+                    UUID.randomUUID(),
+                    "jane_smith",
+                    "pending_password_change",
+                    14,
+                    7,
+                    java.time.Instant.now()
+            );
+            List<StaffAccountSummaryReadModel> expectedSummaries = List.of(summary1, summary2);
+
+            when(readJdbcHelperMock.query(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountSummaryReadModel.class)))
+                    .thenReturn(expectedSummaries);
+
+            // When
+            var actualSummaries = sut.findAllSummaries();
+
+            // Then
+            assertThat(actualSummaries).isNotNull();
+            assertThat(actualSummaries.size()).isEqualTo(2);
+            assertThat(actualSummaries)
+                    .usingRecursiveComparison()
+                    .isEqualTo(expectedSummaries);
+        }
+
+        @Test
+        void returnsEmptyList_whenNoStaffAccountsExist() {
+            // Given
+            when(readJdbcHelperMock.query(anyString(), any(SqlParamsBuilder.class), any()))
+                    .thenReturn(List.of());
+
+            // When
+            var result = sut.findAllSummaries();
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void shouldPropagateInfraException_whenJdbcHelperThrows() {
+            // Given
+            when(readJdbcHelperMock.query(anyString(), any(SqlParamsBuilder.class), any()))
+                    .thenThrow(InfraException.class);
+
+            // When & Then
+            assertThatThrownBy(() -> sut.findAllSummaries())
+                    .isInstanceOf(InfraException.class);
+        }
     }
 }
