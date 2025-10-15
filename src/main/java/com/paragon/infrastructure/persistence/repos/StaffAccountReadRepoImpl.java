@@ -3,6 +3,7 @@ package com.paragon.infrastructure.persistence.repos;
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo;
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
+import com.paragon.infrastructure.persistence.daos.StaffAccountPermissionDao;
 import com.paragon.infrastructure.persistence.jdbc.ReadJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
@@ -29,7 +30,12 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
 
     @Override
     public boolean hasPermission(StaffAccountId staffAccountId, PermissionCode permissionCode) {
-        return false;
+        String sql = "SELECT * FROM staff_account_permissions WHERE staff_account_id = :staffAccountId AND permission_code = :permissionCode";
+        SqlParamsBuilder params = new SqlParamsBuilder()
+                .add("staffAccountId", staffAccountId.getValue())
+                .add("permissionCode", permissionCode.getValue());
+
+        return readJdbcHelper.queryFirstOrDefault(sql, params, StaffAccountPermissionDao.class).isPresent();
     }
 
     @Override
