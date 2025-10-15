@@ -3,6 +3,7 @@ package com.paragon.infrastructure.persistence.repos;
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo;
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
+import com.paragon.infrastructure.persistence.daos.StaffAccountIdDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountPermissionDao;
 import com.paragon.infrastructure.persistence.jdbc.ReadJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
@@ -10,7 +11,6 @@ import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryRead
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.UUID;
 
 @Repository
 public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
@@ -25,7 +25,7 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
         String sql = "SELECT id FROM staff_accounts WHERE id = :id";
         SqlParamsBuilder params = new SqlParamsBuilder().add("id", staffAccountId.getValue());
 
-        return readJdbcHelper.queryFirstOrDefault(sql, params, UUID.class).isPresent();
+        return readJdbcHelper.queryFirstOrDefault(sql, params, StaffAccountIdDao.class).isPresent();
     }
 
     @Override

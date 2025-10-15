@@ -2,6 +2,7 @@ package com.paragon.infrastructure.persistence;
 
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
+import com.paragon.infrastructure.persistence.daos.StaffAccountIdDao;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.ReadJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
@@ -37,14 +38,14 @@ public class StaffAccountReadRepoTests {
             ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
             ArgumentCaptor<SqlParamsBuilder> paramsCaptor = ArgumentCaptor.forClass(SqlParamsBuilder.class);
 
-            when(readJdbcHelperMock.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(UUID.class)))
+            when(readJdbcHelperMock.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountIdDao.class)))
                     .thenReturn(Optional.empty());
 
             // When
             sut.exists(staffAccountId);
 
             // Then
-            verify(readJdbcHelperMock, times(1)).queryFirstOrDefault(sqlCaptor.capture(), paramsCaptor.capture(), eq(UUID.class));
+            verify(readJdbcHelperMock, times(1)).queryFirstOrDefault(sqlCaptor.capture(), paramsCaptor.capture(), eq(StaffAccountIdDao.class));
 
             String sql = sqlCaptor.getValue();
             SqlParamsBuilder sqlParams = paramsCaptor.getValue();
@@ -57,8 +58,9 @@ public class StaffAccountReadRepoTests {
         void returnsTrue_whenStaffAccountExists() {
             // Given
             StaffAccountId staffAccountId = StaffAccountId.generate();
-            when(readJdbcHelperMock.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(UUID.class)))
-                    .thenReturn(Optional.of(staffAccountId.getValue()));
+            StaffAccountIdDao dao = new StaffAccountIdDao(staffAccountId.getValue());
+            when(readJdbcHelperMock.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountIdDao.class)))
+                    .thenReturn(Optional.of(dao));
 
             // When
             boolean result = sut.exists(staffAccountId);
@@ -71,7 +73,7 @@ public class StaffAccountReadRepoTests {
         void returnsFalse_whenStaffAccountDoesNotExist() {
             // Given
             StaffAccountId staffAccountId = StaffAccountId.generate();
-            when(readJdbcHelperMock.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(UUID.class)))
+            when(readJdbcHelperMock.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountIdDao.class)))
                     .thenReturn(Optional.empty());
 
             // When
@@ -85,7 +87,7 @@ public class StaffAccountReadRepoTests {
         void shouldPropagateInfraException_whenJdbcHelperThrows() {
             // Given
             StaffAccountId staffAccountId = StaffAccountId.generate();
-            when(readJdbcHelperMock.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(UUID.class)))
+            when(readJdbcHelperMock.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountIdDao.class)))
                     .thenThrow(InfraException.class);
 
             // When & Then
