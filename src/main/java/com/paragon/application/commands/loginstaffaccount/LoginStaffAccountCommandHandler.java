@@ -6,7 +6,8 @@ import com.paragon.application.common.exceptions.AppExceptionHandler;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.exceptions.DomainException;
-import com.paragon.domain.interfaces.StaffAccountWriteRepo;
+import com.paragon.domain.interfaces.PasswordHasher;
+import com.paragon.domain.interfaces.repos.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.Password;
 import com.paragon.domain.models.valueobjects.Username;
@@ -22,11 +23,14 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
     private final StaffAccountWriteRepo staffAccountWriteRepo;
     private final EventBus eventBus;
     private final AppExceptionHandler appExceptionHandler;
+    private final PasswordHasher passwordHasher;
 
-    public LoginStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo, EventBus eventBus, AppExceptionHandler appExceptionHandler) {
+    public LoginStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo, EventBus eventBus,
+                                          AppExceptionHandler appExceptionHandler, PasswordHasher passwordHasher) {
         this.staffAccountWriteRepo = staffAccountWriteRepo;
         this.eventBus = eventBus;
         this.appExceptionHandler = appExceptionHandler;
+        this.passwordHasher = passwordHasher;
     }
 
     @Override
@@ -38,7 +42,7 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
             }
 
             StaffAccount staffAccount = optionalStaffAccount.get();
-            staffAccount.login(Password.of(command.password()));
+            staffAccount.login(command.password(), passwordHasher);
 
             staffAccountWriteRepo.update(staffAccount);
 

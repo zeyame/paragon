@@ -1,6 +1,6 @@
 package com.paragon.infrastructure.persistence.repos;
 
-import com.paragon.domain.interfaces.StaffAccountWriteRepo;
+import com.paragon.domain.interfaces.repos.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.*;
 import com.paragon.infrastructure.persistence.daos.PermissionCodeDao;

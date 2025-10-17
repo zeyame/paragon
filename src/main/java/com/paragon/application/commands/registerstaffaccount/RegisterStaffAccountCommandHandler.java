@@ -7,7 +7,8 @@ import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.context.ActorContext;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.exceptions.DomainException;
-import com.paragon.domain.interfaces.StaffAccountWriteRepo;
+import com.paragon.domain.interfaces.PasswordHasher;
+import com.paragon.domain.interfaces.repos.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.*;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
@@ -24,15 +25,18 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
     private final ActorContext actorContext;
     private final EventBus eventBus;
     private final AppExceptionHandler appExceptionHandler;
+    private final PasswordHasher passwordHasher;
     private static final Logger log = LoggerFactory.getLogger(RegisterStaffAccountCommandHandler.class);
 
     public RegisterStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo, ActorContext actorContext,
-                                              EventBus eventBus, AppExceptionHandler appExceptionHandler
+                                              EventBus eventBus, AppExceptionHandler appExceptionHandler,
+                                              PasswordHasher passwordHasher
     ) {
         this.staffAccountWriteRepo = staffAccountWriteRepo;
         this.actorContext = actorContext;
         this.eventBus = eventBus;
         this.appExceptionHandler = appExceptionHandler;
+        this.passwordHasher = passwordHasher;
     }
 
     @Override
@@ -56,7 +60,7 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
             StaffAccount staffAccount = StaffAccount.register(
                     Username.of(command.username()),
                     command.email() != null ? Email.of(command.email()) : null,
-                    Password.of(command.tempPassword()),
+                    Password.fromPlainText(command.tempPassword(), passwordHasher),
                     OrderAccessDuration.from(command.orderAccessDuration()),
                     ModmailTranscriptAccessDuration.from(command.modmailTranscriptAccessDuration()),
                     requestingStaffAccount.getId(),

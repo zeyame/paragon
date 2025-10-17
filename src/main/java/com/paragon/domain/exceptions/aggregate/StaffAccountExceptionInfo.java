@@ -48,4 +48,11 @@ public class StaffAccountExceptionInfo extends DomainExceptionInfo {
                 10006
         );
     }
+
+    public static StaffAccountExceptionInfo invalidCredentials() {
+        return new StaffAccountExceptionInfo(
+                "Invalid username or password.",
+                10007
+        );
+    }
 }

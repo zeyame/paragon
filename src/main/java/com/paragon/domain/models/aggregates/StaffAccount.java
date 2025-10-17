@@ -5,6 +5,7 @@ import com.paragon.domain.events.DomainEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
 import com.paragon.domain.exceptions.aggregate.StaffAccountException;
 import com.paragon.domain.exceptions.aggregate.StaffAccountExceptionInfo;
+import com.paragon.domain.interfaces.PasswordHasher;
 import com.paragon.domain.models.constants.SystemPermissions;
 import com.paragon.domain.models.valueobjects.*;
 import lombok.Getter;
@@ -77,7 +78,8 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         return account;
     }
 
-    public void login(Password password) {
+    public void login(String plaintextPassword, PasswordHasher passwordHasher) {
+        throwIfPasswordDoesNotMatch(plaintextPassword, passwordHasher);
         lastLoginAt = Instant.now();
     }
 
@@ -104,6 +106,13 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
 
     public boolean requiresPasswordReset() {
         return status == StaffAccountStatus.PENDING_PASSWORD_CHANGE;
+    }
+
+
+    private void throwIfPasswordDoesNotMatch(String plaintextPassword, PasswordHasher passwordHasher) {
+        if (!this.password.matches(plaintextPassword, passwordHasher)) {
+            throw new StaffAccountException(StaffAccountExceptionInfo.invalidCredentials());
+        }
     }
 
     private static void assertValidRegistration(Username username, Password password, OrderAccessDuration orderAccessDuration,

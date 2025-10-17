@@ -1,6 +1,6 @@
 package com.paragon.infrastructure.persistence.repos;
 
-import com.paragon.domain.interfaces.AuditTrailWriteRepo;
+import com.paragon.domain.interfaces.repos.AuditTrailWriteRepo;
 import com.paragon.domain.models.entities.AuditTrailEntry;
 import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;

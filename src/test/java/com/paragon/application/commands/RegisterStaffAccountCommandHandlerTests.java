@@ -12,7 +12,8 @@ import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.events.DomainEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
 import com.paragon.domain.exceptions.DomainException;
-import com.paragon.domain.interfaces.StaffAccountWriteRepo;
+import com.paragon.domain.interfaces.PasswordHasher;
+import com.paragon.domain.interfaces.repos.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.constants.SystemPermissions;
 import com.paragon.domain.models.valueobjects.PermissionCode;
@@ -37,16 +38,19 @@ public class RegisterStaffAccountCommandHandlerTests {
     private final ActorContext actorContextMock;
     private final EventBus eventBusMock;
     private final AppExceptionHandler appExceptionHandlerMock;
+    private final PasswordHasher passwordHasherMock;
     private final RegisterStaffAccountCommand command;
     private final StaffAccount requestingStaffAccount;
+    private final String hashedPassword;
 
     public RegisterStaffAccountCommandHandlerTests() {
         staffAccountWriteRepoMock = mock(StaffAccountWriteRepo.class);
         actorContextMock = mock(ActorContext.class);
         eventBusMock = mock(EventBus.class);
         appExceptionHandlerMock = mock(AppExceptionHandler.class);
+        passwordHasherMock = mock(PasswordHasher.class);
 
-        sut = new RegisterStaffAccountCommandHandler(staffAccountWriteRepoMock, actorContextMock, eventBusMock, appExceptionHandlerMock);
+        sut = new RegisterStaffAccountCommandHandler(staffAccountWriteRepoMock, actorContextMock, eventBusMock, appExceptionHandlerMock, passwordHasherMock);
 
         command = createValidRegisterStaffAccountCommand();
 
@@ -59,6 +63,9 @@ public class RegisterStaffAccountCommandHandlerTests {
                 .build();
         when(staffAccountWriteRepoMock.getById(StaffAccountId.from(requestingStaffAccountId)))
                 .thenReturn(Optional.of(requestingStaffAccount));
+
+        hashedPassword = "$2a$10$7eqJtq98hPqEX7fNZaFWoOaYp84f5bRC6vh4Y4QJ9hK1QeYUpbFVa";
+        when(passwordHasherMock.hash(anyString())).thenReturn(hashedPassword);
     }
 
     @Test
@@ -94,7 +101,7 @@ public class RegisterStaffAccountCommandHandlerTests {
 
         assertThat(staffAccount.getUsername().getValue()).isEqualTo(command.username());
         assertThat(staffAccount.getEmail().getValue()).isEqualTo(command.email());
-        assertThat(staffAccount.getPassword().getValue()).isEqualTo(command.tempPassword());
+        assertThat(staffAccount.getPassword().getValue()).isEqualTo(hashedPassword);
         assertThat(staffAccount.getOrderAccessDuration().getValueInDays()).isEqualTo(command.orderAccessDuration());
         assertThat(staffAccount.getModmailTranscriptAccessDuration().getValueInDays()).isEqualTo(command.modmailTranscriptAccessDuration());
         assertThat(staffAccount.getPermissionCodes().stream().map(PermissionCode::getValue).toList()).isEqualTo(command.permissionCodes());
@@ -119,7 +126,7 @@ public class RegisterStaffAccountCommandHandlerTests {
 
         StaffAccountRegisteredEvent registeredEvent = (StaffAccountRegisteredEvent) event;
         assertThat(registeredEvent.getUsername().getValue()).isEqualTo(command.username());
-        assertThat(registeredEvent.getPassword().getValue()).isEqualTo(command.tempPassword());
+        assertThat(registeredEvent.getPassword().getValue()).isEqualTo(hashedPassword);
         assertThat(registeredEvent.getOrderAccessDuration().getValueInDays()).isEqualTo(command.orderAccessDuration());
         assertThat(registeredEvent.getModmailTranscriptAccessDuration().getValueInDays()).isEqualTo(command.modmailTranscriptAccessDuration());
         assertThat(registeredEvent.getStatus()).isEqualTo(StaffAccountStatus.PENDING_PASSWORD_CHANGE);

@@ -8,7 +8,7 @@ import com.paragon.domain.enums.Outcome;
 import com.paragon.domain.events.EventNames;
 import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
 import com.paragon.domain.exceptions.DomainException;
-import com.paragon.domain.interfaces.AuditTrailWriteRepo;
+import com.paragon.domain.interfaces.repos.AuditTrailWriteRepo;
 import com.paragon.domain.models.entities.AuditTrailEntry;
 import com.paragon.domain.models.valueobjects.AuditEntryTargetId;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;

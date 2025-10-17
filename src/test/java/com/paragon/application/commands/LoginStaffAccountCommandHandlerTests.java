@@ -7,7 +7,8 @@ import com.paragon.application.common.exceptions.AppException;
 import com.paragon.application.common.exceptions.AppExceptionHandler;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.exceptions.DomainException;
-import com.paragon.domain.interfaces.StaffAccountWriteRepo;
+import com.paragon.domain.interfaces.PasswordHasher;
+import com.paragon.domain.interfaces.repos.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
@@ -28,6 +29,7 @@ public class LoginStaffAccountCommandHandlerTests {
     private final StaffAccountWriteRepo staffAccountWriteRepoMock;
     private final EventBus eventBusMock;
     private final AppExceptionHandler appExceptionHandlerMock;
+    private final PasswordHasher passwordHasherMock;
     private final LoginStaffAccountCommand command;
     private final StaffAccount staffAccountToLogin;
 
@@ -35,7 +37,8 @@ public class LoginStaffAccountCommandHandlerTests {
         staffAccountWriteRepoMock = mock(StaffAccountWriteRepo.class);
         eventBusMock = mock(EventBus.class);
         appExceptionHandlerMock = mock(AppExceptionHandler.class);
-        sut = new LoginStaffAccountCommandHandler(staffAccountWriteRepoMock, eventBusMock, appExceptionHandlerMock);
+        passwordHasherMock = mock(PasswordHasher.class);
+        sut = new LoginStaffAccountCommandHandler(staffAccountWriteRepoMock, eventBusMock, appExceptionHandlerMock, passwordHasherMock);
 
         command = new LoginStaffAccountCommand(
                 "john_doe",
@@ -44,12 +47,16 @@ public class LoginStaffAccountCommandHandlerTests {
 
         staffAccountToLogin = new StaffAccountFixture()
                 .withUsername(command.username())
-                .withPassword(command.password())
+                .withPassword("$2a$10$hashedPasswordValue")
                 .withLastLoginAt(Instant.now())
                 .build();
 
         when(staffAccountWriteRepoMock.getByUsername(any(Username.class)))
                 .thenReturn(Optional.of(staffAccountToLogin));
+
+        // Mock successful password verification by default
+        when(passwordHasherMock.verify(eq(command.password()), any(String.class)))
+                .thenReturn(true);
     }
 
     @Test
@@ -123,6 +130,8 @@ public class LoginStaffAccountCommandHandlerTests {
         // When & ThenThen
         assertThatThrownBy(() -> sut.handle(command))
                 .isInstanceOf(AppException.class);
+        
+        verify(staffAccountWriteRepoMock, never()).update(any(StaffAccount.class));
     }
 
     @Test
