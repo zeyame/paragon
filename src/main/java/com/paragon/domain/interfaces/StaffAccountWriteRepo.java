@@ -10,4 +10,5 @@ public interface StaffAccountWriteRepo {
     void create(StaffAccount staffAccount);
     Optional<StaffAccount> getById(StaffAccountId staffAccountId);
     Optional<StaffAccount> getByUsername(Username username);
+    void update(StaffAccount staffAccount);
 }

@@ -45,7 +45,9 @@ public class GlobalExceptionFilterTests {
         private static Stream<Arguments> appExceptions() {
             return Stream.of(
                     Arguments.of(new AppException(AppExceptionInfo.staffAccountNotFound("staff-id")), HttpStatus.NOT_FOUND),
-                    Arguments.of(new AppException(AppExceptionInfo.permissionAccessDenied("registration")), HttpStatus.FORBIDDEN)
+                    Arguments.of(new AppException(AppExceptionInfo.permissionAccessDenied("registration")), HttpStatus.FORBIDDEN),
+                    Arguments.of(new AppException(AppExceptionInfo.staffAccountUsernameAlreadyExists("john_doe")), HttpStatus.CONFLICT),
+                    Arguments.of(new AppException(AppExceptionInfo.invalidLoginCredentials()), HttpStatus.UNAUTHORIZED)
             );
         }
     }

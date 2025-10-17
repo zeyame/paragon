@@ -30,6 +30,7 @@ public class GlobalExceptionFilter {
             case RESOURCE_NOT_FOUND -> HttpStatus.NOT_FOUND;
             case RESOURCE_OWNERSHIP_VIOLATION, PERMISSION_DENIED -> HttpStatus.FORBIDDEN;
             case RESOURCE_UNIQUENESS_VIOLATION -> HttpStatus.CONFLICT;
+            case AUTHENTICATION_FAILED -> HttpStatus.UNAUTHORIZED;
         };
     }
 }

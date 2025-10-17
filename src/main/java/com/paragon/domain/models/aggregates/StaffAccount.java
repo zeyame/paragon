@@ -77,6 +77,10 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         return account;
     }
 
+    public void login(Password password) {
+        lastLoginAt = Instant.now();
+    }
+
     public static StaffAccount createFrom(StaffAccountId id, Username username, Email email, Password password,
                                           Instant passwordIssuedAt, OrderAccessDuration orderAccessDuration,
                                           ModmailTranscriptAccessDuration modmailTranscriptAccessDuration,
@@ -96,6 +100,10 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
 
     public boolean canRegisterOtherStaffAccounts() {
         return permissionCodes.contains(SystemPermissions.MANAGE_ACCOUNTS);
+    }
+
+    public boolean requiresPasswordReset() {
+        return status == StaffAccountStatus.PENDING_PASSWORD_CHANGE;
     }
 
     private static void assertValidRegistration(Username username, Password password, OrderAccessDuration orderAccessDuration,

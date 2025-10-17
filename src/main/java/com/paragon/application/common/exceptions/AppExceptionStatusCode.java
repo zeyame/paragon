@@ -8,6 +8,7 @@ public enum AppExceptionStatusCode {
     RESOURCE_OWNERSHIP_VIOLATION(1005),
     RESOURCE_UNIQUENESS_VIOLATION(1006),
     PERMISSION_DENIED(1007),
+    AUTHENTICATION_FAILED(1008),
     UNHANDLED_ERROR(1999);
 
     AppExceptionStatusCode(int code) {

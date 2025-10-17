@@ -38,5 +38,11 @@ public class AppExceptionInfo {
         );
     }
 
-
+    public static AppExceptionInfo invalidLoginCredentials() {
+        return new AppExceptionInfo(
+                "Invalid username or password",
+                104,
+                AppExceptionStatusCode.AUTHENTICATION_FAILED
+        );
+    }
 }

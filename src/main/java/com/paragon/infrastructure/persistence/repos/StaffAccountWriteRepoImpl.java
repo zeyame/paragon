@@ -113,4 +113,7 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
                 .map(PermissionCodeDao::toPermissionCode)
                 .toList();
     }
+
+    @Override
+    public void update(StaffAccount staffAccount) {}
 }
