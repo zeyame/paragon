@@ -12,20 +12,21 @@ import com.paragon.application.queries.QueryHandler;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQuery;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryResponse;
 import com.paragon.application.queries.getallstaffaccounts.StaffAccountSummary;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.concurrent.CompletableFuture;
 
-@Slf4j
 @RestController
-@RequestMapping(("v1/staff-accounts"))
+@RequestMapping("v1/staff-accounts")
 public class StaffAccountController {
     private final CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> registerStaffAccountCommandHandler;
     private final QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> getAllStaffAccountsQueryHandler;
     private final TaskExecutor taskExecutor;
+    private static final Logger log = LoggerFactory.getLogger(StaffAccountController.class);
 
     public StaffAccountController(CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> registerStaffAccountCommandHandler, QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> getAllStaffAccountsQueryHandler) {
         this.registerStaffAccountCommandHandler = registerStaffAccountCommandHandler;
