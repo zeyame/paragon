@@ -152,7 +152,7 @@ public class StaffAccountControllerTests {
             return new RegisterStaffAccountRequestDto(
                     "john_doe",
                     "john_doe@example.com",
-                    "password123",
+                    "Password123!",
                     10,
                     20,
                     List.of("VIEW_ACCOUNTS_LIST", "VIEW_LOGIN_LOGS")
