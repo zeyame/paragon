@@ -19,15 +19,6 @@ public class Password extends ValueObject {
         this.value = value;
     }
 
-    /**
-     * @deprecated Use fromPlainText() or fromHashed() instead for clarity
-     */
-    @Deprecated
-    public static Password of(String value) {
-        assertValidPassword(value);
-        return new Password(value);
-    }
-
     public static Password fromPlainText(String plainText, PasswordHasher passwordHasher) {
         assertValidPassword(plainText);
         String hashed = passwordHasher.hash(plainText);

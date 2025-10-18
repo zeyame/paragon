@@ -112,7 +112,7 @@ public class StaffAccountFixture {
                 StaffAccountId.from(id),
                 Username.of(username),
                 email != null ? Email.of(email) : null,
-                Password.of(password),
+                Password.fromHashed(password),
                 isPasswordTemporary,
                 passwordIssuedAt,
                 OrderAccessDuration.from(orderAccessDuration),

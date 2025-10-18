@@ -26,7 +26,7 @@ public class StaffAccountTests {
         Register() {
             username = Username.of("john_doe");
             email = Email.of("john_doe@example.com");
-            password = Password.of("$argon2id$v=19$m=65536,t=3,p=1$QWxhZGRpbjpPcGVuU2VzYW1l$2iYvT1yzFzHtXJH7zM4jW1Z2sK7Tg==");
+            password = Password.fromHashed("$argon2id$v=19$m=65536,t=3,p=1$QWxhZGRpbjpPcGVuU2VzYW1l$2iYvT1yzFzHtXJH7zM4jW1Z2sK7Tg==");
             orderAccessDuration = OrderAccessDuration.from(5);
             modmailTranscriptAccessDuration = ModmailTranscriptAccessDuration.from(10);
             createdBy = StaffAccountId.generate();
