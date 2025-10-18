@@ -42,7 +42,7 @@ public class LoginStaffAccountCommandHandlerTests {
 
         command = new LoginStaffAccountCommand(
                 "john_doe",
-                "PlaintextPassword123"
+                "PlaintextPassword123?"
         );
 
         staffAccountToLogin = new StaffAccountFixture()
@@ -54,9 +54,8 @@ public class LoginStaffAccountCommandHandlerTests {
         when(staffAccountWriteRepoMock.getByUsername(any(Username.class)))
                 .thenReturn(Optional.of(staffAccountToLogin));
 
-        // Mock successful password verification by default
-        when(passwordHasherMock.verify(eq(command.password()), any(String.class)))
-                .thenReturn(true);
+        when(passwordHasherMock.hash(anyString()))
+                .thenReturn(staffAccountToLogin.getPassword().getValue());
     }
 
     @Test

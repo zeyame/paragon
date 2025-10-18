@@ -145,13 +145,20 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     }
 
     private void throwIfAccountIsLocked() {
-        if (status == StaffAccountStatus.LOCKED) {
-            if (lockedUntil != null && Instant.now().isAfter(lockedUntil)) {
-                unlockAccount();
-            } else {
-                throw new StaffAccountException(StaffAccountExceptionInfo.locked());
-            }
+        if (status != StaffAccountStatus.LOCKED) {
+            return;
         }
+
+        if (hasLockExpired()) {
+            unlockAccount();
+            return;
+        }
+
+        throw new StaffAccountException(StaffAccountExceptionInfo.locked());
+    }
+
+    private boolean hasLockExpired() {
+        return Instant.now().isAfter(lockedUntil);
     }
 
     private void unlockAccount() {
