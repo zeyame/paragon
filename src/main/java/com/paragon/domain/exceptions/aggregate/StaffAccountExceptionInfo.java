@@ -49,10 +49,24 @@ public class StaffAccountExceptionInfo extends DomainExceptionInfo {
         );
     }
 
+    public static StaffAccountExceptionInfo disabled() {
+        return new StaffAccountExceptionInfo(
+                "This account has been disabled.",
+                10007
+        );
+    }
+
+    public static StaffAccountExceptionInfo locked() {
+        return new StaffAccountExceptionInfo(
+                "This account has been locked.",
+                10008
+        );
+    }
+
     public static StaffAccountExceptionInfo invalidCredentials() {
         return new StaffAccountExceptionInfo(
                 "Invalid username or password.",
-                10007
+                10009
         );
     }
 }

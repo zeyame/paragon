@@ -5,23 +5,29 @@ import com.paragon.domain.exceptions.aggregate.StaffAccountException;
 import com.paragon.domain.exceptions.aggregate.StaffAccountExceptionInfo;
 import com.paragon.domain.models.constants.SystemPermissions;
 import com.paragon.domain.models.valueobjects.*;
+import com.paragon.helpers.fixtures.StaffAccountFixture;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
 import static org.assertj.core.api.Assertions.*;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
 public class StaffAccountTests {
     @Nested
     class Register {
-        private Username username;
-        private Email email;
-        private Password password;
-        private OrderAccessDuration orderAccessDuration;
-        private ModmailTranscriptAccessDuration modmailTranscriptAccessDuration;
-        private StaffAccountId createdBy;
-        private Set<PermissionCode> permissionCodes;
+        private final Username username;
+        private final Email email;
+        private final Password password;
+        private final OrderAccessDuration orderAccessDuration;
+        private final ModmailTranscriptAccessDuration modmailTranscriptAccessDuration;
+        private final StaffAccountId createdBy;
+        private final Set<PermissionCode> permissionCodes;
 
         Register() {
             username = Username.of("john_doe");
@@ -34,7 +40,7 @@ public class StaffAccountTests {
         }
 
         @Test
-        void givenValidInputWithoutEmail_shouldCreateStaffAccount() {
+        void givenValidInputWithoutEmail_shouldRegisterStaffAccount() {
             // When
             StaffAccount staffAccount = StaffAccount.register(username, null, password, orderAccessDuration, modmailTranscriptAccessDuration, createdBy, permissionCodes);
 
@@ -56,7 +62,7 @@ public class StaffAccountTests {
         }
 
         @Test
-        void givenValidInputWithEmail_shouldCreateStaffAccount() {
+        void givenValidInputWithEmail_shouldRegisterStaffAccount() {
             // When
             StaffAccount staffAccount = StaffAccount.register(username, email, password, orderAccessDuration, modmailTranscriptAccessDuration, createdBy, permissionCodes);
 
@@ -165,6 +171,155 @@ public class StaffAccountTests {
                     .isThrownBy(() -> StaffAccount.register(username, email, password, orderAccessDuration, modmailTranscriptAccessDuration, createdBy, new HashSet<>()))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(expectedErrorMessage, expectedErrorCode);
+        }
+    }
+
+    @Nested
+    class Login {
+        @Test
+        void shouldLoginSuccessfully() {
+            // Given
+            StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
+            String hashedPasswordValue = staffAccount.getPassword().getValue();
+            Password enteredPassword = Password.fromHashed(hashedPasswordValue);
+
+            // When
+            staffAccount.login(enteredPassword);
+
+            // Then
+            assertThat(staffAccount.getFailedLoginAttempts().getValue()).isZero();
+            assertThat(staffAccount.getLastLoginAt()).isNotNull();
+            assertThat(staffAccount.getLastLoginAt()).isBeforeOrEqualTo(Instant.now());
+        }
+
+        @Test
+        void shouldResetFailedLoginAttempts_uponSuccessfulLogin() {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withFailedLoginAttempts(3)
+                    .build();
+            String hashedPasswordValue = staffAccount.getPassword().getValue();
+            Password enteredPassword = Password.fromHashed(hashedPasswordValue);
+
+            // When
+            staffAccount.login(enteredPassword);
+
+            // Then
+            assertThat(staffAccount.getFailedLoginAttempts().getValue()).isZero();
+        }
+
+        @Test
+        void shouldIncreaseVersion_uponSuccessfulLogin() {
+            // Given
+            StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
+            String hashedPasswordValue = staffAccount.getPassword().getValue();
+            Password enteredPassword = Password.fromHashed(hashedPasswordValue);
+
+            // When
+            staffAccount.login(enteredPassword);
+
+            // Then
+            assertThat(staffAccount.getVersion().getValue()).isEqualTo(2);
+        }
+
+        @Test
+        void shouldThrowStaffAccountException_whenAccountIsDisabledAndPasswordIsCorrect() {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withStatus(StaffAccountStatus.DISABLED)
+                    .build();
+
+            String hashedPasswordValue = staffAccount.getPassword().getValue();
+            Password enteredPassword = Password.fromHashed(hashedPasswordValue);
+
+            // When & Then
+            assertThatExceptionOfType(StaffAccountException.class)
+                    .isThrownBy(() -> staffAccount.login(enteredPassword))
+                    .extracting("message", "domainErrorCode")
+                    .containsExactly(StaffAccountExceptionInfo.disabled().getMessage(), StaffAccountExceptionInfo.disabled().getDomainErrorCode());
+        }
+
+        @Test
+        void shouldThrowStaffAccountException_whenAccountIsLockedAndPasswordIsCorrect() {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withStatus(StaffAccountStatus.LOCKED)
+                    .withLockedUntil(Instant.now().plus(Duration.ofMinutes(15)))
+                    .build();
+
+            String hashedPasswordValue = staffAccount.getPassword().getValue();
+            Password enteredPassword = Password.fromHashed(hashedPasswordValue);
+
+            // When & Then
+            assertThatExceptionOfType(StaffAccountException.class)
+                    .isThrownBy(() -> staffAccount.login(enteredPassword))
+                    .extracting("message", "domainErrorCode")
+                    .containsExactly(StaffAccountExceptionInfo.locked().getMessage(), StaffAccountExceptionInfo.locked().getDomainErrorCode());
+        }
+
+        @Test
+        void shouldThrowStaffAccountException_whenEnteredPasswordIsIncorrect() {
+            // Given
+            StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
+            Password enteredPassword = Password.fromHashed("Incorrectpassword123!");
+
+            // When & Then
+            assertThatExceptionOfType(StaffAccountException.class)
+                    .isThrownBy(() -> staffAccount.login(enteredPassword))
+                    .extracting("message", "domainErrorCode")
+                    .containsExactly(StaffAccountExceptionInfo.invalidCredentials().getMessage(), StaffAccountExceptionInfo.invalidCredentials().getDomainErrorCode());
+        }
+
+        @Test
+        void shouldIncrementFailedLoginAttempts_whenEnteredPasswordIsIncorrect() {
+            // Given
+            StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
+            Password enteredPassword = Password.fromHashed("Incorrectpassword123!");
+
+            // When & Then
+            assertThatThrownBy(() -> staffAccount.login(enteredPassword))
+                    .isInstanceOf(StaffAccountException.class);
+
+            assertThat(staffAccount.getFailedLoginAttempts().getValue()).isEqualTo(1);
+        }
+
+        @Test
+        void locksAccountWhenMaximumFailedLoginAttemptsAreReached() {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withFailedLoginAttempts(4)
+                    .build();
+            Password enteredPassword = Password.fromHashed("Incorrectpassword123!");
+
+            // When & Then
+            assertThatThrownBy(() -> staffAccount.login(enteredPassword))
+                    .isInstanceOf(StaffAccountException.class);
+
+            assertThat(staffAccount.getStatus()).isEqualTo(StaffAccountStatus.LOCKED);
+            assertThat(staffAccount.getLockedUntil())
+                    .isNotNull()
+                    .isBetween(Instant.now(), Instant.now().plus(Duration.ofMinutes(16)));
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = {true, false})
+        void shouldUnlockAccountAndRevertToCorrectStatus_whenLockDurationHasExpired(boolean isPasswordTemporary) {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withPasswordTemporary(isPasswordTemporary)
+                    .withStatus(StaffAccountStatus.LOCKED)
+                    .withLockedUntil(Instant.now().minus(Duration.ofMinutes(1))) // expired
+                    .build();
+            String hashedPasswordValue = staffAccount.getPassword().getValue();
+            Password enteredPassword = Password.fromHashed(hashedPasswordValue);
+
+            // When
+            staffAccount.login(enteredPassword);
+
+            // Then
+            assertThat(staffAccount.getStatus()).isEqualTo(isPasswordTemporary ? StaffAccountStatus.PENDING_PASSWORD_CHANGE : StaffAccountStatus.ACTIVE);
+            assertThat(staffAccount.getLockedUntil()).isNull();
+            assertThat(staffAccount.getLastLoginAt()).isNotNull();
         }
     }
 }

@@ -42,7 +42,8 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
             }
 
             StaffAccount staffAccount = optionalStaffAccount.get();
-            staffAccount.login(command.password(), passwordHasher);
+
+            staffAccount.login(Password.fromPlainText(command.password(), passwordHasher));
 
             staffAccountWriteRepo.update(staffAccount);
 

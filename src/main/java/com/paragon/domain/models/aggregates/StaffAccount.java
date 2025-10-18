@@ -5,11 +5,11 @@ import com.paragon.domain.events.DomainEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
 import com.paragon.domain.exceptions.aggregate.StaffAccountException;
 import com.paragon.domain.exceptions.aggregate.StaffAccountExceptionInfo;
-import com.paragon.domain.interfaces.PasswordHasher;
 import com.paragon.domain.models.constants.SystemPermissions;
 import com.paragon.domain.models.valueobjects.*;
 import lombok.Getter;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
 
@@ -30,7 +30,6 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     private final StaffAccountId createdBy;
     private StaffAccountId disabledBy;
     private final Set<PermissionCode> permissionCodes;
-    private Version version;
 
     private StaffAccount(StaffAccountId id,
                          Username username,
@@ -81,9 +80,13 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         return account;
     }
 
-    public void login(String plaintextPassword, PasswordHasher passwordHasher) {
-        throwIfPasswordDoesNotMatch(plaintextPassword, passwordHasher);
+    public void login(Password enteredPassword) {
+        throwIfAccountIsDisabled();
+        throwIfAccountIsLocked();
+        authenticatePassword(enteredPassword);
+        failedLoginAttempts = failedLoginAttempts.reset();
         lastLoginAt = Instant.now();
+        increaseVersion();
     }
 
     public static StaffAccount createFrom(StaffAccountId id, Username username, Email email, Password password,
@@ -108,14 +111,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     }
 
     public boolean requiresPasswordReset() {
-        return status == StaffAccountStatus.PENDING_PASSWORD_CHANGE;
-    }
-
-
-    private void throwIfPasswordDoesNotMatch(String plaintextPassword, PasswordHasher passwordHasher) {
-        if (!this.password.matches(plaintextPassword, passwordHasher)) {
-            throw new StaffAccountException(StaffAccountExceptionInfo.invalidCredentials());
-        }
+        return isPasswordTemporary;
     }
 
     private static void assertValidRegistration(Username username, Password password, OrderAccessDuration orderAccessDuration,
@@ -139,6 +135,43 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         }
         if (permissionCodes == null || permissionCodes.isEmpty()) {
             throw new StaffAccountException(StaffAccountExceptionInfo.atLeastOnePermissionRequired());
+        }
+    }
+
+    private void throwIfAccountIsDisabled() {
+        if (status == StaffAccountStatus.DISABLED) {
+            throw new StaffAccountException(StaffAccountExceptionInfo.disabled());
+        }
+    }
+
+    private void throwIfAccountIsLocked() {
+        if (status == StaffAccountStatus.LOCKED) {
+            if (lockedUntil != null && Instant.now().isAfter(lockedUntil)) {
+                unlockAccount();
+            } else {
+                throw new StaffAccountException(StaffAccountExceptionInfo.locked());
+            }
+        }
+    }
+
+    private void unlockAccount() {
+        status = isPasswordTemporary ? StaffAccountStatus.PENDING_PASSWORD_CHANGE : StaffAccountStatus.ACTIVE;
+        lockedUntil = null;
+        failedLoginAttempts = failedLoginAttempts.reset();
+    }
+
+    private void authenticatePassword(Password enteredPassword) {
+        if (!this.password.equals(enteredPassword)) {
+            failedLoginAttempts = failedLoginAttempts.increment();
+            lockAccountIfMaxLoginAttemptsReached();
+            throw new StaffAccountException(StaffAccountExceptionInfo.invalidCredentials());
+        }
+    }
+
+    private void lockAccountIfMaxLoginAttemptsReached() {
+        if (failedLoginAttempts.hasReachedMax()) {
+            status = StaffAccountStatus.LOCKED;
+            lockedUntil = Instant.now().plus(Duration.ofMinutes(15));
         }
     }
 }
