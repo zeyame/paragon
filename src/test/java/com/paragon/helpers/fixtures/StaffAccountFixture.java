@@ -14,6 +14,7 @@ public class StaffAccountFixture {
     private String username = "testuser";
     private String email = null;
     private String password = "SecurePass123!";
+    private boolean isPasswordTemporary = true;
     private Instant passwordIssuedAt = Instant.now();
     private int orderAccessDuration = 7;
     private int modmailTranscriptAccessDuration = 14;
@@ -43,6 +44,11 @@ public class StaffAccountFixture {
 
     public StaffAccountFixture withPassword(String value) {
         this.password = value;
+        return this;
+    }
+
+    public StaffAccountFixture withPasswordTemporary(boolean value) {
+        this.isPasswordTemporary = value;
         return this;
     }
 
@@ -107,6 +113,7 @@ public class StaffAccountFixture {
                 Username.of(username),
                 email != null ? Email.of(email) : null,
                 Password.of(password),
+                isPasswordTemporary,
                 passwordIssuedAt,
                 OrderAccessDuration.from(orderAccessDuration),
                 ModmailTranscriptAccessDuration.from(modmailTranscriptAccessDuration),

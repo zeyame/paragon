@@ -43,6 +43,7 @@ public class StaffAccountTests {
             assertThat(staffAccount.getUsername()).isEqualTo(username);
             assertThat(staffAccount.getEmail()).isNull();
             assertThat(staffAccount.getPassword()).isEqualTo(password);
+            assertThat(staffAccount.isPasswordTemporary()).isTrue();
             assertThat(staffAccount.getPasswordIssuedAt()).isNotNull();
             assertThat(staffAccount.getOrderAccessDuration()).isEqualTo(orderAccessDuration);
             assertThat(staffAccount.getModmailTranscriptAccessDuration()).isEqualTo(modmailTranscriptAccessDuration);
@@ -64,6 +65,7 @@ public class StaffAccountTests {
             assertThat(staffAccount.getUsername()).isEqualTo(username);
             assertThat(staffAccount.getEmail()).isEqualTo(email);
             assertThat(staffAccount.getPassword()).isEqualTo(password);
+            assertThat(staffAccount.isPasswordTemporary()).isTrue();
             assertThat(staffAccount.getPasswordIssuedAt()).isNotNull();
             assertThat(staffAccount.getOrderAccessDuration()).isEqualTo(orderAccessDuration);
             assertThat(staffAccount.getModmailTranscriptAccessDuration()).isEqualTo(modmailTranscriptAccessDuration);

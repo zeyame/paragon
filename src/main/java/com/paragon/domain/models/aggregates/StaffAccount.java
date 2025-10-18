@@ -19,6 +19,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     private Username username;
     private Email email;
     private Password password;
+    private boolean isPasswordTemporary;
     private Instant passwordIssuedAt;
     private OrderAccessDuration orderAccessDuration;
     private ModmailTranscriptAccessDuration modmailTranscriptAccessDuration;
@@ -35,6 +36,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
                          Username username,
                          Email email,
                          Password password,
+                         boolean isPasswordTemporary,
                          Instant passwordIssuedAt,
                          OrderAccessDuration orderAccessDuration,
                          ModmailTranscriptAccessDuration modmailTranscriptAccessDuration,
@@ -51,6 +53,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         this.username = username;
         this.email = email;
         this.password = password;
+        this.isPasswordTemporary = isPasswordTemporary;
         this.passwordIssuedAt = passwordIssuedAt;
         this.orderAccessDuration = orderAccessDuration;
         this.modmailTranscriptAccessDuration = modmailTranscriptAccessDuration;
@@ -70,7 +73,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     {
         assertValidRegistration(username, password, orderAccessDuration, modmailTranscriptAccessDuration, createdBy, permissionCodes);
         StaffAccount account = new StaffAccount(
-                StaffAccountId.generate(), username, email, password, Instant.now(),
+                StaffAccountId.generate(), username, email, password, true, Instant.now(),
                 orderAccessDuration, modmailTranscriptAccessDuration, StaffAccountStatus.PENDING_PASSWORD_CHANGE,
                 FailedLoginAttempts.initial(), null, null, createdBy, null, permissionCodes, Version.initial()
         );
@@ -84,13 +87,13 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     }
 
     public static StaffAccount createFrom(StaffAccountId id, Username username, Email email, Password password,
-                                          Instant passwordIssuedAt, OrderAccessDuration orderAccessDuration,
+                                          boolean isPasswordTemporary, Instant passwordIssuedAt, OrderAccessDuration orderAccessDuration,
                                           ModmailTranscriptAccessDuration modmailTranscriptAccessDuration,
                                           StaffAccountStatus status, FailedLoginAttempts failedLoginAttempts,
                                           Instant lockedUntil, Instant lastLoginAt, StaffAccountId createdBy,
                                           StaffAccountId disabledBy, Set<PermissionCode> permissionCodes, Version version) {
         return new StaffAccount(
-                id, username, email, password,
+                id, username, email, password, isPasswordTemporary,
                 passwordIssuedAt, orderAccessDuration,
                 modmailTranscriptAccessDuration,
                 status, failedLoginAttempts,

@@ -50,6 +50,7 @@ public class StaffAccountWriteRepoTests {
             assertThat(params.get("id")).isEqualTo(account.getId().getValue());
             assertThat(params.get("username")).isEqualTo(account.getUsername().getValue());
             assertThat(params.get("password")).isEqualTo(account.getPassword().getValue());
+            assertThat(params.get("isPasswordTemporary")).isEqualTo(account.isPasswordTemporary());
             assertThat(params.get("status")).isEqualTo(account.getStatus().toString());
         }
 
@@ -260,6 +261,7 @@ public class StaffAccountWriteRepoTests {
                 "testuser",
                 "testuser@example.com",
                 "SecurePass123!",
+                true,
                 Instant.parse("2024-01-01T12:00:00Z"),
                 7,
                 14,

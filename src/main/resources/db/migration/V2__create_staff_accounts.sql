@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS staff_accounts (
     username                        VARCHAR(64) NOT NULL,
     email                           VARCHAR(255) NULL,
     password                        TEXT NOT NULL,
+    is_password_temporary           BOOLEAN NOT NULL DEFAULT true,
     password_issued_at_utc           TIMESTAMP WITH TIME ZONE,
     order_access_duration            INTEGER NOT NULL,
     modmail_transcript_access_duration INTEGER NOT NULL,

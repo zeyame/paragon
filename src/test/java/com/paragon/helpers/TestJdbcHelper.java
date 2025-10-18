@@ -33,12 +33,12 @@ public class TestJdbcHelper {
 
         String insertStaffAccountSql = """
                 INSERT INTO staff_accounts (
-                    id, username, email, password, password_issued_at_utc,
+                    id, username, email, password, is_password_temporary, password_issued_at_utc,
                     order_access_duration, modmail_transcript_access_duration,
                     status, failed_login_attempts, locked_until_utc, last_login_at_utc,
                     created_by, disabled_by, version, created_at_utc, updated_at_utc
                 ) VALUES (
-                    :id, :username, :email, :password, :passwordIssuedAtUtc,
+                    :id, :username, :email, :password, :isPasswordTemporary, :passwordIssuedAtUtc,
                     :orderAccessDuration, :modmailTranscriptAccessDuration,
                     :status, :failedLoginAttempts, :lockedUntilUtc, :lastLoginAtUtc,
                     :createdBy, :disabledBy, :version, :createdAtUtc, :updatedAtUtc
@@ -50,6 +50,7 @@ public class TestJdbcHelper {
                 .add("username", staffAccount.getUsername().getValue())
                 .add("email", staffAccount.getEmail() != null ? staffAccount.getEmail().getValue() : null)
                 .add("password", staffAccount.getPassword().getValue())
+                .add("isPasswordTemporary", staffAccount.isPasswordTemporary())
                 .add("passwordIssuedAtUtc", staffAccount.getPasswordIssuedAt())
                 .add("orderAccessDuration", staffAccount.getOrderAccessDuration().getValueInDays())
                 .add("modmailTranscriptAccessDuration", staffAccount.getModmailTranscriptAccessDuration().getValueInDays())
