@@ -116,5 +116,34 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
     }
 
     @Override
-    public void update(StaffAccount staffAccount) {}
+    public void update(StaffAccount staffAccount) {
+        String sql = """
+                    UPDATE staff_accounts
+                    SET username = :username, email = :email, password = :password, is_password_temporary = :isPasswordTemporary,
+                        password_issued_at_utc = :passwordIssuedAtUtc, order_access_duration = :orderAccessDuration,
+                        modmail_transcript_access_duration = :modmailTranscriptAccessDuration, status = :status,
+                        failed_login_attempts = :failedLoginAttempts, locked_until_utc = :lockedUntilUtc,
+                        last_login_at_utc = :lastLoginAtUtc, disabled_by = :disabledBy, version = :version, updated_at_utc = :updatedAtUtc
+                    WHERE id = :id
+                """;
+
+        SqlParamsBuilder params = new SqlParamsBuilder()
+                .add("username", staffAccount.getUsername().getValue())
+                .add("email", staffAccount.getEmail() != null ? staffAccount.getEmail().getValue() : null)
+                .add("password", staffAccount.getPassword().getValue())
+                .add("isPasswordTemporary", staffAccount.isPasswordTemporary())
+                .add("passwordIssuedAtUtc", staffAccount.getPasswordIssuedAt())
+                .add("orderAccessDuration", staffAccount.getOrderAccessDuration().getValueInDays())
+                .add("modmailTranscriptAccessDuration", staffAccount.getModmailTranscriptAccessDuration().getValueInDays())
+                .add("status", staffAccount.getStatus().toString())
+                .add("failedLoginAttempts", staffAccount.getFailedLoginAttempts().getValue())
+                .add("lockedUntilUtc", staffAccount.getLockedUntil())
+                .add("lastLoginAtUtc", staffAccount.getLastLoginAt())
+                .add("disabledBy", staffAccount.getDisabledBy() != null ? staffAccount.getDisabledBy().getValue() : null)
+                .add("version", staffAccount.getVersion().getValue())
+                .add("updatedAtUtc", Instant.now())
+                .add("id", staffAccount.getId().getValue());
+
+        jdbcHelper.execute(sql, params);
+    }
 }

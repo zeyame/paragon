@@ -83,10 +83,13 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     public void login(Password enteredPassword) {
         throwIfAccountIsDisabled();
         throwIfAccountIsLocked();
+
         authenticatePassword(enteredPassword);
         failedLoginAttempts = failedLoginAttempts.reset();
+
         lastLoginAt = Instant.now();
         increaseVersion();
+        // TODO: Add enqueueing of StaffAccountLoggedInEvent
     }
 
     public static StaffAccount createFrom(StaffAccountId id, Username username, Email email, Password password,

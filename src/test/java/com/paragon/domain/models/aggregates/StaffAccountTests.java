@@ -59,6 +59,7 @@ public class StaffAccountTests {
             assertThat(staffAccount.getLastLoginAt()).isNull();
             assertThat(staffAccount.getCreatedBy()).isEqualTo(createdBy);
             assertThat(staffAccount.getPermissionCodes()).isEqualTo(permissionCodes);
+            assertThat(staffAccount.getVersion().getValue()).isEqualTo(1);
         }
 
         @Test
@@ -81,6 +82,7 @@ public class StaffAccountTests {
             assertThat(staffAccount.getLastLoginAt()).isNull();
             assertThat(staffAccount.getCreatedBy()).isEqualTo(createdBy);
             assertThat(staffAccount.getPermissionCodes()).isEqualTo(permissionCodes);
+            assertThat(staffAccount.getVersion().getValue()).isEqualTo(1);
         }
 
         @Test
@@ -94,6 +96,8 @@ public class StaffAccountTests {
             assertThat(staffAccount2.getId()).isNotNull();
             assertThat(staffAccount1.getId()).isNotEqualTo(staffAccount2.getId());
         }
+
+        // TODO: Add test for checking if StaffAccountRegisteredEvent was enqueued
 
         @Test
         void givenMissingUsername_registrationShouldFail() {
@@ -221,6 +225,8 @@ public class StaffAccountTests {
             // Then
             assertThat(staffAccount.getVersion().getValue()).isEqualTo(2);
         }
+
+        // TODO: Add test for checking if StaffAccountLoggedInEvent was enqueued
 
         @Test
         void shouldThrowStaffAccountException_whenAccountIsDisabledAndPasswordIsCorrect() {

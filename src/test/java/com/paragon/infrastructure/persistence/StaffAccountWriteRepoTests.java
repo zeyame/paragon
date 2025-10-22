@@ -81,7 +81,7 @@ public class StaffAccountWriteRepoTests {
 
             // Then
             verify(jdbcHelperMock, times(1)).executeMultiple(captor.capture());
-            List<SqlStatement> queries = captor.getValue();
+            List<SqlStatement> sqlStatements = captor.getValue();
 
             List<PermissionCode> permissionCodes = account
                     .getPermissionCodes()
@@ -89,11 +89,11 @@ public class StaffAccountWriteRepoTests {
                     .toList();
 
             for (PermissionCode permissionCode : permissionCodes) {
-                assertThat(queries)
-                        .anySatisfy(q -> {
-                            assertThat(q.sql()).contains(("INSERT INTO staff_account_permissions"));
-                            assertThat(q.params().build().get("staffAccountId")).isEqualTo(account.getId().getValue());
-                            assertThat(q.params().build().get("permissionCode")).isEqualTo(permissionCode.getValue());
+                assertThat(sqlStatements)
+                        .anySatisfy(s -> {
+                            assertThat(s.sql()).contains(("INSERT INTO staff_account_permissions"));
+                            assertThat(s.params().build().get("staffAccountId")).isEqualTo(account.getId().getValue());
+                            assertThat(s.params().build().get("permissionCode")).isEqualTo(permissionCode.getValue());
                         });
             }
         }
@@ -251,6 +251,96 @@ public class StaffAccountWriteRepoTests {
 
             // When & Then
             assertThatThrownBy(() -> sut.getByUsername(Username.of("john_doe")))
+                    .isInstanceOf(InfraException.class);
+        }
+    }
+
+    @Nested
+    class Update {
+        private final WriteJdbcHelper jdbcHelper;
+        private final StaffAccountWriteRepoImpl sut;
+
+        public Update() {
+            this.jdbcHelper = mock(WriteJdbcHelper.class);
+            this.sut = new StaffAccountWriteRepoImpl(jdbcHelper);
+        }
+
+        @Test
+        void callsJdbcHelper_withCorrectUpdateSqlStatementAndParams() {
+            // Given
+            var account = StaffAccountFixture.validStaffAccount();
+            ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+            ArgumentCaptor<SqlParamsBuilder> paramsCaptor = ArgumentCaptor.forClass(SqlParamsBuilder.class);
+
+            // When
+            sut.update(account);
+
+            // Then
+            verify(jdbcHelper, times(1)).execute(sqlCaptor.capture(), paramsCaptor.capture());
+
+            String sql = sqlCaptor.getValue();
+            var params = paramsCaptor.getValue().build();
+
+            assertThat(sql).contains("UPDATE staff_accounts");
+            assertThat(sql).contains("WHERE id = :id");
+            assertThat(params.get("id")).isEqualTo(account.getId().getValue());
+            assertThat(params.get("username")).isEqualTo(account.getUsername().getValue());
+            assertThat(params.get("email")).isEqualTo(account.getEmail() != null ? account.getEmail().getValue() : null);
+            assertThat(params.get("password")).isEqualTo(account.getPassword().getValue());
+            assertThat(params.get("passwordIssuedAtUtc")).isNotNull();
+            assertThat(params.get("isPasswordTemporary")).isEqualTo(account.isPasswordTemporary());
+            assertThat(params.get("orderAccessDuration")).isEqualTo(account.getOrderAccessDuration().getValueInDays());
+            assertThat(params.get("modmailTranscriptAccessDuration")).isEqualTo(account.getModmailTranscriptAccessDuration().getValueInDays());
+            assertThat(params.get("status")).isEqualTo(account.getStatus().toString());
+            assertThat(params.get("failedLoginAttempts")).isEqualTo(account.getFailedLoginAttempts().getValue());
+            assertThat(params.get("disabledBy")).isEqualTo(account.getDisabledBy() != null ? account.getDisabledBy().getValue() : null);
+            assertThat(params.get("version")).isEqualTo(account.getVersion().getValue());
+        }
+
+        @Test
+        void updatesOnlyMutableFields_excludingImmutableFields() {
+            // Given
+            var account = StaffAccountFixture.validStaffAccount();
+            ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+
+            // When
+            sut.update(account);
+
+            // Then
+            verify(jdbcHelper, times(1)).execute(sqlCaptor.capture(), any(SqlParamsBuilder.class));
+
+            String sql = sqlCaptor.getValue();
+
+            // Should update mutable fields
+            assertThat(sql).contains("username = :username");
+            assertThat(sql).contains("email = :email");
+            assertThat(sql).contains("password = :password");
+            assertThat(sql).contains("is_password_temporary = :isPasswordTemporary");
+            assertThat(sql).contains("password_issued_at_utc = :passwordIssuedAtUtc");
+            assertThat(sql).contains("order_access_duration = :orderAccessDuration");
+            assertThat(sql).contains("modmail_transcript_access_duration = :modmailTranscriptAccessDuration");
+            assertThat(sql).contains("status = :status");
+            assertThat(sql).contains("failed_login_attempts = :failedLoginAttempts");
+            assertThat(sql).contains("locked_until_utc = :lockedUntilUtc");
+            assertThat(sql).contains("last_login_at_utc = :lastLoginAtUtc");
+            assertThat(sql).contains("disabled_by = :disabledBy");
+            assertThat(sql).contains("version = :version");
+            assertThat(sql).contains("updated_at_utc = :updatedAtUtc");
+
+            // Should NOT update immutable fields
+            assertThat(sql).doesNotContain("created_by = ");
+            assertThat(sql).doesNotContain("created_at_utc = ");
+        }
+
+        @Test
+        void shouldPropagateInfraException_whenJdbcHelperThrows() {
+            // Given
+            doThrow(InfraException.class)
+                    .when(jdbcHelper)
+                    .execute(anyString(), any(SqlParamsBuilder.class));
+
+            // When & Then
+            assertThatThrownBy(() -> sut.update(StaffAccountFixture.validStaffAccount()))
                     .isInstanceOf(InfraException.class);
         }
     }
