@@ -36,7 +36,7 @@ public class StaffAccountRegisteredEventAuditHandler implements EventHandler<Sta
 
         try {
             AuditTrailEntry auditTrailEntry = AuditTrailEntry.create(
-                    event.getCreatedBy(),
+                    event.getStaffAccountCreatedBy(),
                     AuditEntryActionType.REGISTER_ACCOUNT,
                     AuditEntryTargetId.of(event.getStaffAccountId().getValue().toString()),
                     AuditEntryTargetType.ACCOUNT,
@@ -47,7 +47,7 @@ public class StaffAccountRegisteredEventAuditHandler implements EventHandler<Sta
             auditTrailWriteRepo.create(auditTrailEntry);
 
             log.info("AuditTrailEntry persisted for StaffAccountRegisteredEvent: staffAccountId={}, actorId={}, correlationId={}",
-                    event.getStaffAccountId().getValue(), event.getCreatedBy().getValue(), correlationId);
+                    event.getStaffAccountId().getValue(), event.getStaffAccountCreatedBy().getValue(), correlationId);
         }
         catch (DomainException ex) {
             log.error("Domain rule violation while handling StaffAccountRegisteredEvent (staffAccountId={}): {}",

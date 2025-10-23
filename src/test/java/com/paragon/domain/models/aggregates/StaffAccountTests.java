@@ -1,6 +1,9 @@
 package com.paragon.domain.models.aggregates;
 
 import com.paragon.domain.enums.StaffAccountStatus;
+import com.paragon.domain.events.DomainEvent;
+import com.paragon.domain.events.staffaccountevents.StaffAccountLoggedInEvent;
+import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
 import com.paragon.domain.exceptions.aggregate.StaffAccountException;
 import com.paragon.domain.exceptions.aggregate.StaffAccountExceptionInfo;
 import com.paragon.domain.models.constants.SystemPermissions;
@@ -12,10 +15,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.verify;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class StaffAccountTests {
@@ -97,7 +102,16 @@ public class StaffAccountTests {
             assertThat(staffAccount1.getId()).isNotEqualTo(staffAccount2.getId());
         }
 
-        // TODO: Add test for checking if StaffAccountRegisteredEvent was enqueued
+        @Test
+        void shouldEnqueueDomainEvent_uponSuccessfulRegistration() {
+            // When
+            StaffAccount staffAccount = StaffAccount.register(username, email, password, orderAccessDuration, modmailTranscriptAccessDuration, createdBy, permissionCodes);
+
+            // Then
+            List<DomainEvent> queuedEvents = staffAccount.dequeueUncommittedEvents();
+            assertThat(queuedEvents).hasSize(1);
+            assertThat(queuedEvents.getFirst()).isInstanceOf(StaffAccountRegisteredEvent.class);
+        }
 
         @Test
         void givenMissingUsername_registrationShouldFail() {
@@ -226,7 +240,21 @@ public class StaffAccountTests {
             assertThat(staffAccount.getVersion().getValue()).isEqualTo(2);
         }
 
-        // TODO: Add test for checking if StaffAccountLoggedInEvent was enqueued
+        @Test
+        void shouldEnqueueDomainEvent_uponSuccessfulLogin() {
+            // Given
+            StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
+            String hashedPasswordValue = staffAccount.getPassword().getValue();
+            Password enteredPassword = Password.fromHashed(hashedPasswordValue);
+
+            // When
+            staffAccount.login(enteredPassword);
+
+            // Then
+            List<DomainEvent> queuedEvents = staffAccount.dequeueUncommittedEvents();
+            assertThat(queuedEvents).hasSize(1);
+            assertThat(queuedEvents.getFirst()).isInstanceOf(StaffAccountLoggedInEvent.class);
+        }
 
         @Test
         void shouldThrowStaffAccountException_whenAccountIsDisabledAndPasswordIsCorrect() {

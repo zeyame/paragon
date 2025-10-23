@@ -2,6 +2,7 @@ package com.paragon.domain.models.aggregates;
 
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.events.DomainEvent;
+import com.paragon.domain.events.staffaccountevents.StaffAccountLoggedInEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
 import com.paragon.domain.exceptions.aggregate.StaffAccountException;
 import com.paragon.domain.exceptions.aggregate.StaffAccountExceptionInfo;
@@ -89,7 +90,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
 
         lastLoginAt = Instant.now();
         increaseVersion();
-        // TODO: Add enqueueing of StaffAccountLoggedInEvent
+        enqueue(new StaffAccountLoggedInEvent(this));
     }
 
     public static StaffAccount createFrom(StaffAccountId id, Username username, Email email, Password password,

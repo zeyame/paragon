@@ -129,8 +129,8 @@ public class RegisterStaffAccountCommandHandlerTests {
         assertThat(registeredEvent.getPassword().getValue()).isEqualTo(hashedPassword);
         assertThat(registeredEvent.getOrderAccessDuration().getValueInDays()).isEqualTo(command.orderAccessDuration());
         assertThat(registeredEvent.getModmailTranscriptAccessDuration().getValueInDays()).isEqualTo(command.modmailTranscriptAccessDuration());
-        assertThat(registeredEvent.getStatus()).isEqualTo(StaffAccountStatus.PENDING_PASSWORD_CHANGE);
-        assertThat(registeredEvent.getCreatedBy()).isEqualTo(requestingStaffAccount.getId());
+        assertThat(registeredEvent.getStaffAccountStatus()).isEqualTo(StaffAccountStatus.PENDING_PASSWORD_CHANGE);
+        assertThat(registeredEvent.getStaffAccountCreatedBy()).isEqualTo(requestingStaffAccount.getId());
     }
 
     @Test

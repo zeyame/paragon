@@ -46,7 +46,7 @@ public class StaffAccountRegisteredEventAuditHandlerTests {
         verify(auditTrailWriteRepoMock, times(1)).create(auditTrailEntryCaptor.capture());
 
         AuditTrailEntry auditTrailEntry = auditTrailEntryCaptor.getValue();
-        assertThat(auditTrailEntry.getActorId()).isEqualTo(staffAccountRegisteredEvent.getCreatedBy());
+        assertThat(auditTrailEntry.getActorId()).isEqualTo(staffAccountRegisteredEvent.getStaffAccountCreatedBy());
         assertThat(auditTrailEntry.getActionType()).isEqualTo(AuditEntryActionType.REGISTER_ACCOUNT);
         assertThat(auditTrailEntry.getTargetId().getValue()).isEqualTo(staffAccountRegisteredEvent.getStaffAccountId().getValue().toString());
         assertThat(auditTrailEntry.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);

@@ -19,12 +19,12 @@ public abstract class StaffAccountEventBase extends DomainEvent {
     private final Instant passwordIssuedAt;
     private final OrderAccessDuration orderAccessDuration;
     private final ModmailTranscriptAccessDuration modmailTranscriptAccessDuration;
-    private final StaffAccountStatus status;
+    private final StaffAccountStatus staffAccountStatus;
     private final FailedLoginAttempts failedLoginAttempts;
     private final Instant lockedUntil;
     private final Instant lastLoginAt;
-    private final StaffAccountId createdBy;
-    private final StaffAccountId disabledBy;
+    private final StaffAccountId staffAccountCreatedBy;
+    private final StaffAccountId staffAccountDisabledBy;
     private final Set<PermissionCode> permissionCodes;
     private final Version version;
 
@@ -38,12 +38,12 @@ public abstract class StaffAccountEventBase extends DomainEvent {
         this.passwordIssuedAt = staffAccount.getPasswordIssuedAt();
         this.orderAccessDuration = staffAccount.getOrderAccessDuration();
         this.modmailTranscriptAccessDuration = staffAccount.getModmailTranscriptAccessDuration();
-        this.status = staffAccount.getStatus();
+        this.staffAccountStatus = staffAccount.getStatus();
         this.failedLoginAttempts = staffAccount.getFailedLoginAttempts();
         this.lockedUntil = staffAccount.getLockedUntil();
         this.lastLoginAt = staffAccount.getLastLoginAt();
-        this.createdBy = staffAccount.getCreatedBy();
-        this.disabledBy = staffAccount.getDisabledBy();
+        this.staffAccountCreatedBy = staffAccount.getCreatedBy();
+        this.staffAccountDisabledBy = staffAccount.getDisabledBy();
         this.permissionCodes = staffAccount.getPermissionCodes();
         this.version = staffAccount.getVersion();
     }
