@@ -5,4 +5,5 @@ public final class EventNames {
     private EventNames() {}
 
     public static final String STAFF_ACCOUNT_REGISTERED = "staff_account_registered";
+    public static final String STAFF_ACCOUNT_LOGGED_IN = "staff_account_logged_in";
 }

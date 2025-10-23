@@ -1,6 +1,7 @@
 package com.paragon.infrastructure.config;
 
 import com.paragon.application.events.EventBus;
+import com.paragon.application.events.audittrail.StaffAccountLoggedInEventAuditHandler;
 import com.paragon.application.events.audittrail.StaffAccountRegisteredEventAuditHandler;
 import jakarta.annotation.PostConstruct;
 import org.springframework.context.annotation.Configuration;
@@ -9,14 +10,17 @@ import org.springframework.context.annotation.Configuration;
 public class EventBusConfig {
     private final EventBus eventBus;
     private final StaffAccountRegisteredEventAuditHandler staffAccountRegisteredEventAuditHandler;
+    private final StaffAccountLoggedInEventAuditHandler staffAccountLoggedInEventAuditHandler;
 
-    public EventBusConfig(EventBus eventBus, StaffAccountRegisteredEventAuditHandler staffAccountRegisteredEventAuditHandler) {
+    public EventBusConfig(EventBus eventBus, StaffAccountRegisteredEventAuditHandler staffAccountRegisteredEventAuditHandler, StaffAccountLoggedInEventAuditHandler staffAccountLoggedInEventAuditHandler) {
         this.eventBus = eventBus;
         this.staffAccountRegisteredEventAuditHandler = staffAccountRegisteredEventAuditHandler;
+        this.staffAccountLoggedInEventAuditHandler = staffAccountLoggedInEventAuditHandler;
     }
 
     @PostConstruct
     public void registerHandlers() {
         eventBus.registerHandler(staffAccountRegisteredEventAuditHandler);
+        eventBus.registerHandler(staffAccountLoggedInEventAuditHandler);
     }
 }
