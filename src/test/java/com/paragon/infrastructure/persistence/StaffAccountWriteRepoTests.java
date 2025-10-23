@@ -263,6 +263,8 @@ public class StaffAccountWriteRepoTests {
         public Update() {
             this.jdbcHelper = mock(WriteJdbcHelper.class);
             this.sut = new StaffAccountWriteRepoImpl(jdbcHelper);
+
+            when(jdbcHelper.execute(anyString(), any(SqlParamsBuilder.class))).thenReturn(1);
         }
 
         @Test
@@ -283,6 +285,7 @@ public class StaffAccountWriteRepoTests {
 
             assertThat(sql).contains("UPDATE staff_accounts");
             assertThat(sql).contains("WHERE id = :id");
+            assertThat(sql).contains("AND version = :currentVersion");
             assertThat(params.get("id")).isEqualTo(account.getId().getValue());
             assertThat(params.get("username")).isEqualTo(account.getUsername().getValue());
             assertThat(params.get("email")).isEqualTo(account.getEmail() != null ? account.getEmail().getValue() : null);
@@ -295,6 +298,7 @@ public class StaffAccountWriteRepoTests {
             assertThat(params.get("failedLoginAttempts")).isEqualTo(account.getFailedLoginAttempts().getValue());
             assertThat(params.get("disabledBy")).isEqualTo(account.getDisabledBy() != null ? account.getDisabledBy().getValue() : null);
             assertThat(params.get("version")).isEqualTo(account.getVersion().getValue());
+            assertThat(params.get("currentVersion")).isEqualTo(account.getVersion().getValue() - 1);
         }
 
         @Test
@@ -330,6 +334,17 @@ public class StaffAccountWriteRepoTests {
             // Should NOT update immutable fields
             assertThat(sql).doesNotContain("created_by = ");
             assertThat(sql).doesNotContain("created_at_utc = ");
+        }
+
+        @Test
+        void shouldThrowInfraException_whenExecuteReturnsNoAffectedRows() {
+            // Given
+            var account = StaffAccountFixture.validStaffAccount();
+            when(jdbcHelper.execute(anyString(), any(SqlParamsBuilder.class))).thenReturn(0);
+
+            // When & Then
+            assertThatExceptionOfType(InfraException.class)
+                    .isThrownBy(() -> sut.update(account));
         }
 
         @Test

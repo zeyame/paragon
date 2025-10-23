@@ -5,6 +5,7 @@ import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.*;
 import com.paragon.infrastructure.persistence.daos.PermissionCodeDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountDao;
+import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.SqlStatement;
@@ -124,7 +125,7 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
                         modmail_transcript_access_duration = :modmailTranscriptAccessDuration, status = :status,
                         failed_login_attempts = :failedLoginAttempts, locked_until_utc = :lockedUntilUtc,
                         last_login_at_utc = :lastLoginAtUtc, disabled_by = :disabledBy, version = :version, updated_at_utc = :updatedAtUtc
-                    WHERE id = :id
+                    WHERE id = :id AND version = :currentVersion
                 """;
 
         SqlParamsBuilder params = new SqlParamsBuilder()
@@ -142,8 +143,12 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
                 .add("disabledBy", staffAccount.getDisabledBy() != null ? staffAccount.getDisabledBy().getValue() : null)
                 .add("version", staffAccount.getVersion().getValue())
                 .add("updatedAtUtc", Instant.now())
-                .add("id", staffAccount.getId().getValue());
+                .add("id", staffAccount.getId().getValue())
+                .add("currentVersion", staffAccount.getVersion().getValue() - 1);
 
-        jdbcHelper.execute(sql, params);
+        int affectedRows = jdbcHelper.execute(sql, params);
+        if (affectedRows != 1) {
+            throw new InfraException(); // potential concurrency detected
+        }
     }
 }
