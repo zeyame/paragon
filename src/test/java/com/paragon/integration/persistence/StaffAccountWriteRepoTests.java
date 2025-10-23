@@ -166,4 +166,83 @@ public class StaffAccountWriteRepoTests {
             assertThat(optionalStaffAccount).isEmpty();
         }
     }
+
+    @Nested
+    class Update extends IntegrationTestBase {
+        private final StaffAccountWriteRepoImpl sut;
+        private final TestJdbcHelper testJdbcHelper;
+        private final StaffAccount adminStaffAccount;
+
+        @Autowired
+        public Update(WriteJdbcHelper writeJdbcHelper) {
+            testJdbcHelper = new TestJdbcHelper(writeJdbcHelper);
+            sut = new StaffAccountWriteRepoImpl(writeJdbcHelper);
+            adminStaffAccount = testJdbcHelper.getStaffAccountByUsername(Username.of("admin")).get();
+        }
+
+        @Test
+        void shouldUpdateStaffAccount() {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withCreatedBy(adminStaffAccount.getId().getValue().toString())
+                    .withUsername("john_doe")
+                    .build();
+            testJdbcHelper.insertStaffAccount(staffAccount);
+
+            // Load account, modify it, and increment version (simulating business logic)
+            StaffAccount loadedAccount = sut.getById(staffAccount.getId()).get();
+            StaffAccount modifiedAccount = new StaffAccountFixture()
+                    .withId(loadedAccount.getId().getValue().toString())
+                    .withUsername("jane_doe")
+                    .withCreatedBy(adminStaffAccount.getId().getValue().toString())
+                    .withVersion(loadedAccount.getVersion().getValue() + 1)
+                    .build();
+
+            // When
+            sut.update(modifiedAccount);
+
+            // Then
+            Optional<StaffAccount> optionalUpdatedAccount = testJdbcHelper.getStaffAccountById(staffAccount.getId());
+            assertThat(optionalUpdatedAccount).isPresent();
+
+            StaffAccount updatedAccount = optionalUpdatedAccount.get();
+            assertThat(updatedAccount.getUsername().getValue()).isEqualTo("jane_doe");
+            assertThat(updatedAccount.getVersion().getValue()).isEqualTo(modifiedAccount.getVersion().getValue());
+        }
+
+        @Test
+        void shouldThrowInfraException_whenVersionMismatch() {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withCreatedBy(adminStaffAccount.getId().getValue().toString())
+                    .withUsername("john_doe")
+                    .build();
+            testJdbcHelper.insertStaffAccount(staffAccount);
+
+            // Load account twice (simulating two concurrent requests)
+            StaffAccount firstLoad = sut.getById(staffAccount.getId()).get();
+            StaffAccount secondLoad = sut.getById(staffAccount.getId()).get();
+
+            // First update succeeds
+            StaffAccount firstUpdate = new StaffAccountFixture()
+                    .withId(firstLoad.getId().getValue().toString())
+                    .withUsername("first_update")
+                    .withCreatedBy(adminStaffAccount.getId().getValue().toString())
+                    .withVersion(firstLoad.getVersion().getValue() + 1)
+                    .build();
+            sut.update(firstUpdate);
+
+            // Second update should fail due to version mismatch
+            StaffAccount secondUpdate = new StaffAccountFixture()
+                    .withId(secondLoad.getId().getValue().toString())
+                    .withUsername("second_update")
+                    .withCreatedBy(adminStaffAccount.getId().getValue().toString())
+                    .withVersion(secondLoad.getVersion().getValue() + 1)
+                    .build();
+
+            // When & Then
+            assertThatThrownBy(() -> sut.update(secondUpdate))
+                    .isInstanceOf(InfraException.class);
+        }
+    }
 }
