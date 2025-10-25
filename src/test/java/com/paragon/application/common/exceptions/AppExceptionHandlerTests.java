@@ -67,16 +67,15 @@ public class AppExceptionHandlerTests {
                             AppExceptionStatusCode.CLIENT_ERROR
                     ),
 
-                    // StaffAccountException - account disabled (INVALID_RESOURCE_STATE)
+                    // StaffAccountException - AUTH Failures
                     arguments(
-                            new StaffAccountException(StaffAccountExceptionInfo.disabled()),
-                            AppExceptionStatusCode.INVALID_RESOURCE_STATE
+                            new StaffAccountException(StaffAccountExceptionInfo.loginFailedAccountDisabled()),
+                            AppExceptionStatusCode.AUTHENTICATION_FAILED
                     ),
 
-                    // StaffAccountException - account locked (INVALID_RESOURCE_STATE)
                     arguments(
-                            new StaffAccountException(StaffAccountExceptionInfo.locked()),
-                            AppExceptionStatusCode.INVALID_RESOURCE_STATE
+                            new StaffAccountException(StaffAccountExceptionInfo.loginFailedAccountLocked()),
+                            AppExceptionStatusCode.AUTHENTICATION_FAILED
                     ),
 
                     // StaffAccountException - invalid credentials (AUTHENTICATION_FAILED)

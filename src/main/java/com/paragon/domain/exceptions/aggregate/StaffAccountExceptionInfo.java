@@ -49,16 +49,16 @@ public class StaffAccountExceptionInfo extends DomainExceptionInfo {
         );
     }
 
-    public static StaffAccountExceptionInfo disabled() {
+    public static StaffAccountExceptionInfo loginFailedAccountDisabled() {
         return new StaffAccountExceptionInfo(
-                "This account has been disabled.",
+                "Login failed: This account has been disabled.",
                 10007
         );
     }
 
-    public static StaffAccountExceptionInfo locked() {
+    public static StaffAccountExceptionInfo loginFailedAccountLocked() {
         return new StaffAccountExceptionInfo(
-                "This account has been locked.",
+                "Login failed: This account is temporarily locked due to multiple failed login attempts.",
                 10008
         );
     }

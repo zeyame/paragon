@@ -144,7 +144,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
 
     private void throwIfAccountIsDisabled() {
         if (status == StaffAccountStatus.DISABLED) {
-            throw new StaffAccountException(StaffAccountExceptionInfo.disabled());
+            throw new StaffAccountException(StaffAccountExceptionInfo.loginFailedAccountDisabled());
         }
     }
 
@@ -158,7 +158,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
             return;
         }
 
-        throw new StaffAccountException(StaffAccountExceptionInfo.locked());
+        throw new StaffAccountException(StaffAccountExceptionInfo.loginFailedAccountLocked());
     }
 
     private boolean hasLockExpired() {

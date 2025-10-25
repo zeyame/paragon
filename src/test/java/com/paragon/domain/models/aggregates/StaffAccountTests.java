@@ -270,7 +270,7 @@ public class StaffAccountTests {
             assertThatExceptionOfType(StaffAccountException.class)
                     .isThrownBy(() -> staffAccount.login(enteredPassword))
                     .extracting("message", "domainErrorCode")
-                    .containsExactly(StaffAccountExceptionInfo.disabled().getMessage(), StaffAccountExceptionInfo.disabled().getDomainErrorCode());
+                    .containsExactly(StaffAccountExceptionInfo.loginFailedAccountDisabled().getMessage(), StaffAccountExceptionInfo.loginFailedAccountDisabled().getDomainErrorCode());
         }
 
         @Test
@@ -288,7 +288,7 @@ public class StaffAccountTests {
             assertThatExceptionOfType(StaffAccountException.class)
                     .isThrownBy(() -> staffAccount.login(enteredPassword))
                     .extracting("message", "domainErrorCode")
-                    .containsExactly(StaffAccountExceptionInfo.locked().getMessage(), StaffAccountExceptionInfo.locked().getDomainErrorCode());
+                    .containsExactly(StaffAccountExceptionInfo.loginFailedAccountLocked().getMessage(), StaffAccountExceptionInfo.loginFailedAccountLocked().getDomainErrorCode());
         }
 
         @Test

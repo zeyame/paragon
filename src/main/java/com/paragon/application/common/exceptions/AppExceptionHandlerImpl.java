@@ -49,13 +49,7 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
             case 10001, 10002, 10003, 10004, 10005, 10006 -> // validation errors (required fields, at least one permission)
                     new AppException(exception, AppExceptionStatusCode.CLIENT_ERROR);
 
-            case 10007 -> // account disabled
-                    new AppException(exception, AppExceptionStatusCode.INVALID_RESOURCE_STATE);
-
-            case 10008 -> // account locked
-                    new AppException(exception, AppExceptionStatusCode.INVALID_RESOURCE_STATE);
-
-            case 10009 -> // invalid credentials
+            case 10007, 10008, 10009 -> // authentication failures (account disabled/locked, invalid credentials)
                     new AppException(exception, AppExceptionStatusCode.AUTHENTICATION_FAILED);
 
             default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);
