@@ -7,7 +7,9 @@ import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.PasswordHasher;
+import com.paragon.domain.interfaces.TokenHasher;
 import com.paragon.domain.interfaces.repos.StaffAccountWriteRepo;
+import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.Password;
 import com.paragon.domain.models.valueobjects.Username;
@@ -24,13 +26,16 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
     private final EventBus eventBus;
     private final AppExceptionHandler appExceptionHandler;
     private final PasswordHasher passwordHasher;
+    private final TokenHasher tokenHasher;
 
     public LoginStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo, EventBus eventBus,
-                                          AppExceptionHandler appExceptionHandler, PasswordHasher passwordHasher) {
+                                          AppExceptionHandler appExceptionHandler, PasswordHasher passwordHasher,
+                                          TokenHasher tokenHasher) {
         this.staffAccountWriteRepo = staffAccountWriteRepo;
         this.eventBus = eventBus;
         this.appExceptionHandler = appExceptionHandler;
         this.passwordHasher = passwordHasher;
+        this.tokenHasher = tokenHasher;
     }
 
     @Override
@@ -40,12 +45,12 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
             if (optionalStaffAccount.isEmpty()) {
                 throw new AppException(AppExceptionInfo.invalidLoginCredentials());
             }
-
             StaffAccount staffAccount = optionalStaffAccount.get();
 
             staffAccount.login(Password.fromPlainText(command.password(), passwordHasher));
-
             staffAccountWriteRepo.update(staffAccount);
+
+            RefreshToken refreshToken = RefreshToken.issue(staffAccount.getId(), tokenHasher);
 
             eventBus.publishAll(staffAccount.dequeueUncommittedEvents());
 

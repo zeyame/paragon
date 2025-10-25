@@ -9,6 +9,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
@@ -16,11 +17,30 @@ import static org.mockito.Mockito.*;
 
 public class RefreshTokenHashTests {
     @Nested
+    class Generate {
+        @Test
+        void shouldGenerateRefreshTokenHash() {
+            // Given
+            TokenHasher tokenHasher = mock(TokenHasher.class);
+            when(tokenHasher.hash(any(String.class))).thenReturn("hashed-uuid-value");
+
+            // When
+            RefreshTokenHash refreshTokenHash = RefreshTokenHash.generate(tokenHasher);
+
+            // Then
+            assertThat(refreshTokenHash.getValue()).isEqualTo("hashed-uuid-value");
+            assertThat(refreshTokenHash.getPlainValue()).isNotNull();
+            assertThat(refreshTokenHash.getPlainValue()).matches("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
+            verify(tokenHasher, times(1)).hash(refreshTokenHash.getPlainValue());
+        }
+    }
+
+    @Nested
     class FromPlainToken {
         @Test
         void givenValidPlainToken_whenFromPlainTokenIsCalled_thenHashesAndReturnsRefreshTokenHash() {
             // Given
-            String plainToken = "my-plain-token-value";
+            String plainToken = UUID.randomUUID().toString();
             String expectedHash = "hashed-token-value";
             TokenHasher tokenHasher = mock(TokenHasher.class);
             when(tokenHasher.hash(plainToken)).thenReturn(expectedHash);
@@ -34,8 +54,8 @@ public class RefreshTokenHashTests {
         }
 
         @ParameterizedTest
-        @MethodSource("invalidTokens")
-        void givenInvalidPlainToken_whenFromPlainTokenIsCalled_thenThrowsRefreshTokenHashException(String invalidToken) {
+        @MethodSource("missingTokens")
+        void givenNullOrEmptyPlainToken_whenFromPlainTokenIsCalled_thenThrowsRefreshTokenHashException(String invalidToken) {
             // Given
             TokenHasher tokenHasher = mock(TokenHasher.class);
             String expectedErrorMessage = RefreshTokenHashExceptionInfo.missingValue().getMessage();
@@ -50,7 +70,24 @@ public class RefreshTokenHashTests {
             verifyNoInteractions(tokenHasher);
         }
 
-        private static Stream<Arguments> invalidTokens() {
+        @Test
+        void givenInvalidUuidFormat_whenFromPlainTokenIsCalled_thenThrowsRefreshTokenHashException() {
+            // Given
+            String invalidToken = "not-a-valid-uuid";
+            TokenHasher tokenHasher = mock(TokenHasher.class);
+            String expectedErrorMessage = RefreshTokenHashExceptionInfo.invalidFormat().getMessage();
+            int expectedErrorCode = RefreshTokenHashExceptionInfo.invalidFormat().getDomainErrorCode();
+
+            // When & Then
+            assertThatExceptionOfType(RefreshTokenHashException.class)
+                    .isThrownBy(() -> RefreshTokenHash.fromPlainToken(invalidToken, tokenHasher))
+                    .extracting("message", "domainErrorCode")
+                    .containsExactly(expectedErrorMessage, expectedErrorCode);
+
+            verifyNoInteractions(tokenHasher);
+        }
+
+        private static Stream<Arguments> missingTokens() {
             return Stream.of(
                     Arguments.of((String) null),
                     Arguments.of("")

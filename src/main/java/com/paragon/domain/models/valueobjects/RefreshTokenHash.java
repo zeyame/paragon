@@ -6,34 +6,58 @@ import com.paragon.domain.interfaces.TokenHasher;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 public class RefreshTokenHash extends ValueObject {
-    private final String value;
+    private final String hashedValue;
+    private final String plainValue;
 
-    private RefreshTokenHash(String value) {
-        this.value = value;
+    private RefreshTokenHash(String hashedValue, String plainValue) {
+        this.hashedValue = hashedValue;
+        this.plainValue = plainValue;
+    }
+
+    public static RefreshTokenHash generate(TokenHasher tokenHasher) {
+        String plain = UUID.randomUUID().toString();
+        String hashed = tokenHasher.hash(plain);
+        return new RefreshTokenHash(hashed, plain);
     }
 
     public static RefreshTokenHash fromPlainToken(String plainToken, TokenHasher tokenHasher) {
-        assertValidToken(plainToken);
+        assertValidPlainToken(plainToken);
         String hashedValue = tokenHasher.hash(plainToken);
-        return new RefreshTokenHash(hashedValue);
+        return new RefreshTokenHash(hashedValue, plainToken);
     }
 
     public static RefreshTokenHash fromHashed(String hashedValue) {
-        assertValidToken(hashedValue);
-        return new RefreshTokenHash(hashedValue);
+        if (hashedValue == null || hashedValue.isEmpty()) {
+            throw new RefreshTokenHashException(RefreshTokenHashExceptionInfo.missingValue());
+        }
+        return new RefreshTokenHash(hashedValue, null);
+    }
+
+    public String getValue() {
+        return hashedValue; // For persistence
+    }
+
+    public String getPlainValue() {
+        return plainValue;
     }
 
     @Override
     protected List<Object> getEqualityComponents() {
-        return List.of(value);
+        return List.of(hashedValue);
     }
 
-    private static void assertValidToken(String token) {
-        if (token == null || token.isEmpty()) {
+    private static void assertValidPlainToken(String plainToken) {
+        if (plainToken == null || plainToken.isEmpty()) {
             throw new RefreshTokenHashException(RefreshTokenHashExceptionInfo.missingValue());
+        }
+        try {
+            UUID.fromString(plainToken);
+        } catch (IllegalArgumentException e) {
+            throw new RefreshTokenHashException(RefreshTokenHashExceptionInfo.invalidFormat());
         }
     }
 }

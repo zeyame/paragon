@@ -11,6 +11,7 @@ import com.paragon.domain.events.staffaccountevents.StaffAccountLoggedInEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.PasswordHasher;
+import com.paragon.domain.interfaces.TokenHasher;
 import com.paragon.domain.interfaces.repos.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.Username;
@@ -33,6 +34,7 @@ public class LoginStaffAccountCommandHandlerTests {
     private final EventBus eventBusMock;
     private final AppExceptionHandler appExceptionHandlerMock;
     private final PasswordHasher passwordHasherMock;
+    private final TokenHasher tokenHasherMock;
     private final LoginStaffAccountCommand command;
     private final StaffAccount staffAccountToLogin;
 
@@ -41,7 +43,8 @@ public class LoginStaffAccountCommandHandlerTests {
         eventBusMock = mock(EventBus.class);
         appExceptionHandlerMock = mock(AppExceptionHandler.class);
         passwordHasherMock = mock(PasswordHasher.class);
-        sut = new LoginStaffAccountCommandHandler(staffAccountWriteRepoMock, eventBusMock, appExceptionHandlerMock, passwordHasherMock);
+        tokenHasherMock = mock(TokenHasher.class);
+        sut = new LoginStaffAccountCommandHandler(staffAccountWriteRepoMock, eventBusMock, appExceptionHandlerMock, passwordHasherMock, tokenHasherMock);
 
         command = new LoginStaffAccountCommand(
                 "john_doe",
