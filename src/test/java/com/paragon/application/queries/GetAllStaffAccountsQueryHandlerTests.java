@@ -1,9 +1,9 @@
 package com.paragon.application.queries;
 
 import com.paragon.application.common.exceptions.AppException;
-import com.paragon.application.common.exceptions.AppExceptionHandler;
+import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
-import com.paragon.application.context.ActorContext;
+import com.paragon.application.common.interfaces.ActorContext;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQuery;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryHandler;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryResponse;

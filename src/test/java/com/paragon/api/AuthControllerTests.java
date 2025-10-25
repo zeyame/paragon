@@ -39,6 +39,8 @@ public class AuthControllerTests {
                     UUID.randomUUID().toString(),
                     requestDto.username(),
                     false,
+                    "PlainRefreshToken123",
+                    "JwtToken123",
                     1
             );
 
@@ -107,7 +109,7 @@ public class AuthControllerTests {
         private LoginStaffAccountRequestDto createValidLoginStaffAccountRequestDto() {
             return new LoginStaffAccountRequestDto(
                     "john_doe",
-                    "$argon2id$v=19$m=65536,t=3,p=1$QWxhZGRpbjpPcGVuU2VzYW1l$2iYvT1yzFzHtXJH7zM4jW1Z2sK7Tg=="
+                    "John_doe123?"
             );
         }
     }

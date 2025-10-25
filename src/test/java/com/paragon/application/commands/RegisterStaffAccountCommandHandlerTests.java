@@ -4,9 +4,9 @@ import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccoun
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandHandler;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandResponse;
 import com.paragon.application.common.exceptions.AppException;
-import com.paragon.application.common.exceptions.AppExceptionHandler;
+import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
-import com.paragon.application.context.ActorContext;
+import com.paragon.application.common.interfaces.ActorContext;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.events.DomainEvent;

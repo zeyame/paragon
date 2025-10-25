@@ -4,14 +4,15 @@ import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountComma
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandHandler;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandResponse;
 import com.paragon.application.common.exceptions.AppException;
-import com.paragon.application.common.exceptions.AppExceptionHandler;
+import com.paragon.application.common.interfaces.AppExceptionHandler;
+import com.paragon.application.common.interfaces.JwtGenerator;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.events.DomainEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountLoggedInEvent;
-import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.PasswordHasher;
 import com.paragon.domain.interfaces.TokenHasher;
+import com.paragon.domain.interfaces.repos.RefreshTokenWriteRepo;
 import com.paragon.domain.interfaces.repos.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.Username;
@@ -30,21 +31,31 @@ import static org.mockito.Mockito.*;
 
 public class LoginStaffAccountCommandHandlerTests {
     private final LoginStaffAccountCommandHandler sut;
+
     private final StaffAccountWriteRepo staffAccountWriteRepoMock;
+    private final RefreshTokenWriteRepo refreshTokenWriteRepoMock;
     private final EventBus eventBusMock;
     private final AppExceptionHandler appExceptionHandlerMock;
     private final PasswordHasher passwordHasherMock;
     private final TokenHasher tokenHasherMock;
+    private final JwtGenerator jwtGeneratorMock;
+
     private final LoginStaffAccountCommand command;
     private final StaffAccount staffAccountToLogin;
 
     public LoginStaffAccountCommandHandlerTests() {
         staffAccountWriteRepoMock = mock(StaffAccountWriteRepo.class);
+        refreshTokenWriteRepoMock = mock(RefreshTokenWriteRepo.class);
         eventBusMock = mock(EventBus.class);
         appExceptionHandlerMock = mock(AppExceptionHandler.class);
         passwordHasherMock = mock(PasswordHasher.class);
         tokenHasherMock = mock(TokenHasher.class);
-        sut = new LoginStaffAccountCommandHandler(staffAccountWriteRepoMock, eventBusMock, appExceptionHandlerMock, passwordHasherMock, tokenHasherMock);
+        jwtGeneratorMock = mock(JwtGenerator.class);
+
+        sut = new LoginStaffAccountCommandHandler(
+                staffAccountWriteRepoMock, refreshTokenWriteRepoMock, eventBusMock,
+                appExceptionHandlerMock, passwordHasherMock, tokenHasherMock, jwtGeneratorMock
+        );
 
         command = new LoginStaffAccountCommand(
                 "john_doe",

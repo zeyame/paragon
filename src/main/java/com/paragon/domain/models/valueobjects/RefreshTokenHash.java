@@ -8,7 +8,6 @@ import lombok.Getter;
 import java.util.List;
 import java.util.UUID;
 
-@Getter
 public class RefreshTokenHash extends ValueObject {
     private final String hashedValue;
     private final String plainValue;

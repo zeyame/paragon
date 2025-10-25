@@ -2,12 +2,14 @@ package com.paragon.application.commands.loginstaffaccount;
 
 import com.paragon.application.commands.CommandHandler;
 import com.paragon.application.common.exceptions.AppException;
-import com.paragon.application.common.exceptions.AppExceptionHandler;
+import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
+import com.paragon.application.common.interfaces.JwtGenerator;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.PasswordHasher;
 import com.paragon.domain.interfaces.TokenHasher;
+import com.paragon.domain.interfaces.repos.RefreshTokenWriteRepo;
 import com.paragon.domain.interfaces.repos.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.aggregates.StaffAccount;
@@ -23,19 +25,23 @@ import java.util.Optional;
 @Component
 public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaffAccountCommand, LoginStaffAccountCommandResponse> {
     private final StaffAccountWriteRepo staffAccountWriteRepo;
+    private final RefreshTokenWriteRepo refreshTokenWriteRepo;
     private final EventBus eventBus;
     private final AppExceptionHandler appExceptionHandler;
     private final PasswordHasher passwordHasher;
     private final TokenHasher tokenHasher;
+    private final JwtGenerator jwtGenerator;
 
-    public LoginStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo, EventBus eventBus,
-                                          AppExceptionHandler appExceptionHandler, PasswordHasher passwordHasher,
-                                          TokenHasher tokenHasher) {
+    public LoginStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo, RefreshTokenWriteRepo refreshTokenWriteRepo,
+                                           EventBus eventBus, AppExceptionHandler appExceptionHandler, PasswordHasher passwordHasher,
+                                           TokenHasher tokenHasher, JwtGenerator jwtGenerator) {
         this.staffAccountWriteRepo = staffAccountWriteRepo;
+        this.refreshTokenWriteRepo = refreshTokenWriteRepo;
         this.eventBus = eventBus;
         this.appExceptionHandler = appExceptionHandler;
         this.passwordHasher = passwordHasher;
         this.tokenHasher = tokenHasher;
+        this.jwtGenerator = jwtGenerator;
     }
 
     @Override
@@ -51,6 +57,9 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
             staffAccountWriteRepo.update(staffAccount);
 
             RefreshToken refreshToken = RefreshToken.issue(staffAccount.getId(), tokenHasher);
+            refreshTokenWriteRepo.create(refreshToken);
+
+            String jwt = jwtGenerator.generateAccessToken(staffAccount.getId());
 
             eventBus.publishAll(staffAccount.dequeueUncommittedEvents());
 
@@ -63,6 +72,8 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
                     staffAccount.getId().getValue().toString(),
                     staffAccount.getUsername().getValue(),
                     staffAccount.requiresPasswordReset(),
+                    refreshToken.getTokenHash().getPlainValue(),
+                    jwt,
                     staffAccount.getVersion().getValue()
             );
         } catch (DomainException ex) {

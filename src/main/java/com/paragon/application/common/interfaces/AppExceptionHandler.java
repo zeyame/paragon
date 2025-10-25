@@ -1,5 +1,6 @@
-package com.paragon.application.common.exceptions;
+package com.paragon.application.common.interfaces;
 
+import com.paragon.application.common.exceptions.AppException;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 

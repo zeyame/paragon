@@ -2,9 +2,9 @@ package com.paragon.application.commands.registerstaffaccount;
 
 import com.paragon.application.commands.CommandHandler;
 import com.paragon.application.common.exceptions.AppException;
-import com.paragon.application.common.exceptions.AppExceptionHandler;
+import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
-import com.paragon.application.context.ActorContext;
+import com.paragon.application.common.interfaces.ActorContext;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.PasswordHasher;

@@ -4,5 +4,7 @@ public record LoginStaffAccountCommandResponse(
         String id,
         String username,
         boolean requiresPasswordReset,
+        String plainRefreshToken,
+        String jwtToken,
         int version
 ) {}

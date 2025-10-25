@@ -1,11 +1,11 @@
 package com.paragon.infrastructure.audit;
 
-import com.paragon.application.context.RequestMetadataProvider;
+import com.paragon.application.common.interfaces.RequestMetadataProvider;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
 @Component
-public class RequestMetadataProviderImpl implements RequestMetadataProvider {
+public class HttpRequestMetadataProvider implements RequestMetadataProvider {
 
     @Override
     public String getIpAddress() {

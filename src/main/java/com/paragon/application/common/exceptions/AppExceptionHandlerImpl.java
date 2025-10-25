@@ -1,5 +1,6 @@
 package com.paragon.application.common.exceptions;
 
+import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.exceptions.aggregate.StaffAccountException;
 import com.paragon.domain.exceptions.entity.AuditTrailEntryException;

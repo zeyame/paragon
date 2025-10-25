@@ -1,6 +1,6 @@
 package com.paragon.application.events.audittrail;
 
-import com.paragon.application.context.RequestMetadataProvider;
+import com.paragon.application.common.interfaces.RequestMetadataProvider;
 import com.paragon.domain.enums.AuditEntryActionType;
 import com.paragon.domain.enums.AuditEntryTargetType;
 import com.paragon.domain.enums.Outcome;
