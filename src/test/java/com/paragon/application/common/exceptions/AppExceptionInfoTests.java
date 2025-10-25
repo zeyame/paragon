@@ -47,4 +47,15 @@ public class AppExceptionInfoTests {
         assertThat(info.getAppErrorCode()).isEqualTo(103);
         assertThat(info.getStatusCode()).isEqualTo(AppExceptionStatusCode.RESOURCE_UNIQUENESS_VIOLATION);
     }
+
+    @Test
+    void invalidLoginCredentials_shouldHaveExpectedCodeAndMessage() {
+        // When
+        AppExceptionInfo info = AppExceptionInfo.invalidLoginCredentials();
+
+        // Then
+        assertThat(info.getMessage()).isEqualTo("Invalid username or password");
+        assertThat(info.getAppErrorCode()).isEqualTo(104);
+        assertThat(info.getStatusCode()).isEqualTo(AppExceptionStatusCode.AUTHENTICATION_FAILED);
+    }
 }

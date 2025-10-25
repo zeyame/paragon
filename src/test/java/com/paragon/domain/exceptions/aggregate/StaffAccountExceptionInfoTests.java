@@ -53,4 +53,28 @@ public class StaffAccountExceptionInfoTests {
         assertThat(info.getMessage()).isEqualTo("At least one permission must be assigned to a staff account.");
         assertThat(info.getDomainErrorCode()).isEqualTo(10006);
     }
+
+    @Test
+    void loginFailedAccountDisabled_shouldHaveExpectedCodeAndMessage() {
+        StaffAccountExceptionInfo info = StaffAccountExceptionInfo.loginFailedAccountDisabled();
+
+        assertThat(info.getMessage()).isEqualTo("Login failed: This account has been disabled.");
+        assertThat(info.getDomainErrorCode()).isEqualTo(10007);
+    }
+
+    @Test
+    void loginFailedAccountLocked_shouldHaveExpectedCodeAndMessage() {
+        StaffAccountExceptionInfo info = StaffAccountExceptionInfo.loginFailedAccountLocked();
+
+        assertThat(info.getMessage()).isEqualTo("Login failed: This account is temporarily locked due to multiple failed login attempts.");
+        assertThat(info.getDomainErrorCode()).isEqualTo(10008);
+    }
+
+    @Test
+    void invalidCredentials_shouldHaveExpectedCodeAndMessage() {
+        StaffAccountExceptionInfo info = StaffAccountExceptionInfo.invalidCredentials();
+
+        assertThat(info.getMessage()).isEqualTo("Invalid username or password.");
+        assertThat(info.getDomainErrorCode()).isEqualTo(10009);
+    }
 }
