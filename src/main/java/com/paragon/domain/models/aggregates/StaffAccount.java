@@ -2,6 +2,7 @@ package com.paragon.domain.models.aggregates;
 
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.events.DomainEvent;
+import com.paragon.domain.events.staffaccountevents.StaffAccountLockedEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountLoggedInEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
 import com.paragon.domain.exceptions.aggregate.StaffAccountException;
@@ -75,7 +76,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         StaffAccount account = new StaffAccount(
                 StaffAccountId.generate(), username, email, password, true, Instant.now(),
                 orderAccessDuration, modmailTranscriptAccessDuration, StaffAccountStatus.PENDING_PASSWORD_CHANGE,
-                FailedLoginAttempts.initial(), null, null, createdBy, null, permissionCodes, Version.initial()
+                FailedLoginAttempts.zero(), null, null, createdBy, null, permissionCodes, Version.initial()
         );
         account.enqueue(new StaffAccountRegisteredEvent(account));
         return account;
@@ -183,6 +184,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         if (failedLoginAttempts.hasReachedMax()) {
             status = StaffAccountStatus.LOCKED;
             lockedUntil = Instant.now().plus(Duration.ofMinutes(15));
+            enqueue(new StaffAccountLockedEvent(this));
         }
     }
 }

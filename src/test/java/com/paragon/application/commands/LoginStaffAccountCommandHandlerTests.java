@@ -128,30 +128,12 @@ public class LoginStaffAccountCommandHandlerTests {
     }
 
     @Test
-    void givenValidCommand_shouldPublishStaffAccountLoggedInEvent() {
-        // Given
-        ArgumentCaptor<List<DomainEvent>> domainEventsCaptor =  ArgumentCaptor.forClass(List.class);
-
+    void shouldPublishDomainEvents() {
         // When
         sut.handle(command);
 
         // Then
-        verify(eventBusMock, times(1)).publishAll(domainEventsCaptor.capture());
-
-        List<DomainEvent> publishedEvents = domainEventsCaptor.getValue();
-        assertThat(publishedEvents.size()).isEqualTo(1);
-
-        DomainEvent event = publishedEvents.getFirst();
-        assertThat(event).isInstanceOf(StaffAccountLoggedInEvent.class);
-
-        StaffAccountLoggedInEvent loggedInEvent = (StaffAccountLoggedInEvent) event;
-        assertThat(loggedInEvent.getStaffAccountId()).isEqualTo(staffAccountToLogin.getId());
-        assertThat(loggedInEvent.getUsername()).isEqualTo(staffAccountToLogin.getUsername());
-        assertThat(loggedInEvent.getPassword()).isEqualTo(staffAccountToLogin.getPassword());
-        assertThat(loggedInEvent.getOrderAccessDuration()).isEqualTo(staffAccountToLogin.getOrderAccessDuration());
-        assertThat(loggedInEvent.getModmailTranscriptAccessDuration()).isEqualTo(staffAccountToLogin.getModmailTranscriptAccessDuration());
-        assertThat(loggedInEvent.getStaffAccountStatus()).isEqualTo(staffAccountToLogin.getStatus());
-        assertThat(loggedInEvent.getStaffAccountCreatedBy()).isEqualTo(staffAccountToLogin.getCreatedBy());
+        verify(eventBusMock, times(1)).publishAll(anyList());
     }
 
     @Test

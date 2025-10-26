@@ -2,6 +2,7 @@ package com.paragon.domain.models.aggregates;
 
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.events.DomainEvent;
+import com.paragon.domain.events.staffaccountevents.StaffAccountLockedEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountLoggedInEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
 import com.paragon.domain.exceptions.aggregate.StaffAccountException;
@@ -103,7 +104,7 @@ public class StaffAccountTests {
         }
 
         @Test
-        void shouldEnqueueDomainEvent_uponSuccessfulRegistration() {
+        void shouldEnqueueStaffAccountRegisteredEvent_uponSuccessfulRegistration() {
             // When
             StaffAccount staffAccount = StaffAccount.register(username, email, password, orderAccessDuration, modmailTranscriptAccessDuration, createdBy, permissionCodes);
 
@@ -111,6 +112,23 @@ public class StaffAccountTests {
             List<DomainEvent> queuedEvents = staffAccount.dequeueUncommittedEvents();
             assertThat(queuedEvents).hasSize(1);
             assertThat(queuedEvents.getFirst()).isInstanceOf(StaffAccountRegisteredEvent.class);
+
+            StaffAccountRegisteredEvent event = (StaffAccountRegisteredEvent) queuedEvents.getFirst();
+            assertThat(event.getStaffAccountId()).isEqualTo(staffAccount.getId());
+            assertThat(event.getUsername()).isEqualTo(staffAccount.getUsername());
+            assertThat(event.getEmail()).isEqualTo(staffAccount.getEmail());
+            assertThat(event.getPassword()).isEqualTo(staffAccount.getPassword());
+            assertThat(event.getPasswordIssuedAt()).isEqualTo(staffAccount.getPasswordIssuedAt());
+            assertThat(event.getOrderAccessDuration()).isEqualTo(staffAccount.getOrderAccessDuration());
+            assertThat(event.getModmailTranscriptAccessDuration()).isEqualTo(staffAccount.getModmailTranscriptAccessDuration());
+            assertThat(event.getStaffAccountStatus()).isEqualTo(staffAccount.getStatus());
+            assertThat(event.getFailedLoginAttempts()).isEqualTo(staffAccount.getFailedLoginAttempts());
+            assertThat(event.getLockedUntil()).isEqualTo(staffAccount.getLockedUntil());
+            assertThat(event.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
+            assertThat(event.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
+            assertThat(event.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
+            assertThat(event.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
+            assertThat(event.getStaffAccountVersion()).isEqualTo(staffAccount.getVersion());
         }
 
         @Test
@@ -241,7 +259,7 @@ public class StaffAccountTests {
         }
 
         @Test
-        void shouldEnqueueDomainEvent_uponSuccessfulLogin() {
+        void shouldEnqueueStaffAccountLoggedInEvent_uponSuccessfulLogin() {
             // Given
             StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
             String hashedPasswordValue = staffAccount.getPassword().getValue();
@@ -254,6 +272,23 @@ public class StaffAccountTests {
             List<DomainEvent> queuedEvents = staffAccount.dequeueUncommittedEvents();
             assertThat(queuedEvents).hasSize(1);
             assertThat(queuedEvents.getFirst()).isInstanceOf(StaffAccountLoggedInEvent.class);
+
+            StaffAccountLoggedInEvent event = (StaffAccountLoggedInEvent) queuedEvents.getFirst();
+            assertThat(event.getStaffAccountId()).isEqualTo(staffAccount.getId());
+            assertThat(event.getUsername()).isEqualTo(staffAccount.getUsername());
+            assertThat(event.getEmail()).isEqualTo(staffAccount.getEmail());
+            assertThat(event.getPassword()).isEqualTo(staffAccount.getPassword());
+            assertThat(event.getPasswordIssuedAt()).isEqualTo(staffAccount.getPasswordIssuedAt());
+            assertThat(event.getOrderAccessDuration()).isEqualTo(staffAccount.getOrderAccessDuration());
+            assertThat(event.getModmailTranscriptAccessDuration()).isEqualTo(staffAccount.getModmailTranscriptAccessDuration());
+            assertThat(event.getStaffAccountStatus()).isEqualTo(staffAccount.getStatus());
+            assertThat(event.getFailedLoginAttempts()).isEqualTo(staffAccount.getFailedLoginAttempts());
+            assertThat(event.getLockedUntil()).isEqualTo(staffAccount.getLockedUntil());
+            assertThat(event.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
+            assertThat(event.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
+            assertThat(event.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
+            assertThat(event.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
+            assertThat(event.getStaffAccountVersion()).isEqualTo(staffAccount.getVersion());
         }
 
         @Test
@@ -318,7 +353,7 @@ public class StaffAccountTests {
         }
 
         @Test
-        void locksAccountWhenMaximumFailedLoginAttemptsAreReached() {
+        void locksAccountForFifteenMinutes_whenMaximumFailedLoginAttemptsAreReached() {
             // Given
             StaffAccount staffAccount = new StaffAccountFixture()
                     .withFailedLoginAttempts(4)
@@ -333,6 +368,40 @@ public class StaffAccountTests {
             assertThat(staffAccount.getLockedUntil())
                     .isNotNull()
                     .isBetween(Instant.now(), Instant.now().plus(Duration.ofMinutes(16)));
+        }
+
+        @Test
+        void shouldEnqueueStaffAccountLockedEvent_whenAccountGetsLocked() {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withFailedLoginAttempts(4)
+                    .build();
+            Password enteredPassword = Password.fromHashed("Incorrectpassword123!");
+
+            // When & Then
+            assertThatThrownBy(() -> staffAccount.login(enteredPassword))
+                    .isInstanceOf(StaffAccountException.class);
+
+            List<DomainEvent> enqueuedEvents = staffAccount.dequeueUncommittedEvents();
+            assertThat(enqueuedEvents).hasSize(1);
+            assertThat(enqueuedEvents.getFirst()).isInstanceOf(StaffAccountLockedEvent.class);
+
+            StaffAccountLockedEvent event = (StaffAccountLockedEvent) enqueuedEvents.getFirst();
+            assertThat(event.getStaffAccountId()).isEqualTo(staffAccount.getId());
+            assertThat(event.getUsername()).isEqualTo(staffAccount.getUsername());
+            assertThat(event.getEmail()).isEqualTo(staffAccount.getEmail());
+            assertThat(event.getPassword()).isEqualTo(staffAccount.getPassword());
+            assertThat(event.getPasswordIssuedAt()).isEqualTo(staffAccount.getPasswordIssuedAt());
+            assertThat(event.getOrderAccessDuration()).isEqualTo(staffAccount.getOrderAccessDuration());
+            assertThat(event.getModmailTranscriptAccessDuration()).isEqualTo(staffAccount.getModmailTranscriptAccessDuration());
+            assertThat(event.getStaffAccountStatus()).isEqualTo(staffAccount.getStatus());
+            assertThat(event.getFailedLoginAttempts()).isEqualTo(staffAccount.getFailedLoginAttempts());
+            assertThat(event.getLockedUntil()).isEqualTo(staffAccount.getLockedUntil());
+            assertThat(event.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
+            assertThat(event.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
+            assertThat(event.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
+            assertThat(event.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
+            assertThat(event.getStaffAccountVersion()).isEqualTo(staffAccount.getVersion());
         }
 
         @ParameterizedTest

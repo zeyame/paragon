@@ -46,12 +46,13 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
 
     @Override
     public LoginStaffAccountCommandResponse handle(LoginStaffAccountCommand command) {
+        StaffAccount staffAccount = null;
         try {
             Optional<StaffAccount> optionalStaffAccount = staffAccountWriteRepo.getByUsername(Username.of(command.username()));
             if (optionalStaffAccount.isEmpty()) {
                 throw new AppException(AppExceptionInfo.invalidLoginCredentials());
             }
-            StaffAccount staffAccount = optionalStaffAccount.get();
+            staffAccount = optionalStaffAccount.get();
 
             staffAccount.login(Password.fromPlainText(command.password(), passwordHasher));
             staffAccountWriteRepo.update(staffAccount);
@@ -60,8 +61,6 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
             refreshTokenWriteRepo.create(refreshToken);
 
             String jwt = jwtGenerator.generateAccessToken(staffAccount.getId(), staffAccount.getPermissionCodes());
-
-            eventBus.publishAll(staffAccount.dequeueUncommittedEvents());
 
             log.info("Staff account '{}' (ID: {}) successfully logged in.",
                     staffAccount.getUsername().getValue(),
@@ -84,6 +83,10 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
             log.error("Staff account login failed for username='{}': infrastructure related error occurred - {}",
                     command.username(), ex.getMessage(), ex);
             throw appExceptionHandler.handleInfraException(ex);
+        } finally {
+            if (staffAccount != null) {
+                eventBus.publishAll(staffAccount.dequeueUncommittedEvents());
+            }
         }
     }
 }

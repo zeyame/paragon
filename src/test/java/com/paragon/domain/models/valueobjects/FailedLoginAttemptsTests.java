@@ -55,7 +55,7 @@ public class FailedLoginAttemptsTests {
         @Test
         void shouldInitializeFailedLoginAttemptsToZero() {
             // Given
-            FailedLoginAttempts failedLoginAttempts = FailedLoginAttempts.initial();
+            FailedLoginAttempts failedLoginAttempts = FailedLoginAttempts.zero();
 
             // When & Then
             assertThat(failedLoginAttempts.getValue()).isZero();

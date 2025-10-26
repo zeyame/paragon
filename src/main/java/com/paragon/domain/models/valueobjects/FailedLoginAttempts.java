@@ -18,7 +18,7 @@ public class FailedLoginAttempts extends ValueObject {
         return new FailedLoginAttempts(value);
     }
 
-    public static FailedLoginAttempts initial() {
+    public static FailedLoginAttempts zero() {
         return new FailedLoginAttempts(0);
     }
 
@@ -30,7 +30,7 @@ public class FailedLoginAttempts extends ValueObject {
     }
 
     public FailedLoginAttempts reset() {
-        return initial();
+        return zero();
     }
 
     public boolean hasReachedMax() {

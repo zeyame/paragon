@@ -26,7 +26,7 @@ public abstract class StaffAccountEventBase extends DomainEvent {
     private final StaffAccountId staffAccountCreatedBy;
     private final StaffAccountId staffAccountDisabledBy;
     private final Set<PermissionCode> permissionCodes;
-    private final Version version;
+    private final Version staffAccountVersion;
 
     protected StaffAccountEventBase(StaffAccount staffAccount, String eventName) {
         super(EventId.generate(), eventName);
@@ -45,6 +45,6 @@ public abstract class StaffAccountEventBase extends DomainEvent {
         this.staffAccountCreatedBy = staffAccount.getCreatedBy();
         this.staffAccountDisabledBy = staffAccount.getDisabledBy();
         this.permissionCodes = staffAccount.getPermissionCodes();
-        this.version = staffAccount.getVersion();
+        this.staffAccountVersion = staffAccount.getVersion();
     }
 }
