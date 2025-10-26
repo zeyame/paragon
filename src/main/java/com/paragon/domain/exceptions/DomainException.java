@@ -3,7 +3,7 @@ package com.paragon.domain.exceptions;
 import lombok.Getter;
 
 @Getter
-public abstract class DomainException extends RuntimeException {
+public class DomainException extends RuntimeException {
     protected final int domainErrorCode;
 
     protected DomainException(DomainExceptionInfo exceptionInfo) {
