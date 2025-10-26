@@ -1,5 +1,6 @@
 package com.paragon.application.events.audittrail;
 
+import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandHandler;
 import com.paragon.application.common.interfaces.RequestMetadataProvider;
 import com.paragon.application.events.EventHandler;
 import com.paragon.domain.enums.AuditEntryActionType;
@@ -13,13 +14,15 @@ import com.paragon.domain.models.entities.AuditTrailEntry;
 import com.paragon.domain.models.valueobjects.AuditEntryTargetId;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-@Slf4j
 @Component
 public class StaffAccountLoggedInEventAuditHandler implements EventHandler<StaffAccountLoggedInEvent> {
     private final AuditTrailWriteRepo auditTrailWriteRepo;
     private final RequestMetadataProvider requestMetadataProvider;
+    private static final Logger log = LoggerFactory.getLogger(StaffAccountLoggedInEventAuditHandler.class);
 
     public StaffAccountLoggedInEventAuditHandler(AuditTrailWriteRepo auditTrailWriteRepo, RequestMetadataProvider requestMetadataProvider) {
         this.auditTrailWriteRepo = auditTrailWriteRepo;
