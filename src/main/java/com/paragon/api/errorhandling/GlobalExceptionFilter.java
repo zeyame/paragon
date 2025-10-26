@@ -2,6 +2,7 @@ package com.paragon.api.errorhandling;
 
 import com.paragon.api.dtos.ErrorDto;
 import com.paragon.api.dtos.ResponseDto;
+import com.paragon.api.exceptions.PermissionDeniedException;
 import com.paragon.application.common.exceptions.AppException;
 import com.paragon.application.common.exceptions.AppExceptionStatusCode;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,18 @@ public class GlobalExceptionFilter {
         ResponseDto<Void> responseDto = new ResponseDto<>(null, errorDto);
         return ResponseEntity
                 .status(mapToHttpStatusCode(exception.getStatusCode()))
+                .body(responseDto);
+    }
+
+    @ExceptionHandler(PermissionDeniedException.class)
+    public ResponseEntity<ResponseDto<Void>> handlePermissionDeniedException(PermissionDeniedException exception) {
+        var errorDto = new ErrorDto(
+                exception.getMessage(),
+                exception.getErrorCode()
+        );
+        ResponseDto<Void> responseDto = new ResponseDto<>(null, errorDto);
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
                 .body(responseDto);
     }
 

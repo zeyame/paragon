@@ -59,7 +59,7 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
             RefreshToken refreshToken = RefreshToken.issue(staffAccount.getId(), tokenHasher);
             refreshTokenWriteRepo.create(refreshToken);
 
-            String jwt = jwtGenerator.generateAccessToken(staffAccount.getId());
+            String jwt = jwtGenerator.generateAccessToken(staffAccount.getId(), staffAccount.getPermissionCodes());
 
             eventBus.publishAll(staffAccount.dequeueUncommittedEvents());
 

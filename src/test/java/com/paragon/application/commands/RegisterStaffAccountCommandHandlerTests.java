@@ -6,7 +6,6 @@ import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccoun
 import com.paragon.application.common.exceptions.AppException;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
-import com.paragon.application.common.interfaces.ActorContext;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.events.DomainEvent;
@@ -15,9 +14,7 @@ import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.PasswordHasher;
 import com.paragon.domain.interfaces.repos.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
-import com.paragon.domain.models.constants.SystemPermissions;
 import com.paragon.domain.models.valueobjects.PermissionCode;
-import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
@@ -35,34 +32,21 @@ import static org.mockito.Mockito.*;
 public class RegisterStaffAccountCommandHandlerTests {
     private final RegisterStaffAccountCommandHandler sut;
     private final StaffAccountWriteRepo staffAccountWriteRepoMock;
-    private final ActorContext actorContextMock;
     private final EventBus eventBusMock;
     private final AppExceptionHandler appExceptionHandlerMock;
     private final PasswordHasher passwordHasherMock;
     private final RegisterStaffAccountCommand command;
-    private final StaffAccount requestingStaffAccount;
     private final String hashedPassword;
 
     public RegisterStaffAccountCommandHandlerTests() {
         staffAccountWriteRepoMock = mock(StaffAccountWriteRepo.class);
-        actorContextMock = mock(ActorContext.class);
         eventBusMock = mock(EventBus.class);
         appExceptionHandlerMock = mock(AppExceptionHandler.class);
         passwordHasherMock = mock(PasswordHasher.class);
 
-        sut = new RegisterStaffAccountCommandHandler(staffAccountWriteRepoMock, actorContextMock, eventBusMock, appExceptionHandlerMock, passwordHasherMock);
+        sut = new RegisterStaffAccountCommandHandler(staffAccountWriteRepoMock, eventBusMock, appExceptionHandlerMock, passwordHasherMock);
 
         command = createValidRegisterStaffAccountCommand();
-
-        String requestingStaffAccountId = UUID.randomUUID().toString();
-        when(actorContextMock.getActorId()).thenReturn(requestingStaffAccountId);
-
-        requestingStaffAccount = new StaffAccountFixture()
-                .withId(requestingStaffAccountId)
-                .withPermissionCodes(List.of(SystemPermissions.MANAGE_ACCOUNTS.getValue()))
-                .build();
-        when(staffAccountWriteRepoMock.getById(StaffAccountId.from(requestingStaffAccountId)))
-                .thenReturn(Optional.of(requestingStaffAccount));
 
         hashedPassword = "$2a$10$7eqJtq98hPqEX7fNZaFWoOaYp84f5bRC6vh4Y4QJ9hK1QeYUpbFVa";
         when(passwordHasherMock.hash(anyString())).thenReturn(hashedPassword);
@@ -130,37 +114,7 @@ public class RegisterStaffAccountCommandHandlerTests {
         assertThat(registeredEvent.getOrderAccessDuration().getValueInDays()).isEqualTo(command.orderAccessDuration());
         assertThat(registeredEvent.getModmailTranscriptAccessDuration().getValueInDays()).isEqualTo(command.modmailTranscriptAccessDuration());
         assertThat(registeredEvent.getStaffAccountStatus()).isEqualTo(StaffAccountStatus.PENDING_PASSWORD_CHANGE);
-        assertThat(registeredEvent.getStaffAccountCreatedBy()).isEqualTo(requestingStaffAccount.getId());
-    }
-
-    @Test
-    void whenRequestingStaffAccountDoesNotExist_shouldThrowAppException() {
-        // Given
-        when(staffAccountWriteRepoMock.getById(any(StaffAccountId.class)))
-                .thenReturn(Optional.empty());
-
-        AppException expectedAppException = new AppException(AppExceptionInfo.staffAccountNotFound(requestingStaffAccount.getId().getValue().toString()));
-
-        // When & Then
-        assertThatThrownBy(() -> sut.handle(command))
-                .isEqualTo(expectedAppException);
-    }
-
-    @Test
-    void whenRequestingStaffAccountDoesNotHaveRequiredPermissions_shouldThrowAppException() {
-        // Given
-        StaffAccount accountLackingPermissions = new StaffAccountFixture()
-                .withId(UUID.randomUUID().toString())
-                .withPermissionCodes(List.of()) // no permission
-                .build();
-        when(staffAccountWriteRepoMock.getById(any(StaffAccountId.class)))
-                .thenReturn(Optional.of(accountLackingPermissions));
-
-        AppException expectedAppException = new AppException(AppExceptionInfo.permissionAccessDenied("registration"));
-
-        // When & Then
-        assertThatThrownBy(() -> sut.handle(command))
-                .isEqualTo(expectedAppException);
+        assertThat(registeredEvent.getStaffAccountCreatedBy().getValue().toString()).isEqualTo(command.createdBy());
     }
 
     @Test
@@ -184,7 +138,8 @@ public class RegisterStaffAccountCommandHandlerTests {
                 "TempPass123!",
                 7,
                 14,
-                List.of(UUID.randomUUID().toString())
+                List.of(UUID.randomUUID().toString()),
+                UUID.randomUUID().toString()
         );
 
         when(appExceptionHandlerMock.handleDomainException(any(DomainException.class)))
@@ -217,7 +172,8 @@ public class RegisterStaffAccountCommandHandlerTests {
                 "TempPass123!",
                 7,
                 14,
-                List.of("MANAGE_ACCOUNTS")
+                List.of("MANAGE_ACCOUNTS"),
+                UUID.randomUUID().toString()
         );
     }
 }

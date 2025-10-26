@@ -2,16 +2,11 @@ package com.paragon.application.queries;
 
 import com.paragon.application.common.exceptions.AppException;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
-import com.paragon.application.common.exceptions.AppExceptionInfo;
-import com.paragon.application.common.interfaces.ActorContext;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQuery;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryHandler;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryResponse;
 import com.paragon.application.queries.getallstaffaccounts.StaffAccountSummary;
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo;
-import com.paragon.domain.exceptions.DomainException;
-import com.paragon.domain.models.constants.SystemPermissions;
-import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
 import org.junit.jupiter.api.Test;
@@ -27,27 +22,16 @@ import static org.mockito.Mockito.*;
 public class GetAllStaffAccountsQueryHandlerTests {
     private final GetAllStaffAccountsQueryHandler sut;
     private final StaffAccountReadRepo staffAccountReadRepoMock;
-    private final ActorContext actorContextMock;
     private final AppExceptionHandler appExceptionHandlerMock;
     private final GetAllStaffAccountsQuery query;
-    private final String requestingStaffAccountId;
 
     public GetAllStaffAccountsQueryHandlerTests() {
         staffAccountReadRepoMock = mock(StaffAccountReadRepo.class);
-        actorContextMock = mock(ActorContext.class);
         appExceptionHandlerMock = mock(AppExceptionHandler.class);
 
-        sut = new GetAllStaffAccountsQueryHandler(staffAccountReadRepoMock, actorContextMock, appExceptionHandlerMock);
+        sut = new GetAllStaffAccountsQueryHandler(staffAccountReadRepoMock, appExceptionHandlerMock);
 
         query = new GetAllStaffAccountsQuery();
-
-        requestingStaffAccountId = UUID.randomUUID().toString();
-        when(actorContextMock.getActorId()).thenReturn(requestingStaffAccountId);
-
-        when(staffAccountReadRepoMock.exists(StaffAccountId.from(requestingStaffAccountId)))
-                .thenReturn(true);
-        when(staffAccountReadRepoMock.hasPermission(StaffAccountId.from(requestingStaffAccountId), SystemPermissions.VIEW_ACCOUNTS_LIST))
-                .thenReturn(true);
     }
 
     @Test
@@ -140,74 +124,6 @@ public class GetAllStaffAccountsQueryHandlerTests {
         // Then
         assertThat(response).isNotNull();
         assertThat(response.staffAccountSummaries().size()).isEqualTo(0);
-    }
-
-    @Test
-    void givenValidQuery_shouldCheckIfRequestingStaffAccountExists() {
-        // Given
-        when(staffAccountReadRepoMock.findAllSummaries()).thenReturn(List.of());
-
-        // When
-        sut.handle(query);
-
-        // Then
-        verify(staffAccountReadRepoMock, times(1)).exists(StaffAccountId.from(requestingStaffAccountId));
-    }
-
-    @Test
-    void givenValidQuery_shouldCheckIfRequestingStaffAccountHasRequiredPermission() {
-        // Given
-        when(staffAccountReadRepoMock.findAllSummaries()).thenReturn(List.of());
-
-        // When
-        sut.handle(query);
-
-        // Then
-        verify(staffAccountReadRepoMock, times(1))
-                .hasPermission(StaffAccountId.from(requestingStaffAccountId), SystemPermissions.VIEW_ACCOUNTS_LIST);
-    }
-
-    @Test
-    void whenRequestingStaffAccountDoesNotExist_shouldThrowAppException() {
-        // Given
-        when(staffAccountReadRepoMock.exists(StaffAccountId.from(requestingStaffAccountId)))
-                .thenReturn(false);
-
-        AppException expectedAppException = new AppException(AppExceptionInfo.staffAccountNotFound(requestingStaffAccountId));
-
-        // When & Then
-        assertThatThrownBy(() -> sut.handle(query))
-                .isEqualTo(expectedAppException);
-    }
-
-    @Test
-    void whenRequestingStaffAccountLacksRequiredPermission_shouldThrowAppException() {
-        // Given
-        when(staffAccountReadRepoMock.hasPermission(StaffAccountId.from(requestingStaffAccountId), SystemPermissions.VIEW_ACCOUNTS_LIST))
-                .thenReturn(false);
-
-        AppException expectedAppException = new AppException(AppExceptionInfo.permissionAccessDenied("view all registered staff accounts"));
-
-        // When & Then
-        assertThatThrownBy(() -> sut.handle(query))
-                .isEqualTo(expectedAppException);
-    }
-
-    @Test
-    void whenDomainExceptionIsThrown_shouldCatchAndTranslateToAppException() {
-        // Given
-        DomainException domainException = mock(DomainException.class);
-        when(staffAccountReadRepoMock.exists(any(StaffAccountId.class)))
-                .thenThrow(domainException);
-
-        when(appExceptionHandlerMock.handleDomainException(any(DomainException.class)))
-                .thenReturn(mock(AppException.class));
-
-        // When & Then
-        assertThatThrownBy(() -> sut.handle(query))
-                .isInstanceOf(AppException.class);
-
-        verify(appExceptionHandlerMock, times(1)).handleDomainException(domainException);
     }
 
     @Test

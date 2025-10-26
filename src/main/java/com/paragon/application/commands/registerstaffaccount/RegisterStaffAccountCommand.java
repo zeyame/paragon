@@ -8,5 +8,6 @@ public record RegisterStaffAccountCommand(
         String tempPassword,
         int orderAccessDuration,
         int modmailTranscriptAccessDuration,
-        List<String> permissionCodes
+        List<String> permissionCodes,
+        String createdBy
 ) {}

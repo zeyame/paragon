@@ -21,20 +21,6 @@ public class AppExceptionInfoTests {
     }
 
     @Test
-    void permissionAccessDenied_shouldHaveExpectedCodeAndMessage() {
-        // Given
-        String action = "delete-staff";
-
-        // When
-        AppExceptionInfo info = AppExceptionInfo.permissionAccessDenied(action);
-
-        // Then
-        assertThat(info.getMessage()).isEqualTo("Staff account does not have permission to perform action 'delete-staff'.");
-        assertThat(info.getAppErrorCode()).isEqualTo(102);
-        assertThat(info.getStatusCode()).isEqualTo(AppExceptionStatusCode.PERMISSION_DENIED);
-    }
-
-    @Test
     void staffAccountUsernameAlreadyExists_shouldHaveExpectedCodeAndMessage() {
         // Given
         String username = "admin";

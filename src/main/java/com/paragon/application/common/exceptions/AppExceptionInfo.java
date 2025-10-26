@@ -22,14 +22,6 @@ public class AppExceptionInfo {
         );
     }
 
-    public static AppExceptionInfo permissionAccessDenied(String action) {
-        return new AppExceptionInfo(
-                String.format("Staff account does not have permission to perform action '%s'.", action),
-                102,
-                AppExceptionStatusCode.PERMISSION_DENIED
-        );
-    }
-
     public static AppExceptionInfo staffAccountUsernameAlreadyExists(String username) {
         return new AppExceptionInfo(
                 String.format("A staff account with username '%s' already exists.", username),

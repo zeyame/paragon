@@ -4,7 +4,6 @@ import com.paragon.application.commands.CommandHandler;
 import com.paragon.application.common.exceptions.AppException;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
-import com.paragon.application.common.interfaces.ActorContext;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.PasswordHasher;
@@ -22,18 +21,16 @@ import java.util.stream.Collectors;
 public class RegisterStaffAccountCommandHandler implements CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> {
 
     private final StaffAccountWriteRepo staffAccountWriteRepo;
-    private final ActorContext actorContext;
     private final EventBus eventBus;
     private final AppExceptionHandler appExceptionHandler;
     private final PasswordHasher passwordHasher;
     private static final Logger log = LoggerFactory.getLogger(RegisterStaffAccountCommandHandler.class);
 
-    public RegisterStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo, ActorContext actorContext,
+    public RegisterStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo,
                                               EventBus eventBus, AppExceptionHandler appExceptionHandler,
                                               PasswordHasher passwordHasher
     ) {
         this.staffAccountWriteRepo = staffAccountWriteRepo;
-        this.actorContext = actorContext;
         this.eventBus = eventBus;
         this.appExceptionHandler = appExceptionHandler;
         this.passwordHasher = passwordHasher;
@@ -41,20 +38,7 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
 
     @Override
     public RegisterStaffAccountCommandResponse handle(RegisterStaffAccountCommand command) {
-        String requestingStaffId = actorContext.getActorId();
         try {
-            Optional<StaffAccount> optional = staffAccountWriteRepo.getById(StaffAccountId.from(requestingStaffId));
-            if (optional.isEmpty()) {
-                log.error("Staff account registration failed: requestingStaffId='{}' does not exist.", requestingStaffId);
-                throw new AppException(AppExceptionInfo.staffAccountNotFound(requestingStaffId));
-            }
-
-            StaffAccount requestingStaffAccount = optional.get();
-            if (!requestingStaffAccount.canRegisterOtherStaffAccounts()) {
-                log.warn("Staff account registration request denied: requestingStaffId='{}' lacked MANAGE_ACCOUNTS permission.", requestingStaffId);
-                throw new AppException(AppExceptionInfo.permissionAccessDenied("registration"));
-            }
-
             assertUniqueUsername(command.username());
 
             StaffAccount staffAccount = StaffAccount.register(
@@ -63,7 +47,7 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
                     Password.fromPlainText(command.tempPassword(), passwordHasher),
                     OrderAccessDuration.from(command.orderAccessDuration()),
                     ModmailTranscriptAccessDuration.from(command.modmailTranscriptAccessDuration()),
-                    requestingStaffAccount.getId(),
+                    StaffAccountId.from(command.createdBy()),
                     command.permissionCodes().stream().map(PermissionCode::of).collect(Collectors.toSet())
             );
             staffAccountWriteRepo.create(staffAccount);
@@ -85,12 +69,12 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
                     staffAccount.getVersion().getValue()
             );
         } catch (DomainException ex) {
-            log.error("Staff account registration failed for requestingStaffId={}: domain rule violation - {}",
-                    requestingStaffId, ex.getMessage(), ex);
+            log.error("Staff account registration failed for createdBy={}: domain rule violation - {}",
+                    command.createdBy(), ex.getMessage(), ex);
             throw appExceptionHandler.handleDomainException(ex);
         } catch (InfraException ex) {
-            log.error("Staff account registration failed for requestingStaffId={}: infrastructure related error occurred - {}",
-                    requestingStaffId, ex.getMessage(), ex);
+            log.error("Staff account registration failed for createdBy={}: infrastructure related error occurred - {}",
+                    command.createdBy(), ex.getMessage(), ex);
             throw appExceptionHandler.handleInfraException(ex);
         }
     }

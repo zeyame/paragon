@@ -5,6 +5,7 @@ import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.StaffAccountSummaryResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
+import com.paragon.api.security.AuthenticationHelper;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommand;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandHandler;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandResponse;
@@ -36,12 +37,19 @@ public class StaffAccountControllerTests {
         private final StaffAccountController sut;
         private final RegisterStaffAccountCommandHandler registerStaffAccountCommandHandlerMock;
         private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
+        private final AuthenticationHelper authenticationHelperMock;
         private final RegisterStaffAccountCommandResponse commandResponse;
+        private final String requestingStaffId;
 
         public Register() {
             registerStaffAccountCommandHandlerMock = mock(RegisterStaffAccountCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
-            sut = new StaffAccountController(registerStaffAccountCommandHandlerMock, getAllStaffAccountsQueryHandlerMock);
+            authenticationHelperMock = mock(AuthenticationHelper.class);
+            
+            requestingStaffId = UUID.randomUUID().toString();
+            when(authenticationHelperMock.getAuthenticatedStaffId()).thenReturn(requestingStaffId);
+
+            sut = new StaffAccountController(registerStaffAccountCommandHandlerMock, getAllStaffAccountsQueryHandlerMock, authenticationHelperMock);
 
             commandResponse = new RegisterStaffAccountCommandResponse(
                     "id", "username123", "pending_password_change", 1
@@ -130,7 +138,8 @@ public class StaffAccountControllerTests {
                     request.tempPassword(),
                     request.orderAccessDuration(),
                     request.modmailTranscriptAccessDuration(),
-                    request.permissionCodes()
+                    request.permissionCodes(),
+                    requestingStaffId
             );
         }
     }
@@ -140,12 +149,15 @@ public class StaffAccountControllerTests {
         private final StaffAccountController sut;
         private final RegisterStaffAccountCommandHandler registerStaffAccountCommandHandlerMock;
         private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
+        private final AuthenticationHelper authenticationHelperMock;
         private final GetAllStaffAccountsQueryResponse queryResponse;
 
         public GetAll() {
             registerStaffAccountCommandHandlerMock = mock(RegisterStaffAccountCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
-            sut = new StaffAccountController(registerStaffAccountCommandHandlerMock, getAllStaffAccountsQueryHandlerMock);
+            authenticationHelperMock = mock(AuthenticationHelper.class);
+
+            sut = new StaffAccountController(registerStaffAccountCommandHandlerMock, getAllStaffAccountsQueryHandlerMock, authenticationHelperMock);
 
             queryResponse = new GetAllStaffAccountsQueryResponse(List.of(
                     new StaffAccountSummary(

@@ -5,6 +5,7 @@ import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.StaffAccountSummaryResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
+import com.paragon.api.security.AuthenticationHelper;
 import com.paragon.application.commands.CommandHandler;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommand;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandResponse;
@@ -16,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.concurrent.CompletableFuture;
@@ -25,21 +27,28 @@ import java.util.concurrent.CompletableFuture;
 public class StaffAccountController {
     private final CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> registerStaffAccountCommandHandler;
     private final QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> getAllStaffAccountsQueryHandler;
+    private final AuthenticationHelper authenticationHelper;
     private final TaskExecutor taskExecutor;
     private static final Logger log = LoggerFactory.getLogger(StaffAccountController.class);
 
-    public StaffAccountController(CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> registerStaffAccountCommandHandler, QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> getAllStaffAccountsQueryHandler) {
+    public StaffAccountController(
+            CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> registerStaffAccountCommandHandler,
+            QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> getAllStaffAccountsQueryHandler,
+            AuthenticationHelper authenticationHelper) {
         this.registerStaffAccountCommandHandler = registerStaffAccountCommandHandler;
         this.getAllStaffAccountsQueryHandler = getAllStaffAccountsQueryHandler;
+        this.authenticationHelper = authenticationHelper;
         this.taskExecutor = Runnable::run;
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('MANAGE_ACCOUNTS')")
     public CompletableFuture<ResponseEntity<ResponseDto<RegisterStaffAccountResponseDto>>> register(@RequestBody RegisterStaffAccountRequestDto requestDto) {
-        log.info("Received request to register a new staff account.");
+        String requestingStaffAccountId = authenticationHelper.getAuthenticatedStaffId();
+        log.info("Received request to register a new staff account from a staff account with ID: {}.", requestingStaffAccountId);
 
         return CompletableFuture.supplyAsync(() -> {
-            var command = createRegisterStaffAccountCommand(requestDto);
+            var command = createRegisterStaffAccountCommand(requestDto, requestingStaffAccountId);
             var commandResponse = registerStaffAccountCommandHandler.handle(command);
             var responseDto = new ResponseDto<>(createRegisterStaffAccountResponseDto(commandResponse), null);
             return ResponseEntity.ok(responseDto);
@@ -47,8 +56,10 @@ public class StaffAccountController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('VIEW_ACCOUNTS_LIST')")
     public CompletableFuture<ResponseEntity<ResponseDto<GetAllStaffAccountsResponseDto>>> getAll() {
-        log.info("Received request to get all staff accounts.");
+        String requestingStaffAccountId = authenticationHelper.getAuthenticatedStaffId();
+        log.info("Received request to get all staff accounts from a staff account with ID: {}.", requestingStaffAccountId);
 
         return CompletableFuture.supplyAsync(() -> {
             var queryResponse = getAllStaffAccountsQueryHandler.handle(new GetAllStaffAccountsQuery());
@@ -57,14 +68,15 @@ public class StaffAccountController {
         }, taskExecutor);
     }
 
-    private RegisterStaffAccountCommand createRegisterStaffAccountCommand(RegisterStaffAccountRequestDto requestDto) {
+    private RegisterStaffAccountCommand createRegisterStaffAccountCommand(RegisterStaffAccountRequestDto requestDto, String requestingStaffAccountId) {
         return new RegisterStaffAccountCommand(
                 requestDto.username(),
                 requestDto.email(),
                 requestDto.tempPassword(),
                 requestDto.orderAccessDuration(),
                 requestDto.modmailTranscriptAccessDuration(),
-                requestDto.permissionCodes()
+                requestDto.permissionCodes(),
+                requestingStaffAccountId
         );
     }
 

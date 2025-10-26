@@ -6,9 +6,13 @@ import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.StaffAccountSummaryResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
+import com.paragon.api.exceptions.PermissionDeniedException;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.models.aggregates.StaffAccount;
+import com.paragon.domain.models.constants.SystemPermissions;
+import com.paragon.domain.models.valueobjects.PermissionCode;
+import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.helpers.TestJdbcHelper;
 import com.paragon.helpers.TestJwtHelper;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
@@ -23,7 +27,6 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.List;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
@@ -34,10 +37,12 @@ public class StaffAccountControllerTests {
     @Nested
     class Register extends IntegrationTestBase {
         private final TestJdbcHelper jdbcHelper;
+        private final List<PermissionCode> adminPermissions;
 
         @Autowired
         public Register(WriteJdbcHelper writeJdbcHelper) {
             jdbcHelper = new TestJdbcHelper(writeJdbcHelper);
+            adminPermissions = jdbcHelper.getPermissionsForStaff(StaffAccountId.from(adminId));
         }
 
         @Test
@@ -46,7 +51,7 @@ public class StaffAccountControllerTests {
             RegisterStaffAccountRequestDto requestDto = createValidRequest();
 
             // When
-            MvcResult result = sendRequest(requestDto, adminId);
+            MvcResult result = sendAsyncRequest(requestDto, adminId, adminPermissions);
 
             // Then
             MockHttpServletResponse response = result.getResponse();
@@ -67,11 +72,18 @@ public class StaffAccountControllerTests {
             // Given
             RegisterStaffAccountRequestDto requestDto = createValidRequest();
 
-            StaffAccount staffAccountLackingPermissions = new StaffAccountFixture().withCreatedBy(adminId).withPermissionCodes(List.of("VIEW_MODMAIL_LOGS")).build();
+            StaffAccount staffAccountLackingPermissions = new StaffAccountFixture()
+                    .withCreatedBy(adminId)
+                    .withPermissionCodes(List.of(SystemPermissions.VIEW_ACCOUNTS_LIST.getValue()))
+                    .build();
             jdbcHelper.insertStaffAccount(staffAccountLackingPermissions);
 
             // When
-            MvcResult result = sendRequest(requestDto, staffAccountLackingPermissions.getId().getValue().toString());
+            MvcResult result = sendRequest(
+                    requestDto,
+                    staffAccountLackingPermissions.getId().getValue().toString(),
+                    List.of(SystemPermissions.VIEW_ACCOUNTS_LIST)
+            );
 
             // Then
             MockHttpServletResponse response = result.getResponse();
@@ -85,8 +97,10 @@ public class StaffAccountControllerTests {
 
             ErrorDto errorDto = responseDto.errorDto();
             assertThat(errorDto).isNotNull();
-            assertThat(errorDto.message()).isEqualTo(AppExceptionInfo.permissionAccessDenied("registration").getMessage());
-            assertThat(errorDto.code()).isEqualTo(AppExceptionInfo.permissionAccessDenied("registration").getAppErrorCode());
+
+            PermissionDeniedException expected = PermissionDeniedException.accessDenied();
+            assertThat(errorDto.message()).isEqualTo(expected.getMessage());
+            assertThat(errorDto.code()).isEqualTo(expected.getErrorCode());
         }
 
         @Test
@@ -101,7 +115,7 @@ public class StaffAccountControllerTests {
             jdbcHelper.insertStaffAccount(existing);
 
             // When
-            MvcResult result = sendRequest(requestDto, adminId);
+            MvcResult result = sendAsyncRequest(requestDto, adminId, adminPermissions);
 
             // Then
             MockHttpServletResponse response = result.getResponse();
@@ -121,33 +135,6 @@ public class StaffAccountControllerTests {
             assertThat(errorDto.code()).isEqualTo(AppExceptionInfo.staffAccountUsernameAlreadyExists(requestDto.username()).getAppErrorCode());
         }
 
-        @Test
-        void shouldReturnNotFoundWhenRequestingStaffAccountDoesNotExist() throws Exception {
-            // Given
-            RegisterStaffAccountRequestDto requestDto = createValidRequest();
-            String nonExistentStaffId = UUID.randomUUID().toString();
-
-            // When
-            MvcResult result = sendRequest(requestDto, nonExistentStaffId);
-
-            // Then
-            MockHttpServletResponse response = result.getResponse();
-            assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
-
-            String responseBody = response.getContentAsString();
-            ResponseDto<RegisterStaffAccountResponseDto> responseDto =
-                    objectMapper.readValue(responseBody,
-                            objectMapper.getTypeFactory()
-                                    .constructParametricType(ResponseDto.class, RegisterStaffAccountResponseDto.class));
-
-            assertThat(responseDto.result()).isNull();
-
-            ErrorDto errorDto = responseDto.errorDto();
-            assertThat(errorDto).isNotNull();
-            assertThat(errorDto.message()).isEqualTo(AppExceptionInfo.staffAccountNotFound(nonExistentStaffId).getMessage());
-            assertThat(errorDto.code()).isEqualTo(AppExceptionInfo.staffAccountNotFound(nonExistentStaffId).getAppErrorCode());
-        }
-
         private RegisterStaffAccountRequestDto createValidRequest() {
             return new RegisterStaffAccountRequestDto(
                     "john_doe",
@@ -155,29 +142,40 @@ public class StaffAccountControllerTests {
                     "Password123!",
                     10,
                     20,
-                    List.of("VIEW_ACCOUNTS_LIST", "VIEW_LOGIN_LOGS")
+                    List.of(SystemPermissions.VIEW_ACCOUNTS_LIST.getValue(), SystemPermissions.VIEW_BACKUP_LIST.getValue())
             );
         }
 
-        private MvcResult sendRequest(RegisterStaffAccountRequestDto requestDto, String actorId) throws Exception {
-            MvcResult result = mockMvc.perform(
+        private MvcResult sendRequest(RegisterStaffAccountRequestDto requestDto, String actorId, List<PermissionCode> permissionCodes) throws Exception {
+            return mockMvc.perform(
                     post("/v1/staff-accounts")
-                            .header("Authorization", "Bearer " + TestJwtHelper.generateToken(actorId))
+                            .header("Authorization", "Bearer " + TestJwtHelper.generateToken(actorId, permissionCodes))
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(requestDto))
             ).andReturn();
-            result = mockMvc.perform(asyncDispatch(result)).andReturn();
-            return result;
+        }
+
+        private MvcResult sendAsyncRequest(RegisterStaffAccountRequestDto requestDto, String actorId, List<PermissionCode> permissionCodes) throws Exception {
+            MvcResult mvcResult = mockMvc.perform(
+                    post("/v1/staff-accounts")
+                            .header("Authorization", "Bearer " + TestJwtHelper.generateToken(actorId, permissionCodes))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(requestDto))
+            ).andReturn();
+
+            return mockMvc.perform(asyncDispatch(mvcResult)).andReturn();
         }
     }
 
     @Nested
     class GetAll extends IntegrationTestBase {
         private final TestJdbcHelper jdbcHelper;
-
+        private final List<PermissionCode> adminPermissions;
+        
         @Autowired
         public GetAll(WriteJdbcHelper writeJdbcHelper) {
             jdbcHelper = new TestJdbcHelper(writeJdbcHelper);
+            adminPermissions = jdbcHelper.getPermissionsForStaff(StaffAccountId.from(adminId));
         }
 
         @Test
@@ -186,18 +184,18 @@ public class StaffAccountControllerTests {
             StaffAccount staffAccount1 = new StaffAccountFixture()
                     .withUsername("john_doe")
                     .withCreatedBy(adminId)
-                    .withPermissionCodes(List.of("VIEW_ACCOUNTS_LIST"))
+                    .withPermissionCodes(List.of(SystemPermissions.APPROVE_PASSWORD_CHANGE.getValue()))
                     .build();
             StaffAccount staffAccount2 = new StaffAccountFixture()
                     .withUsername("jane_smith")
                     .withCreatedBy(adminId)
-                    .withPermissionCodes(List.of("VIEW_LOGIN_LOGS"))
+                    .withPermissionCodes(List.of(SystemPermissions.VIEW_LOGIN_LOGS.getValue()))
                     .build();
             jdbcHelper.insertStaffAccount(staffAccount1);
             jdbcHelper.insertStaffAccount(staffAccount2);
 
             // When
-            MvcResult result = sendRequest(adminId);
+            MvcResult result = sendAsyncRequest(adminId, adminPermissions);
 
             // Then
             MockHttpServletResponse response = result.getResponse();
@@ -227,12 +225,15 @@ public class StaffAccountControllerTests {
             // Given
             StaffAccount staffAccountLackingPermission = new StaffAccountFixture()
                     .withCreatedBy(adminId)
-                    .withPermissionCodes(List.of("VIEW_MODMAIL_LOGS"))
+                    .withPermissionCodes(List.of())
                     .build();
             jdbcHelper.insertStaffAccount(staffAccountLackingPermission);
 
             // When
-            MvcResult result = sendRequest(staffAccountLackingPermission.getId().getValue().toString());
+            MvcResult result = sendRequest(
+                staffAccountLackingPermission.getId().getValue().toString(),
+                List.of()
+            );
 
             // Then
             MockHttpServletResponse response = result.getResponse();
@@ -246,41 +247,26 @@ public class StaffAccountControllerTests {
 
             ErrorDto errorDto = responseDto.errorDto();
             assertThat(errorDto).isNotNull();
-            assertThat(errorDto.message()).isEqualTo(AppExceptionInfo.permissionAccessDenied("view all registered staff accounts").getMessage());
-            assertThat(errorDto.code()).isEqualTo(AppExceptionInfo.permissionAccessDenied("view all registered staff accounts").getAppErrorCode());
+
+            PermissionDeniedException expected = PermissionDeniedException.accessDenied();
+            assertThat(errorDto.message()).isEqualTo(expected.getMessage());
+            assertThat(errorDto.code()).isEqualTo(expected.getErrorCode());
         }
 
-        @Test
-        void shouldReturnNotFoundWhenRequestingStaffAccountDoesNotExist() throws Exception {
-            // Given
-            String nonExistentStaffId = UUID.randomUUID().toString();
-
-            // When
-            MvcResult result = sendRequest(nonExistentStaffId);
-
-            // Then
-            MockHttpServletResponse response = result.getResponse();
-            assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
-
-            String responseBody = response.getContentAsString();
-            ResponseDto<GetAllStaffAccountsResponseDto> responseDto = objectMapper.readValue(responseBody,
-                    objectMapper.getTypeFactory().constructParametricType(ResponseDto.class, GetAllStaffAccountsResponseDto.class));
-
-            assertThat(responseDto.result()).isNull();
-
-            ErrorDto errorDto = responseDto.errorDto();
-            assertThat(errorDto).isNotNull();
-            assertThat(errorDto.message()).isEqualTo(AppExceptionInfo.staffAccountNotFound(nonExistentStaffId).getMessage());
-            assertThat(errorDto.code()).isEqualTo(AppExceptionInfo.staffAccountNotFound(nonExistentStaffId).getAppErrorCode());
-        }
-
-        private MvcResult sendRequest(String actorId) throws Exception {
-            MvcResult result = mockMvc.perform(
+        private MvcResult sendRequest(String actorId, List<PermissionCode> permissions) throws Exception {
+            return mockMvc.perform(
                     get("/v1/staff-accounts")
-                            .header("Authorization", "Bearer " + TestJwtHelper.generateToken(actorId))
+                            .header("Authorization", "Bearer " + TestJwtHelper.generateToken(actorId, permissions))
             ).andReturn();
-            result = mockMvc.perform(asyncDispatch(result)).andReturn();
-            return result;
+        }
+
+        private MvcResult sendAsyncRequest(String actorId, List<PermissionCode> permissions) throws Exception {
+            MvcResult mvcResult = mockMvc.perform(
+                    get("/v1/staff-accounts")
+                            .header("Authorization", "Bearer " + TestJwtHelper.generateToken(actorId, permissions))
+            ).andReturn();
+
+            return mockMvc.perform(asyncDispatch(mvcResult)).andReturn();
         }
     }
 }
