@@ -20,9 +20,9 @@ public class AuditTrailWriteRepoImpl implements AuditTrailWriteRepo {
     public void create(AuditTrailEntry auditTrailEntry) {
         String sql = """
             INSERT INTO audit_trail
-            (id, actor_id, action_type, target_id, target_type, outcome, ip_address, correlation_id, created_at_utc)
+            (id, actor_id, action_type, target_id, target_type, created_at_utc)
             VALUES
-            (:id, :actorId, :actionType, :targetId, :targetType, :outcome, :ipAddress, :correlationId, :createdAtUtc)
+            (:id, :actorId, :actionType, :targetId, :targetType, :createdAtUtc)
         """;
 
         SqlParamsBuilder params = new SqlParamsBuilder()
@@ -31,9 +31,6 @@ public class AuditTrailWriteRepoImpl implements AuditTrailWriteRepo {
                 .add("actionType", auditTrailEntry.getActionType().toString())
                 .add("targetId", auditTrailEntry.getTargetId() != null ? auditTrailEntry.getTargetId().getValue() : null)
                 .add("targetType", auditTrailEntry.getTargetType() != null ? auditTrailEntry.getTargetType().toString() : null)
-                .add("outcome", auditTrailEntry.getOutcome().toString())
-                .add("ipAddress", auditTrailEntry.getIpAddress())
-                .add("correlationId", auditTrailEntry.getCorrelationId())
                 .add("createdAtUtc", Instant.now());
 
         jdbcHelper.execute(sql, params);

@@ -2,7 +2,6 @@ package com.paragon.infrastructure.persistence.daos;
 
 import com.paragon.domain.enums.AuditEntryActionType;
 import com.paragon.domain.enums.AuditEntryTargetType;
-import com.paragon.domain.enums.Outcome;
 import com.paragon.domain.models.entities.AuditTrailEntry;
 import com.paragon.domain.models.valueobjects.AuditEntryId;
 import com.paragon.domain.models.valueobjects.AuditEntryTargetId;
@@ -17,9 +16,6 @@ public record AuditTrailEntryDao(
         String actionType,
         String targetId,
         String targetType,
-        String outcome,
-        String ipAddress,
-        String correlationId,
         Instant createdAtUtc
 ) {
     public AuditTrailEntry toAuditTrailEntry() {
@@ -28,10 +24,7 @@ public record AuditTrailEntryDao(
                 StaffAccountId.from(actorId.toString()),
                 AuditEntryActionType.valueOf(actionType),
                 targetId != null ? AuditEntryTargetId.of(targetId) : null,
-                targetType != null ? AuditEntryTargetType.valueOf(targetType) : null,
-                Outcome.valueOf(outcome),
-                ipAddress,
-                correlationId
+                targetType != null ? AuditEntryTargetType.valueOf(targetType) : null
         );
     }
 }

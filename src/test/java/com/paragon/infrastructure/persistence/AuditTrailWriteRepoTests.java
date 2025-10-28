@@ -1,7 +1,6 @@
 package com.paragon.infrastructure.persistence;
 
 import com.paragon.domain.enums.AuditEntryActionType;
-import com.paragon.domain.enums.Outcome;
 import com.paragon.helpers.fixtures.AuditTrailEntryFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
@@ -9,12 +8,7 @@ import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
 import com.paragon.infrastructure.persistence.repos.AuditTrailWriteRepoImpl;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
-
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -52,9 +46,6 @@ public class AuditTrailWriteRepoTests {
             assertThat(params.build().get("actionType")).isEqualTo(auditTrailEntry.getActionType().toString());
             assertThat(params.build().get("targetId")).isEqualTo(auditTrailEntry.getTargetId().getValue());
             assertThat(params.build().get("targetType")).isEqualTo(auditTrailEntry.getTargetType().toString());
-            assertThat(params.build().get("outcome")).isEqualTo(auditTrailEntry.getOutcome().toString());
-            assertThat(params.build().get("ipAddress")).isEqualTo(auditTrailEntry.getIpAddress());
-            assertThat(params.build().get("correlationId")).isEqualTo(auditTrailEntry.getCorrelationId());
         }
 
         @Test
@@ -111,25 +102,6 @@ public class AuditTrailWriteRepoTests {
             assertThat(params.build().get("actionType")).isEqualTo("LOGIN");
         }
 
-        @ParameterizedTest
-        @MethodSource("auditTrailOutcomes")
-        void handlesAllOutcomes_correctly(Outcome outcome) {
-            // Given
-            var auditTrailEntry = new AuditTrailEntryFixture()
-                    .withOutcome(outcome)
-                    .build();
-            ArgumentCaptor<SqlParamsBuilder> paramsCaptor = ArgumentCaptor.forClass(SqlParamsBuilder.class);
-
-            // When
-            sut.create(auditTrailEntry);
-
-            // Then
-            verify(jdbcHelperMock, times(1)).execute(anyString(), paramsCaptor.capture());
-            SqlParamsBuilder params = paramsCaptor.getValue();
-
-            assertThat(params.build().get("outcome")).isEqualTo(outcome.toString());
-        }
-
         @Test
         void shouldPropagateInfraException_whenJdbcHelperThrows() {
             // Given
@@ -140,13 +112,6 @@ public class AuditTrailWriteRepoTests {
             // When & Then
             assertThatThrownBy(() -> sut.create(AuditTrailEntryFixture.validAuditTrailEntry()))
                     .isInstanceOf(InfraException.class);
-        }
-
-        private static Stream<Arguments> auditTrailOutcomes() {
-            return Stream.of(
-                    Arguments.of(Outcome.SUCCESS),
-                    Arguments.of(Outcome.FAILURE)
-            );
         }
     }
 }

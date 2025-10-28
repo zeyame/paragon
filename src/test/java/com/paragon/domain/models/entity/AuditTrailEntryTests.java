@@ -2,7 +2,6 @@ package com.paragon.domain.models.entity;
 
 import com.paragon.domain.enums.AuditEntryActionType;
 import com.paragon.domain.enums.AuditEntryTargetType;
-import com.paragon.domain.enums.Outcome;
 import com.paragon.domain.exceptions.entity.AuditTrailEntryException;
 import com.paragon.domain.exceptions.entity.AuditTrailEntryExceptionInfo;
 import com.paragon.domain.models.entities.AuditTrailEntry;
@@ -19,25 +18,19 @@ public class AuditTrailEntryTests {
         private final AuditEntryActionType actionType;
         private final AuditEntryTargetId targetId;
         private final AuditEntryTargetType targetType;
-        private final Outcome outcome;
-        private final String ipAddress;
-        private final String correlationId;
 
         Create() {
             actorId = StaffAccountId.generate();
             actionType = AuditEntryActionType.REGISTER_ACCOUNT;
             targetId = AuditEntryTargetId.of("target-id");
             targetType = AuditEntryTargetType.ACCOUNT;
-            outcome = Outcome.SUCCESS;
-            ipAddress = "ip-address";
-            correlationId = "correlation-id";
         }
 
         @Test
         void givenValidInputWithOptionalParameters_shouldCreateAuditTrailEntry() {
             // When
             AuditTrailEntry auditTrailEntry = AuditTrailEntry.create(
-                    actorId, actionType, targetId, targetType, outcome, ipAddress, correlationId
+                    actorId, actionType, targetId, targetType
             );
 
             // Then
@@ -46,16 +39,13 @@ public class AuditTrailEntryTests {
             assertThat(auditTrailEntry.getActionType()).isEqualTo(actionType);
             assertThat(auditTrailEntry.getTargetId()).isEqualTo(targetId);
             assertThat(auditTrailEntry.getTargetType()).isEqualTo(targetType);
-            assertThat(auditTrailEntry.getOutcome()).isEqualTo(outcome);
-            assertThat(auditTrailEntry.getIpAddress()).isEqualTo(ipAddress);
-            assertThat(auditTrailEntry.getCorrelationId()).isEqualTo(correlationId);
         }
 
         @Test
         void givenValidInputWithoutOptionalParameters_shouldCreateAuditTrailEntry() {
             // When
             AuditTrailEntry auditTrailEntry = AuditTrailEntry.create(
-                    actorId, actionType, null, null, outcome, "", ""
+                    actorId, actionType, null, null
             );
 
             // Then
@@ -64,15 +54,12 @@ public class AuditTrailEntryTests {
             assertThat(auditTrailEntry.getActionType()).isEqualTo(actionType);
             assertThat(auditTrailEntry.getTargetId()).isNull();
             assertThat(auditTrailEntry.getTargetType()).isNull();
-            assertThat(auditTrailEntry.getOutcome()).isEqualTo(outcome);
-            assertThat(auditTrailEntry.getIpAddress()).isEmpty();
-            assertThat(auditTrailEntry.getCorrelationId()).isEmpty();
         }
 
         @Test
         void shouldGenerateUniqueAuditEntryId() {
-            AuditTrailEntry entry1 = AuditTrailEntry.create(actorId, actionType, targetId, targetType, outcome, ipAddress, correlationId);
-            AuditTrailEntry entry2 = AuditTrailEntry.create(actorId, actionType, targetId, targetType, outcome, ipAddress, correlationId);
+            AuditTrailEntry entry1 = AuditTrailEntry.create(actorId, actionType, targetId, targetType);
+            AuditTrailEntry entry2 = AuditTrailEntry.create(actorId, actionType, targetId, targetType);
 
             assertThat(entry1.getId()).isNotNull();
             assertThat(entry2.getId()).isNotNull();
@@ -87,7 +74,7 @@ public class AuditTrailEntryTests {
 
             // When & Then
             assertThatExceptionOfType(AuditTrailEntryException.class)
-                    .isThrownBy(() -> AuditTrailEntry.create(null, actionType, targetId, targetType, outcome, ipAddress, correlationId))
+                    .isThrownBy(() -> AuditTrailEntry.create(null, actionType, targetId, targetType))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(expectedErrorMessage, expectedErrorCode);
         }
@@ -100,20 +87,7 @@ public class AuditTrailEntryTests {
 
             // When & Then
             assertThatExceptionOfType(AuditTrailEntryException.class)
-                    .isThrownBy(() -> AuditTrailEntry.create(actorId, null, targetId, targetType, outcome, ipAddress, correlationId))
-                    .extracting("message", "domainErrorCode")
-                    .containsExactly(expectedErrorMessage, expectedErrorCode);
-        }
-
-        @Test
-        void givenMissingOutcome_creationShouldFail() {
-            // Given
-            String expectedErrorMessage = AuditTrailEntryExceptionInfo.outcomeRequired().getMessage();
-            int expectedErrorCode = AuditTrailEntryExceptionInfo.outcomeRequired().getDomainErrorCode();
-
-            // When & Then
-            assertThatExceptionOfType(AuditTrailEntryException.class)
-                    .isThrownBy(() -> AuditTrailEntry.create(actorId, actionType, targetId, targetType, null, ipAddress, correlationId))
+                    .isThrownBy(() -> AuditTrailEntry.create(actorId, null, targetId, targetType))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(expectedErrorMessage, expectedErrorCode);
         }

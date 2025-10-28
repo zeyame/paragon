@@ -93,10 +93,6 @@ public class AppExceptionHandlerTests {
                             new AuditTrailEntryException(AuditTrailEntryExceptionInfo.actionTypeRequired()),
                             AppExceptionStatusCode.SERVER_ERROR
                     ),
-                    arguments(
-                            new AuditTrailEntryException(AuditTrailEntryExceptionInfo.outcomeRequired()),
-                            AppExceptionStatusCode.SERVER_ERROR
-                    ),
 
                     // PermissionException - internal errors (SERVER_ERROR)
                     arguments(

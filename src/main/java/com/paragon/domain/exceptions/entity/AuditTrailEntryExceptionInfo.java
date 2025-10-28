@@ -21,11 +21,4 @@ public class AuditTrailEntryExceptionInfo extends DomainExceptionInfo {
         );
     }
 
-    public static AuditTrailEntryExceptionInfo outcomeRequired() {
-        return new AuditTrailEntryExceptionInfo(
-                "Outcome is required for creating an AuditTrailEntry. Each action must record whether it succeeded or failed.",
-                201003
-        );
-    }
-
 }
