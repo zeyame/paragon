@@ -23,4 +23,9 @@ public class RefreshTokenWriteRepoImpl implements RefreshTokenWriteRepo {
     public List<RefreshToken> getActiveTokensByStaffAccountId(StaffAccountId staffAccountId) {
         return List.of();
     }
+
+    @Override
+    public int updateAll(List<RefreshToken> refreshTokens) {
+        return 0;
+    }
 }

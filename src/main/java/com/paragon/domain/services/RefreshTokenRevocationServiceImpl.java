@@ -33,6 +33,8 @@ public class RefreshTokenRevocationServiceImpl implements RefreshTokenRevocation
 
         activeTokens.forEach(RefreshToken::revoke);
 
+        refreshTokenWriteRepo.updateAll(activeTokens);
+
         log.info("Successfully revoked {} active refresh token(s) for staff account with ID: {}", activeTokens.size(), staffAccountId.getValue());
     }
 }

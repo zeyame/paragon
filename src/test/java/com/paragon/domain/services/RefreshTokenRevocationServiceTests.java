@@ -12,6 +12,7 @@ import com.paragon.helpers.fixtures.RefreshTokenFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.List;
 
@@ -32,20 +33,25 @@ public class RefreshTokenRevocationServiceTests {
         }
 
         @Test
-        void shouldRevokeAllTokensForStaffAccount() {
+        void shouldRevokeAllTokensForStaffAccountAndUpdateThem() {
             // Given
-            List<RefreshToken> refreshTokens = List.of(RefreshTokenFixture.validRefreshToken(), RefreshTokenFixture.validRefreshToken());
+            ArgumentCaptor<List> revokedTokensCaptor = ArgumentCaptor.forClass(List.class);
+            List<RefreshToken> activeTokens = List.of(RefreshTokenFixture.validRefreshToken(), RefreshTokenFixture.validRefreshToken());
 
             when(refreshTokenWriteRepoMock.getActiveTokensByStaffAccountId(any(StaffAccountId.class)))
-                    .thenReturn(refreshTokens);
+                    .thenReturn(activeTokens);
 
             // When
             sut.revokeAllTokensForStaffAccount(StaffAccountId.generate());
 
             // Then
-            for (RefreshToken token : refreshTokens) {
+            for (RefreshToken token : activeTokens) {
                 assertThat(token.isRevoked()).isTrue();
             }
+
+            verify(refreshTokenWriteRepoMock, times(1)).updateAll(revokedTokensCaptor.capture());
+            List<RefreshToken> revokedTokens = revokedTokensCaptor.getValue();
+            assertThat(revokedTokens.size()).isEqualTo(activeTokens.size());
         }
 
         @Test
