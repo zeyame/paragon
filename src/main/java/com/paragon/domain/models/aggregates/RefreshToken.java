@@ -50,4 +50,29 @@ public class RefreshToken extends EventSourcedAggregate<DomainEvent, RefreshToke
                 false, null, Version.initial()
         );
     }
+
+    public void revoke() {
+        if (isRevoked) {
+            throw new RefreshTokenException(RefreshTokenExceptionInfo.tokenAlreadyRevoked());
+        }
+        this.isRevoked = true;
+    }
+
+    public static RefreshToken createFrom(RefreshTokenId refreshTokenId,
+                                          RefreshTokenHash tokenHash,
+                                          StaffAccountId staffAccountId,
+                                          Instant expiresAt,
+                                          boolean isRevoked,
+                                          RefreshTokenId replacedBy,
+                                          Version version) {
+        return new RefreshToken(
+                refreshTokenId,
+                tokenHash,
+                staffAccountId,
+                expiresAt,
+                isRevoked,
+                replacedBy,
+                version
+        );
+    }
 }

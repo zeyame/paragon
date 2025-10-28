@@ -13,4 +13,11 @@ public class RefreshTokenExceptionInfo extends DomainExceptionInfo {
                 20001
         );
     }
+
+    public static RefreshTokenExceptionInfo tokenAlreadyRevoked() {
+        return new RefreshTokenExceptionInfo(
+                "Refresh token has already been revoked.",
+                20002
+        );
+    }
 }
