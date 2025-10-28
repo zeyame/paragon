@@ -8,12 +8,16 @@ import com.paragon.domain.interfaces.services.RefreshTokenRevocationService;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
-public class StaffAccountLockedRefreshTokenRevocationHandler implements EventHandler<StaffAccountLockedEvent> {
+import java.util.List;
+
+@Component
+public class StaffAccountRefreshTokenRevocationHandler implements EventHandler<StaffAccountLockedEvent> {
     private final RefreshTokenRevocationService refreshTokenRevocationService;
-    private static final Logger log = LoggerFactory.getLogger(StaffAccountLockedRefreshTokenRevocationHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(StaffAccountRefreshTokenRevocationHandler.class);
 
-    public StaffAccountLockedRefreshTokenRevocationHandler(RefreshTokenRevocationService refreshTokenRevocationService) {
+    public StaffAccountRefreshTokenRevocationHandler(RefreshTokenRevocationService refreshTokenRevocationService) {
         this.refreshTokenRevocationService = refreshTokenRevocationService;
     }
 
@@ -37,7 +41,7 @@ public class StaffAccountLockedRefreshTokenRevocationHandler implements EventHan
     }
 
     @Override
-    public String subscribedToEventName() {
-        return EventNames.STAFF_ACCOUNT_LOCKED;
+    public List<String> subscribedToEvents() {
+        return List.of(EventNames.STAFF_ACCOUNT_LOCKED);
     }
 }

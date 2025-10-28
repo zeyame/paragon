@@ -17,6 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class StaffAccountLockedEventAuditHandler implements EventHandler<StaffAccountLockedEvent> {
     private final AuditTrailWriteRepo auditTrailWriteRepo;
@@ -62,7 +64,7 @@ public class StaffAccountLockedEventAuditHandler implements EventHandler<StaffAc
     }
 
     @Override
-    public String subscribedToEventName() {
-        return EventNames.STAFF_ACCOUNT_LOCKED;
+    public List<String> subscribedToEvents() {
+        return List.of(EventNames.STAFF_ACCOUNT_LOCKED);
     }
 }

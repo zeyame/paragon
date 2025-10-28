@@ -4,7 +4,7 @@ import com.paragon.application.events.EventBus;
 import com.paragon.application.events.audittrail.StaffAccountLockedEventAuditHandler;
 import com.paragon.application.events.audittrail.StaffAccountLoggedInEventAuditHandler;
 import com.paragon.application.events.audittrail.StaffAccountRegisteredEventAuditHandler;
-import com.paragon.application.events.refreshtokens.StaffAccountLockedRefreshTokenRevocationHandler;
+import com.paragon.application.events.refreshtokens.StaffAccountRefreshTokenRevocationHandler;
 import jakarta.annotation.PostConstruct;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,12 +14,12 @@ public class EventBusConfig {
     private final StaffAccountRegisteredEventAuditHandler staffAccountRegisteredEventAuditHandler;
     private final StaffAccountLoggedInEventAuditHandler staffAccountLoggedInEventAuditHandler;
     private final StaffAccountLockedEventAuditHandler staffAccountLockedEventAuditHandler;
-    private final StaffAccountLockedRefreshTokenRevocationHandler staffAccountLockedRefreshTokenRevocationHandler;
+    private final StaffAccountRefreshTokenRevocationHandler staffAccountLockedRefreshTokenRevocationHandler;
 
     public EventBusConfig(EventBus eventBus, StaffAccountRegisteredEventAuditHandler staffAccountRegisteredEventAuditHandler,
                           StaffAccountLoggedInEventAuditHandler staffAccountLoggedInEventAuditHandler,
                           StaffAccountLockedEventAuditHandler staffAccountLockedEventAuditHandler,
-                          StaffAccountLockedRefreshTokenRevocationHandler staffAccountLockedRefreshTokenRevocationHandler) {
+                          StaffAccountRefreshTokenRevocationHandler staffAccountLockedRefreshTokenRevocationHandler) {
         this.eventBus = eventBus;
         this.staffAccountRegisteredEventAuditHandler = staffAccountRegisteredEventAuditHandler;
         this.staffAccountLoggedInEventAuditHandler = staffAccountLoggedInEventAuditHandler;

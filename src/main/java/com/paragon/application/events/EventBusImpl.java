@@ -15,8 +15,10 @@ public class EventBusImpl implements EventBus {
     private static final Map<String, List<EventHandler<?>>> handlers = new HashMap<>();
     @Override
     public <T extends DomainEvent> void registerHandler(EventHandler<T> eventHandler) {
-        handlers.computeIfAbsent(eventHandler.subscribedToEventName(), k -> new ArrayList<>())
-                .add(eventHandler);
+        for (String eventName : eventHandler.subscribedToEvents()) {
+            handlers.computeIfAbsent(eventName, k -> new ArrayList<>())
+                    .add(eventHandler);
+        }
     }
 
     @Override

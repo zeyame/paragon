@@ -14,13 +14,13 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.*;
 
 public class StaffAccountLockedRefreshTokenRevocationHandlerTests {
-    private final StaffAccountLockedRefreshTokenRevocationHandler sut;
+    private final StaffAccountRefreshTokenRevocationHandler sut;
     private final RefreshTokenRevocationService refreshTokenRevocationServiceMock;
     private final StaffAccountLockedEvent staffAccountLockedEvent;
 
     StaffAccountLockedRefreshTokenRevocationHandlerTests() {
         this.refreshTokenRevocationServiceMock = mock(RefreshTokenRevocationService.class);
-        sut = new StaffAccountLockedRefreshTokenRevocationHandler(refreshTokenRevocationServiceMock);
+        sut = new StaffAccountRefreshTokenRevocationHandler(refreshTokenRevocationServiceMock);
         staffAccountLockedEvent = new StaffAccountLockedEvent(StaffAccountFixture.validStaffAccount());
     }
 
