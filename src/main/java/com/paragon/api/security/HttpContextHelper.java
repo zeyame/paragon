@@ -9,7 +9,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Component
-public class RequestContextHelper {
+public class HttpContextHelper {
 
     public String getAuthenticatedStaffId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

@@ -3,7 +3,7 @@ package com.paragon.api;
 import com.paragon.api.dtos.ResponseDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountRequestDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountResponseDto;
-import com.paragon.api.security.RequestContextHelper;
+import com.paragon.api.security.HttpContextHelper;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommand;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandHandler;
 import org.slf4j.Logger;
@@ -21,13 +21,13 @@ import java.util.concurrent.CompletableFuture;
 @RequestMapping("v1/auth")
 public class AuthController {
     private final LoginStaffAccountCommandHandler loginStaffAccountCommandHandler;
-    private final RequestContextHelper requestContextHelper;
+    private final HttpContextHelper httpContextHelper;
     private final TaskExecutor taskExecutor;
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
-    public AuthController(LoginStaffAccountCommandHandler loginStaffAccountCommandHandler, RequestContextHelper requestContextHelper) {
+    public AuthController(LoginStaffAccountCommandHandler loginStaffAccountCommandHandler, HttpContextHelper httpContextHelper) {
         this.loginStaffAccountCommandHandler = loginStaffAccountCommandHandler;
-        this.requestContextHelper = requestContextHelper;
+        this.httpContextHelper = httpContextHelper;
         this.taskExecutor = Runnable::run;
     }
 
@@ -36,7 +36,7 @@ public class AuthController {
         log.info("Received request to login a staff account with username: {}", requestDto.username());
 
         return CompletableFuture.supplyAsync(() -> {
-            String ipAddress = requestContextHelper.extractIpAddress();
+            String ipAddress = httpContextHelper.extractIpAddress();
             var command = createLoginStaffAccountCommand(requestDto, ipAddress);
             var commandResponse = loginStaffAccountCommandHandler.handle(command);
             var responseDto = new ResponseDto<>(LoginStaffAccountResponseDto.fromLoginStaffAccountCommandResponse(commandResponse), null);

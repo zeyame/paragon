@@ -3,7 +3,7 @@ package com.paragon.api;
 import com.paragon.api.dtos.ResponseDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountRequestDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountResponseDto;
-import com.paragon.api.security.RequestContextHelper;
+import com.paragon.api.security.HttpContextHelper;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommand;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandHandler;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandResponse;
@@ -28,17 +28,17 @@ public class AuthControllerTests {
     class Login {
         private final AuthController sut;
         private final LoginStaffAccountCommandHandler loginStaffAccountCommandHandlerMock;
-        private final RequestContextHelper requestContextHelperMock;
+        private final HttpContextHelper httpContextHelperMock;
         private final LoginStaffAccountRequestDto requestDto;
         private final LoginStaffAccountCommandResponse commandResponse;
 
         public Login() {
             loginStaffAccountCommandHandlerMock = mock(LoginStaffAccountCommandHandler.class);
-            requestContextHelperMock = mock(RequestContextHelper.class);
+            httpContextHelperMock = mock(HttpContextHelper.class);
 
-            when(requestContextHelperMock.extractIpAddress()).thenReturn("192.168.1.1");
+            when(httpContextHelperMock.extractIpAddress()).thenReturn("192.168.1.1");
 
-            sut = new AuthController(loginStaffAccountCommandHandlerMock, requestContextHelperMock);
+            sut = new AuthController(loginStaffAccountCommandHandlerMock, httpContextHelperMock);
 
             requestDto = createValidLoginStaffAccountRequestDto();
             commandResponse = new LoginStaffAccountCommandResponse(

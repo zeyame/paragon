@@ -5,7 +5,7 @@ import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.StaffAccountSummaryResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
-import com.paragon.api.security.RequestContextHelper;
+import com.paragon.api.security.HttpContextHelper;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommand;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandHandler;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandResponse;
@@ -37,19 +37,19 @@ public class StaffAccountControllerTests {
         private final StaffAccountController sut;
         private final RegisterStaffAccountCommandHandler registerStaffAccountCommandHandlerMock;
         private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
-        private final RequestContextHelper requestContextHelperMock;
+        private final HttpContextHelper httpContextHelperMock;
         private final RegisterStaffAccountCommandResponse commandResponse;
         private final String requestingStaffId;
 
         public Register() {
             registerStaffAccountCommandHandlerMock = mock(RegisterStaffAccountCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
-            requestContextHelperMock = mock(RequestContextHelper.class);
-            
-            requestingStaffId = UUID.randomUUID().toString();
-            when(requestContextHelperMock.getAuthenticatedStaffId()).thenReturn(requestingStaffId);
+            httpContextHelperMock = mock(HttpContextHelper.class);
 
-            sut = new StaffAccountController(registerStaffAccountCommandHandlerMock, getAllStaffAccountsQueryHandlerMock, requestContextHelperMock);
+            requestingStaffId = UUID.randomUUID().toString();
+            when(httpContextHelperMock.getAuthenticatedStaffId()).thenReturn(requestingStaffId);
+
+            sut = new StaffAccountController(registerStaffAccountCommandHandlerMock, getAllStaffAccountsQueryHandlerMock, httpContextHelperMock);
 
             commandResponse = new RegisterStaffAccountCommandResponse(
                     "id", "username123", "pending_password_change", 1
@@ -149,15 +149,15 @@ public class StaffAccountControllerTests {
         private final StaffAccountController sut;
         private final RegisterStaffAccountCommandHandler registerStaffAccountCommandHandlerMock;
         private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
-        private final RequestContextHelper requestContextHelperMock;
+        private final HttpContextHelper httpContextHelperMock;
         private final GetAllStaffAccountsQueryResponse queryResponse;
 
         public GetAll() {
             registerStaffAccountCommandHandlerMock = mock(RegisterStaffAccountCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
-            requestContextHelperMock = mock(RequestContextHelper.class);
+            httpContextHelperMock = mock(HttpContextHelper.class);
 
-            sut = new StaffAccountController(registerStaffAccountCommandHandlerMock, getAllStaffAccountsQueryHandlerMock, requestContextHelperMock);
+            sut = new StaffAccountController(registerStaffAccountCommandHandlerMock, getAllStaffAccountsQueryHandlerMock, httpContextHelperMock);
 
             queryResponse = new GetAllStaffAccountsQueryResponse(List.of(
                     new StaffAccountSummary(
