@@ -1,6 +1,8 @@
 package com.paragon.api.security;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -42,11 +44,36 @@ public class HttpContextHelper {
         return request.getRemoteAddr();
     }
 
+    public void setJwtHeader(String jwt) {
+        HttpServletResponse response = getCurrentResponse();
+        response.setHeader("Authorization", "Bearer " + jwt);
+    }
+
+    public void setRefreshTokenCookie(String plainRefreshToken) {
+        HttpServletResponse response = getCurrentResponse();
+
+        Cookie refreshTokenCookie = new Cookie("refresh_token", plainRefreshToken);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true); // Only sent over HTTPS
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(30 * 24 * 60 * 60); // 30 days in seconds
+
+        response.addCookie(refreshTokenCookie);
+    }
+
     private HttpServletRequest getCurrentRequest() {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes == null) {
             throw new IllegalStateException("No request context available");
         }
         return attributes.getRequest();
+    }
+
+    private HttpServletResponse getCurrentResponse() {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attributes == null) {
+            throw new IllegalStateException("No request context available");
+        }
+        return attributes.getResponse();
     }
 }

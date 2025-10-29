@@ -4,6 +4,7 @@ import com.paragon.api.dtos.ResponseDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountRequestDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountResponseDto;
 import com.paragon.api.security.HttpContextHelper;
+import com.paragon.api.security.JwtGenerator;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommand;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandHandler;
 import org.slf4j.Logger;
@@ -22,12 +23,14 @@ import java.util.concurrent.CompletableFuture;
 public class AuthController {
     private final LoginStaffAccountCommandHandler loginStaffAccountCommandHandler;
     private final HttpContextHelper httpContextHelper;
+    private final JwtGenerator jwtGenerator;
     private final TaskExecutor taskExecutor;
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
-    public AuthController(LoginStaffAccountCommandHandler loginStaffAccountCommandHandler, HttpContextHelper httpContextHelper) {
+    public AuthController(LoginStaffAccountCommandHandler loginStaffAccountCommandHandler, HttpContextHelper httpContextHelper, JwtGenerator jwtGenerator) {
         this.loginStaffAccountCommandHandler = loginStaffAccountCommandHandler;
         this.httpContextHelper = httpContextHelper;
+        this.jwtGenerator = jwtGenerator;
         this.taskExecutor = Runnable::run;
     }
 
@@ -39,6 +42,10 @@ public class AuthController {
             String ipAddress = httpContextHelper.extractIpAddress();
             var command = createLoginStaffAccountCommand(requestDto, ipAddress);
             var commandResponse = loginStaffAccountCommandHandler.handle(command);
+
+            httpContextHelper.setJwtHeader(jwtGenerator.generateAccessToken(commandResponse.id(), commandResponse.permissionCodes()));
+            httpContextHelper.setRefreshTokenCookie(commandResponse.plainRefreshToken());
+
             var responseDto = new ResponseDto<>(LoginStaffAccountResponseDto.fromLoginStaffAccountCommandResponse(commandResponse), null);
             return ResponseEntity.ok(responseDto);
         }, taskExecutor);

@@ -5,7 +5,6 @@ import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountComma
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandResponse;
 import com.paragon.application.common.exceptions.AppException;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
-import com.paragon.application.common.interfaces.JwtGenerator;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.events.DomainEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountLoggedInEvent;
@@ -38,7 +37,6 @@ public class LoginStaffAccountCommandHandlerTests {
     private final AppExceptionHandler appExceptionHandlerMock;
     private final PasswordHasher passwordHasherMock;
     private final TokenHasher tokenHasherMock;
-    private final JwtGenerator jwtGeneratorMock;
 
     private final LoginStaffAccountCommand command;
     private final StaffAccount staffAccountToLogin;
@@ -50,11 +48,10 @@ public class LoginStaffAccountCommandHandlerTests {
         appExceptionHandlerMock = mock(AppExceptionHandler.class);
         passwordHasherMock = mock(PasswordHasher.class);
         tokenHasherMock = mock(TokenHasher.class);
-        jwtGeneratorMock = mock(JwtGenerator.class);
 
         sut = new LoginStaffAccountCommandHandler(
                 staffAccountWriteRepoMock, refreshTokenWriteRepoMock, eventBusMock,
-                appExceptionHandlerMock, passwordHasherMock, tokenHasherMock, jwtGeneratorMock
+                appExceptionHandlerMock, passwordHasherMock, tokenHasherMock
         );
 
         command = new LoginStaffAccountCommand(
@@ -109,6 +106,10 @@ public class LoginStaffAccountCommandHandlerTests {
         assertThat(commandResponse.username()).isEqualTo(loggedInStaffAccount.getUsername().getValue());
         assertThat(commandResponse.requiresPasswordReset()).isEqualTo(loggedInStaffAccount.requiresPasswordReset());
         assertThat(commandResponse.version()).isEqualTo(loggedInStaffAccount.getVersion().getValue());
+
+        // Verify permission codes are returned
+        assertThat(commandResponse.permissionCodes()).isNotNull();
+        assertThat(commandResponse.permissionCodes()).hasSize(loggedInStaffAccount.getPermissionCodes().size());
     }
 
     @Test

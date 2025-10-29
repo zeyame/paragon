@@ -4,6 +4,7 @@ import com.paragon.api.dtos.ResponseDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountRequestDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountResponseDto;
 import com.paragon.api.security.HttpContextHelper;
+import com.paragon.api.security.JwtGenerator;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommand;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandHandler;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandResponse;
@@ -14,12 +15,14 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 
@@ -29,16 +32,19 @@ public class AuthControllerTests {
         private final AuthController sut;
         private final LoginStaffAccountCommandHandler loginStaffAccountCommandHandlerMock;
         private final HttpContextHelper httpContextHelperMock;
+        private final JwtGenerator jwtGeneratorMock;
         private final LoginStaffAccountRequestDto requestDto;
         private final LoginStaffAccountCommandResponse commandResponse;
 
         public Login() {
             loginStaffAccountCommandHandlerMock = mock(LoginStaffAccountCommandHandler.class);
             httpContextHelperMock = mock(HttpContextHelper.class);
+            jwtGeneratorMock = mock(JwtGenerator.class);
 
             when(httpContextHelperMock.extractIpAddress()).thenReturn("192.168.1.1");
+            when(jwtGeneratorMock.generateAccessToken(anyString(), any(Set.class))).thenReturn("generated.jwt.token");
 
-            sut = new AuthController(loginStaffAccountCommandHandlerMock, httpContextHelperMock);
+            sut = new AuthController(loginStaffAccountCommandHandlerMock, httpContextHelperMock, jwtGeneratorMock);
 
             requestDto = createValidLoginStaffAccountRequestDto();
             commandResponse = new LoginStaffAccountCommandResponse(
@@ -46,7 +52,7 @@ public class AuthControllerTests {
                     requestDto.username(),
                     false,
                     "PlainRefreshToken123",
-                    "JwtToken123",
+                    Set.of("MANAGE_ACCOUNTS", "VIEW_ACCOUNTS_LIST"),
                     1
             );
 
@@ -92,6 +98,25 @@ public class AuthControllerTests {
             assertThat(result.username()).isEqualTo(commandResponse.username());
             assertThat(result.requiresPasswordReset()).isEqualTo(commandResponse.requiresPasswordReset());
             assertThat(result.version()).isEqualTo(commandResponse.version());
+        }
+
+        @Test
+        void shouldGenerateJwtAndSetItInResponseHeader() {
+            // When
+            sut.login(requestDto).join();
+
+            // Then
+            verify(jwtGeneratorMock, times(1)).generateAccessToken(anyString(), any(Set.class));
+            verify(httpContextHelperMock, times(1)).setJwtHeader("generated.jwt.token");
+        }
+
+        @Test
+        void shouldSetRefreshTokenInCookie() {
+            // When
+            sut.login(requestDto).join();
+
+            // Then
+            verify(httpContextHelperMock, times(1)).setRefreshTokenCookie(commandResponse.plainRefreshToken());
         }
 
         @Test

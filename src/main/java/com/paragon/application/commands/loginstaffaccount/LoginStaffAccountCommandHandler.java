@@ -4,7 +4,6 @@ import com.paragon.application.commands.CommandHandler;
 import com.paragon.application.common.exceptions.AppException;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
-import com.paragon.application.common.interfaces.JwtGenerator;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.PasswordHasher;
@@ -15,12 +14,15 @@ import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.IpAddress;
 import com.paragon.domain.models.valueobjects.Password;
+import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -31,18 +33,16 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
     private final AppExceptionHandler appExceptionHandler;
     private final PasswordHasher passwordHasher;
     private final TokenHasher tokenHasher;
-    private final JwtGenerator jwtGenerator;
 
     public LoginStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo, RefreshTokenWriteRepo refreshTokenWriteRepo,
                                            EventBus eventBus, AppExceptionHandler appExceptionHandler, PasswordHasher passwordHasher,
-                                           TokenHasher tokenHasher, JwtGenerator jwtGenerator) {
+                                           TokenHasher tokenHasher) {
         this.staffAccountWriteRepo = staffAccountWriteRepo;
         this.refreshTokenWriteRepo = refreshTokenWriteRepo;
         this.eventBus = eventBus;
         this.appExceptionHandler = appExceptionHandler;
         this.passwordHasher = passwordHasher;
         this.tokenHasher = tokenHasher;
-        this.jwtGenerator = jwtGenerator;
     }
 
     @Override
@@ -61,7 +61,10 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
             RefreshToken refreshToken = RefreshToken.issue(staffAccount.getId(), IpAddress.of(command.ipAddress()), tokenHasher);
             refreshTokenWriteRepo.create(refreshToken);
 
-            String jwt = jwtGenerator.generateAccessToken(staffAccount.getId(), staffAccount.getPermissionCodes());
+            Set<String> permissionCodes = staffAccount.getPermissionCodes()
+                    .stream()
+                    .map(PermissionCode::getValue)
+                    .collect(Collectors.toSet());
 
             log.info("Staff account '{}' (ID: {}) successfully logged in.",
                     staffAccount.getUsername().getValue(),
@@ -73,7 +76,7 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
                     staffAccount.getUsername().getValue(),
                     staffAccount.requiresPasswordReset(),
                     refreshToken.getTokenHash().getPlainValue(),
-                    jwt,
+                    permissionCodes,
                     staffAccount.getVersion().getValue()
             );
         } catch (DomainException ex) {
