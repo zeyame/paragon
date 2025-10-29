@@ -11,8 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Component
 public class JwtGenerator {
@@ -23,7 +22,7 @@ public class JwtGenerator {
         this.jwtEncoder = jwtEncoder;
     }
 
-    public String generateAccessToken(String staffAccountId, Set<String> permissionCodes) {
+    public String generateAccessToken(String staffAccountId, List<String> permissionCodes) {
         Instant now = Instant.now();
         Instant expiresAt = now.plus(ACCESS_TOKEN_EXPIRY_MINUTES, ChronoUnit.MINUTES);
 

@@ -15,7 +15,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -42,7 +42,7 @@ public class AuthControllerTests {
             jwtGeneratorMock = mock(JwtGenerator.class);
 
             when(httpContextHelperMock.extractIpAddress()).thenReturn("192.168.1.1");
-            when(jwtGeneratorMock.generateAccessToken(anyString(), any(Set.class))).thenReturn("generated.jwt.token");
+            when(jwtGeneratorMock.generateAccessToken(anyString(), any(List.class))).thenReturn("generated.jwt.token");
 
             sut = new AuthController(loginStaffAccountCommandHandlerMock, httpContextHelperMock, jwtGeneratorMock);
 
@@ -52,7 +52,7 @@ public class AuthControllerTests {
                     requestDto.username(),
                     false,
                     "PlainRefreshToken123",
-                    Set.of("MANAGE_ACCOUNTS", "VIEW_ACCOUNTS_LIST"),
+                    List.of("MANAGE_ACCOUNTS", "VIEW_ACCOUNTS_LIST"),
                     1
             );
 
@@ -106,7 +106,7 @@ public class AuthControllerTests {
             sut.login(requestDto).join();
 
             // Then
-            verify(jwtGeneratorMock, times(1)).generateAccessToken(anyString(), any(Set.class));
+            verify(jwtGeneratorMock, times(1)).generateAccessToken(anyString(), any(List.class));
             verify(httpContextHelperMock, times(1)).setJwtHeader("generated.jwt.token");
         }
 

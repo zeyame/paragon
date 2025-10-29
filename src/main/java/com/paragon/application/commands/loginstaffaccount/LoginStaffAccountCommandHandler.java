@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -61,10 +61,10 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
             RefreshToken refreshToken = RefreshToken.issue(staffAccount.getId(), IpAddress.of(command.ipAddress()), tokenHasher);
             refreshTokenWriteRepo.create(refreshToken);
 
-            Set<String> permissionCodes = staffAccount.getPermissionCodes()
+            List<String> permissionCodes = staffAccount.getPermissionCodes()
                     .stream()
                     .map(PermissionCode::getValue)
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toList());
 
             log.info("Staff account '{}' (ID: {}) successfully logged in.",
                     staffAccount.getUsername().getValue(),

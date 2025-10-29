@@ -48,7 +48,7 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
                     OrderAccessDuration.from(command.orderAccessDuration()),
                     ModmailTranscriptAccessDuration.from(command.modmailTranscriptAccessDuration()),
                     StaffAccountId.from(command.createdBy()),
-                    command.permissionCodes().stream().map(PermissionCode::of).collect(Collectors.toSet())
+                    command.permissionCodes().stream().map(PermissionCode::of).collect(Collectors.toList())
             );
             staffAccountWriteRepo.create(staffAccount);
 

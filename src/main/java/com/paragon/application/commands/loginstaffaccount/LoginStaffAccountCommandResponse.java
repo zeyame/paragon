@@ -1,12 +1,12 @@
 package com.paragon.application.commands.loginstaffaccount;
 
-import java.util.Set;
+import java.util.List;
 
 public record LoginStaffAccountCommandResponse(
         String id,
         String username,
         boolean requiresPasswordReset,
         String plainRefreshToken,
-        Set<String> permissionCodes,
+        List<String> permissionCodes,
         int version
 ) {}

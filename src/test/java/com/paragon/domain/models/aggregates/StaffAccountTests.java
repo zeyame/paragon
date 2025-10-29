@@ -20,9 +20,7 @@ import static org.mockito.Mockito.verify;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class StaffAccountTests {
     @Nested
@@ -33,7 +31,7 @@ public class StaffAccountTests {
         private final OrderAccessDuration orderAccessDuration;
         private final ModmailTranscriptAccessDuration modmailTranscriptAccessDuration;
         private final StaffAccountId createdBy;
-        private final Set<PermissionCode> permissionCodes;
+        private final List<PermissionCode> permissionCodes;
 
         Register() {
             username = Username.of("john_doe");
@@ -42,7 +40,7 @@ public class StaffAccountTests {
             orderAccessDuration = OrderAccessDuration.from(5);
             modmailTranscriptAccessDuration = ModmailTranscriptAccessDuration.from(10);
             createdBy = StaffAccountId.generate();
-            permissionCodes = Set.of(SystemPermissions.MANAGE_ACCOUNTS, SystemPermissions.APPROVE_PASSWORD_CHANGE);
+            permissionCodes = List.of(SystemPermissions.MANAGE_ACCOUNTS, SystemPermissions.APPROVE_PASSWORD_CHANGE);
         }
 
         @Test
@@ -204,7 +202,7 @@ public class StaffAccountTests {
 
             // When & Then
             assertThatExceptionOfType(StaffAccountException.class)
-                    .isThrownBy(() -> StaffAccount.register(username, email, password, orderAccessDuration, modmailTranscriptAccessDuration, createdBy, new HashSet<>()))
+                    .isThrownBy(() -> StaffAccount.register(username, email, password, orderAccessDuration, modmailTranscriptAccessDuration, createdBy, List.of()))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(expectedErrorMessage, expectedErrorCode);
         }

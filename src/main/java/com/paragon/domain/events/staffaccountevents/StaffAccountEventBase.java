@@ -7,7 +7,7 @@ import com.paragon.domain.models.valueobjects.*;
 import lombok.Getter;
 
 import java.time.Instant;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 public abstract class StaffAccountEventBase extends DomainEvent {
@@ -25,7 +25,7 @@ public abstract class StaffAccountEventBase extends DomainEvent {
     private final Instant lastLoginAt;
     private final StaffAccountId staffAccountCreatedBy;
     private final StaffAccountId staffAccountDisabledBy;
-    private final Set<PermissionCode> permissionCodes;
+    private final List<PermissionCode> permissionCodes;
     private final Version staffAccountVersion;
 
     protected StaffAccountEventBase(StaffAccount staffAccount, String eventName) {

@@ -5,7 +5,6 @@ import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.*;
 
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,7 +44,7 @@ public record StaffAccountDao(
                 lastLoginAtUtc,
                 StaffAccountId.of(createdBy),
                 disabledBy != null ? StaffAccountId.of(disabledBy) : null,
-                new HashSet<>(permissionCodes),
+                permissionCodes,
                 Version.of(version)
         );
     }

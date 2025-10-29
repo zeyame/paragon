@@ -7,7 +7,6 @@ import com.paragon.domain.models.valueobjects.*;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class StaffAccountFixture {
     private String id = UUID.randomUUID().toString();
@@ -123,7 +122,7 @@ public class StaffAccountFixture {
                 lastLoginAt,
                 StaffAccountId.from(createdBy),
                 disabledBy != null ? StaffAccountId.from(disabledBy) : null,
-                permissionCodes.stream().map(PermissionCode::of).collect(Collectors.toSet()),
+                permissionCodes.stream().map(PermissionCode::of).toList(),
                 Version.of(version)
         );
     }

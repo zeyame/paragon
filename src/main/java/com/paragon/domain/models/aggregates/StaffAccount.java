@@ -13,7 +13,7 @@ import lombok.Getter;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccountId> {
@@ -31,7 +31,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     private Instant lastLoginAt;
     private final StaffAccountId createdBy;
     private StaffAccountId disabledBy;
-    private final Set<PermissionCode> permissionCodes;
+    private final List<PermissionCode> permissionCodes;
 
     private StaffAccount(StaffAccountId id,
                          Username username,
@@ -47,7 +47,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
                          Instant lastLoginAt,
                          StaffAccountId createdBy,
                          StaffAccountId disabledBy,
-                         Set<PermissionCode> permissionCodes,
+                         List<PermissionCode> permissionCodes,
                          Version version)
     {
         super(id);
@@ -70,7 +70,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
 
     public static StaffAccount register(Username username, Email email, Password password, OrderAccessDuration orderAccessDuration,
                                         ModmailTranscriptAccessDuration modmailTranscriptAccessDuration,
-                                        StaffAccountId createdBy, Set<PermissionCode> permissionCodes)
+                                        StaffAccountId createdBy, List<PermissionCode> permissionCodes)
     {
         assertValidRegistration(username, password, orderAccessDuration, modmailTranscriptAccessDuration, createdBy, permissionCodes);
         StaffAccount account = new StaffAccount(
@@ -99,7 +99,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
                                           ModmailTranscriptAccessDuration modmailTranscriptAccessDuration,
                                           StaffAccountStatus status, FailedLoginAttempts failedLoginAttempts,
                                           Instant lockedUntil, Instant lastLoginAt, StaffAccountId createdBy,
-                                          StaffAccountId disabledBy, Set<PermissionCode> permissionCodes, Version version) {
+                                          StaffAccountId disabledBy, List<PermissionCode> permissionCodes, Version version) {
         return new StaffAccount(
                 id, username, email, password, isPasswordTemporary,
                 passwordIssuedAt, orderAccessDuration,
@@ -121,7 +121,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
 
     private static void assertValidRegistration(Username username, Password password, OrderAccessDuration orderAccessDuration,
                                                 ModmailTranscriptAccessDuration modmailTranscriptAccessDuration, StaffAccountId createdBy,
-                                                Set<PermissionCode> permissionCodes)
+                                                List<PermissionCode> permissionCodes)
     {
         if (username == null) {
             throw new StaffAccountException(StaffAccountExceptionInfo.usernameRequired());
