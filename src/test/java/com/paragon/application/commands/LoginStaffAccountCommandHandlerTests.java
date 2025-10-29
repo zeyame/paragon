@@ -59,7 +59,8 @@ public class LoginStaffAccountCommandHandlerTests {
 
         command = new LoginStaffAccountCommand(
                 "john_doe",
-                "PlaintextPassword123?"
+                "PlaintextPassword123?",
+                "192.168.1.1"
         );
 
         staffAccountToLogin = new StaffAccountFixture()
@@ -154,7 +155,8 @@ public class LoginStaffAccountCommandHandlerTests {
         // Given
         LoginStaffAccountCommand command = new LoginStaffAccountCommand(
                 "john_doe",
-                "" // force a domain exception
+                "", // force a domain exception
+                "192.168.1.1"
         );
 
         when(appExceptionHandlerMock.handleDomainException(any(DomainException.class)))

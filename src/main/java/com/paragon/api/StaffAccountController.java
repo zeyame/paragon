@@ -5,7 +5,7 @@ import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.StaffAccountSummaryResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
-import com.paragon.api.security.AuthenticationHelper;
+import com.paragon.api.security.RequestContextHelper;
 import com.paragon.application.commands.CommandHandler;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommand;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandResponse;
@@ -27,24 +27,24 @@ import java.util.concurrent.CompletableFuture;
 public class StaffAccountController {
     private final CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> registerStaffAccountCommandHandler;
     private final QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> getAllStaffAccountsQueryHandler;
-    private final AuthenticationHelper authenticationHelper;
+    private final RequestContextHelper requestContextHelper;
     private final TaskExecutor taskExecutor;
     private static final Logger log = LoggerFactory.getLogger(StaffAccountController.class);
 
     public StaffAccountController(
             CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> registerStaffAccountCommandHandler,
             QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> getAllStaffAccountsQueryHandler,
-            AuthenticationHelper authenticationHelper) {
+            RequestContextHelper requestContextHelper) {
         this.registerStaffAccountCommandHandler = registerStaffAccountCommandHandler;
         this.getAllStaffAccountsQueryHandler = getAllStaffAccountsQueryHandler;
-        this.authenticationHelper = authenticationHelper;
+        this.requestContextHelper = requestContextHelper;
         this.taskExecutor = Runnable::run;
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('MANAGE_ACCOUNTS')")
     public CompletableFuture<ResponseEntity<ResponseDto<RegisterStaffAccountResponseDto>>> register(@RequestBody RegisterStaffAccountRequestDto requestDto) {
-        String requestingStaffAccountId = authenticationHelper.getAuthenticatedStaffId();
+        String requestingStaffAccountId = requestContextHelper.getAuthenticatedStaffId();
         log.info("Received request to register a new staff account from a staff account with ID: {}.", requestingStaffAccountId);
 
         return CompletableFuture.supplyAsync(() -> {
@@ -58,7 +58,7 @@ public class StaffAccountController {
     @GetMapping
     @PreAuthorize("hasAuthority('VIEW_ACCOUNTS_LIST')")
     public CompletableFuture<ResponseEntity<ResponseDto<GetAllStaffAccountsResponseDto>>> getAll() {
-        String requestingStaffAccountId = authenticationHelper.getAuthenticatedStaffId();
+        String requestingStaffAccountId = requestContextHelper.getAuthenticatedStaffId();
         log.info("Received request to get all staff accounts from a staff account with ID: {}.", requestingStaffAccountId);
 
         return CompletableFuture.supplyAsync(() -> {

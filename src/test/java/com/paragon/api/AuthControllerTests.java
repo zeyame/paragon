@@ -3,6 +3,7 @@ package com.paragon.api;
 import com.paragon.api.dtos.ResponseDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountRequestDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountResponseDto;
+import com.paragon.api.security.RequestContextHelper;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommand;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandHandler;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandResponse;
@@ -27,12 +28,17 @@ public class AuthControllerTests {
     class Login {
         private final AuthController sut;
         private final LoginStaffAccountCommandHandler loginStaffAccountCommandHandlerMock;
+        private final RequestContextHelper requestContextHelperMock;
         private final LoginStaffAccountRequestDto requestDto;
         private final LoginStaffAccountCommandResponse commandResponse;
 
         public Login() {
             loginStaffAccountCommandHandlerMock = mock(LoginStaffAccountCommandHandler.class);
-            sut = new AuthController(loginStaffAccountCommandHandlerMock);
+            requestContextHelperMock = mock(RequestContextHelper.class);
+
+            when(requestContextHelperMock.extractIpAddress()).thenReturn("192.168.1.1");
+
+            sut = new AuthController(loginStaffAccountCommandHandlerMock, requestContextHelperMock);
 
             requestDto = createValidLoginStaffAccountRequestDto();
             commandResponse = new LoginStaffAccountCommandResponse(
@@ -60,7 +66,7 @@ public class AuthControllerTests {
         @Test
         void callsHandlerWithCorrectCommand() {
             // Given
-            LoginStaffAccountCommand expectedCommand = createLoginStaffAccountCommandFrom(requestDto);
+            LoginStaffAccountCommand expectedCommand = createLoginStaffAccountCommandFrom(requestDto, "192.168.1.1");
             ArgumentCaptor<LoginStaffAccountCommand> commandCaptor = ArgumentCaptor.forClass(LoginStaffAccountCommand.class);
 
             // When
@@ -99,10 +105,11 @@ public class AuthControllerTests {
                     .hasCauseInstanceOf(AppException.class);
         }
 
-        private LoginStaffAccountCommand createLoginStaffAccountCommandFrom(LoginStaffAccountRequestDto requestDto) {
+        private LoginStaffAccountCommand createLoginStaffAccountCommandFrom(LoginStaffAccountRequestDto requestDto, String ipAddress) {
             return new LoginStaffAccountCommand(
                     requestDto.username(),
-                    requestDto.password()
+                    requestDto.password(),
+                    ipAddress
             );
         }
 

@@ -20,4 +20,11 @@ public class RefreshTokenExceptionInfo extends DomainExceptionInfo {
                 20002
         );
     }
+
+    public static RefreshTokenExceptionInfo ipAddressRequired() {
+        return new RefreshTokenExceptionInfo(
+                "An IP address is required to issue a refresh token.",
+                20003
+        );
+    }
 }

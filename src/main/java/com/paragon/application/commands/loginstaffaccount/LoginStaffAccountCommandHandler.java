@@ -13,6 +13,7 @@ import com.paragon.domain.interfaces.repos.RefreshTokenWriteRepo;
 import com.paragon.domain.interfaces.repos.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.aggregates.StaffAccount;
+import com.paragon.domain.models.valueobjects.IpAddress;
 import com.paragon.domain.models.valueobjects.Password;
 import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
@@ -57,7 +58,7 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
             staffAccount.login(Password.fromPlainText(command.password(), passwordHasher));
             staffAccountWriteRepo.update(staffAccount);
 
-            RefreshToken refreshToken = RefreshToken.issue(staffAccount.getId(), tokenHasher);
+            RefreshToken refreshToken = RefreshToken.issue(staffAccount.getId(), IpAddress.of(command.ipAddress()), tokenHasher);
             refreshTokenWriteRepo.create(refreshToken);
 
             String jwt = jwtGenerator.generateAccessToken(staffAccount.getId(), staffAccount.getPermissionCodes());

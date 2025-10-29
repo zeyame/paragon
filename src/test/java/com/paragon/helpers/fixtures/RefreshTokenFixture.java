@@ -1,6 +1,7 @@
 package com.paragon.helpers.fixtures;
 
 import com.paragon.domain.models.aggregates.RefreshToken;
+import com.paragon.domain.models.valueobjects.IpAddress;
 import com.paragon.domain.models.valueobjects.RefreshTokenHash;
 import com.paragon.domain.models.valueobjects.RefreshTokenId;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
@@ -14,6 +15,7 @@ public class RefreshTokenFixture {
     private String id = UUID.randomUUID().toString();
     private String tokenHash = "hashed_token_" + UUID.randomUUID();
     private String staffAccountId = UUID.randomUUID().toString();
+    private String issuedFromIpAddress = "192.168.1.1";
     private Instant expiresAt = Instant.now().plus(Duration.ofDays(7));
     private boolean isRevoked = false;
     private String replacedBy = null;
@@ -54,11 +56,17 @@ public class RefreshTokenFixture {
         return this;
     }
 
+    public RefreshTokenFixture withIssuedFromIpAddress(String value) {
+        this.issuedFromIpAddress = value;
+        return this;
+    }
+
     public RefreshToken build() {
         return RefreshToken.createFrom(
                 RefreshTokenId.from(id),
                 RefreshTokenHash.fromHashed(tokenHash),
                 StaffAccountId.from(staffAccountId),
+                IpAddress.of(issuedFromIpAddress),
                 expiresAt,
                 isRevoked,
                 replacedBy != null ? RefreshTokenId.from(replacedBy) : null,
