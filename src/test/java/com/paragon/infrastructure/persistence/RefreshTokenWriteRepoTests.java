@@ -48,27 +48,25 @@ public class RefreshTokenWriteRepoTests {
             sut.create(refreshToken);
 
             // Then
-            ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
-            ArgumentCaptor<SqlParamsBuilder> paramsCaptor = ArgumentCaptor.forClass(SqlParamsBuilder.class);
+            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
 
             verify(jdbcHelperMock, times(1))
-                    .execute(sqlCaptor.capture(), paramsCaptor.capture());
+                    .execute(sqlStatementCaptor.capture());
 
-            String actualSql = sqlCaptor.getValue();
-            SqlParamsBuilder actualParams = paramsCaptor.getValue();
+            SqlStatement actualStatement = sqlStatementCaptor.getValue();
 
-            assertThat(actualSql).isEqualTo(expectedSql);
-            assertThat(actualParams.build().get("id")).isEqualTo(refreshToken.getId().getValue());
-            assertThat(actualParams.build().get("staffAccountId")).isEqualTo(refreshToken.getStaffAccountId().getValue());
-            assertThat(actualParams.build().get("tokenHash")).isEqualTo(refreshToken.getTokenHash().getValue());
-            assertThat(actualParams.build().get("issuedFromIpAddress")).isEqualTo(refreshToken.getIssuedFromIpAddress().getValue());
-            assertThat(actualParams.build().get("expiresAtUtc")).isNotNull();
-            assertThat(actualParams.build().get("isRevoked")).isEqualTo(refreshToken.isRevoked());
-            assertThat(actualParams.build().get("revokedAtUtc")).isNull();
-            assertThat(actualParams.build().get("replacedBy")).isEqualTo(refreshToken.getReplacedBy() != null ? refreshToken.getReplacedBy().getValue() : null);
-            assertThat(actualParams.build().get("version")).isEqualTo(refreshToken.getVersion().getValue());
-            assertThat(actualParams.build().get("createdAtUtc")).isNotNull();
-            assertThat(actualParams.build().get("updatedAtUtc")).isNotNull();
+            assertThat(actualStatement.sql()).isEqualTo(expectedSql);
+            assertThat(actualStatement.params().build().get("id")).isEqualTo(refreshToken.getId().getValue());
+            assertThat(actualStatement.params().build().get("staffAccountId")).isEqualTo(refreshToken.getStaffAccountId().getValue());
+            assertThat(actualStatement.params().build().get("tokenHash")).isEqualTo(refreshToken.getTokenHash().getValue());
+            assertThat(actualStatement.params().build().get("issuedFromIpAddress")).isEqualTo(refreshToken.getIssuedFromIpAddress().getValue());
+            assertThat(actualStatement.params().build().get("expiresAtUtc")).isNotNull();
+            assertThat(actualStatement.params().build().get("isRevoked")).isEqualTo(refreshToken.isRevoked());
+            assertThat(actualStatement.params().build().get("revokedAtUtc")).isNull();
+            assertThat(actualStatement.params().build().get("replacedBy")).isEqualTo(refreshToken.getReplacedBy() != null ? refreshToken.getReplacedBy().getValue() : null);
+            assertThat(actualStatement.params().build().get("version")).isEqualTo(refreshToken.getVersion().getValue());
+            assertThat(actualStatement.params().build().get("createdAtUtc")).isNotNull();
+            assertThat(actualStatement.params().build().get("updatedAtUtc")).isNotNull();
         }
 
         @Test
@@ -78,7 +76,7 @@ public class RefreshTokenWriteRepoTests {
 
             doThrow(InfraException.class)
                     .when(jdbcHelperMock)
-                    .execute(anyString(), any(SqlParamsBuilder.class));
+                    .execute(any(SqlStatement.class));
 
             // When & Then
             assertThatExceptionOfType(InfraException.class)
@@ -111,19 +109,17 @@ public class RefreshTokenWriteRepoTests {
             sut.getActiveTokensByStaffAccountId(staffAccountId);
 
             // Then
-            ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
-            ArgumentCaptor<SqlParamsBuilder> sqlParamsCaptor = ArgumentCaptor.forClass(SqlParamsBuilder.class);
+            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
 
             verify(jdbcHelperMock, times(1))
-                    .query(sqlCaptor.capture(), sqlParamsCaptor.capture(), eq(RefreshTokenDao.class));
+                    .query(sqlStatementCaptor.capture(), eq(RefreshTokenDao.class));
 
-            String actualSql = sqlCaptor.getValue();
-            SqlParamsBuilder actualParams = sqlParamsCaptor.getValue();
+            SqlStatement actualStatement = sqlStatementCaptor.getValue();
 
-            assertThat(actualSql).isEqualTo(expectedSql);
-            assertThat(actualParams.build().get("staffAccountId")).isEqualTo(staffAccountId.getValue());
-            assertThat(actualParams.build().get("isRevoked")).isEqualTo(false);
-            assertThat(actualParams.build().get("now")).isNotNull();
+            assertThat(actualStatement.sql()).isEqualTo(expectedSql);
+            assertThat(actualStatement.params().build().get("staffAccountId")).isEqualTo(staffAccountId.getValue());
+            assertThat(actualStatement.params().build().get("isRevoked")).isEqualTo(false);
+            assertThat(actualStatement.params().build().get("now")).isNotNull();
         }
 
         @Test
@@ -134,7 +130,7 @@ public class RefreshTokenWriteRepoTests {
                     RefreshTokenDaoFixture.validRefreshTokenDao()
             );
 
-            when(jdbcHelperMock.query(anyString(), any(SqlParamsBuilder.class), eq(RefreshTokenDao.class)))
+            when(jdbcHelperMock.query(any(SqlStatement.class), eq(RefreshTokenDao.class)))
                     .thenReturn(refreshTokenDaos);
 
             // When
@@ -149,7 +145,7 @@ public class RefreshTokenWriteRepoTests {
             // Given
             doThrow(InfraException.class)
                     .when(jdbcHelperMock)
-                    .query(anyString(), any(SqlParamsBuilder.class), eq(RefreshTokenDao.class));
+                    .query(any(SqlStatement.class), eq(RefreshTokenDao.class));
 
             // When & Then
             assertThatThrownBy(() -> sut.getActiveTokensByStaffAccountId(StaffAccountId.generate()))

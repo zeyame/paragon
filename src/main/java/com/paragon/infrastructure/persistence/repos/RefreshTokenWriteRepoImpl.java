@@ -45,7 +45,7 @@ public class RefreshTokenWriteRepoImpl implements RefreshTokenWriteRepo {
                 .add("createdAtUtc", Instant.now())
                 .add("updatedAtUtc", Instant.now());
 
-        jdbcHelper.execute(sql, params);
+        jdbcHelper.execute(new SqlStatement(sql, params));
     }
 
     @Override
@@ -61,7 +61,10 @@ public class RefreshTokenWriteRepoImpl implements RefreshTokenWriteRepo {
                 .add("now", Instant.now())
                 .add("isRevoked", false);
 
-        List<RefreshTokenDao> refreshTokenDaos = jdbcHelper.query(sql, params, RefreshTokenDao.class);
+        List<RefreshTokenDao> refreshTokenDaos = jdbcHelper.query(
+                new SqlStatement(sql, params),
+                RefreshTokenDao.class
+        );
         return refreshTokenDaos.stream()
                 .map(RefreshTokenDao::toRefreshToken)
                 .toList();

@@ -17,13 +17,13 @@ public class ReadJdbcHelperImpl implements ReadJdbcHelper {
     }
 
     @Override
-    public <T> List<T> query(String sql, SqlParamsBuilder params, Class<T> type) {
-        return jdbc.query(sql, params.build(), DataClassRowMapper.newInstance(type));
+    public <T> List<T> query(SqlStatement sqlStatement, Class<T> type) {
+        return jdbc.query(sqlStatement.sql(), sqlStatement.params().build(), DataClassRowMapper.newInstance(type));
     }
 
     @Override
-    public <T> Optional<T> queryFirstOrDefault(String sql, SqlParamsBuilder params, Class<T> type) {
-        List<T> result = query(sql, params, type);
+    public <T> Optional<T> queryFirstOrDefault(SqlStatement sqlStatement, Class<T> type) {
+        List<T> result = query(sqlStatement, type);
         return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
     }
 }

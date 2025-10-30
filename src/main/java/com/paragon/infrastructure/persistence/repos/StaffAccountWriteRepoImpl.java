@@ -86,7 +86,10 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
         String sql = "SELECT * FROM staff_accounts WHERE id = :id";
         SqlParamsBuilder params = new SqlParamsBuilder().add("id", staffAccountId.getValue());
 
-        Optional<StaffAccountDao> optional = jdbcHelper.queryFirstOrDefault(sql, params, StaffAccountDao.class);
+        Optional<StaffAccountDao> optional = jdbcHelper.queryFirstOrDefault(
+                new SqlStatement(sql, params),
+                StaffAccountDao.class
+        );
         return optional.map(dao -> {
                 List<PermissionCode> permissionCodes = getPermissionCodesBy(dao.id());
                 return dao.toStaffAccount(permissionCodes);
@@ -98,7 +101,10 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
         String sql = "SELECT * FROM staff_accounts WHERE username = :username";
         SqlParamsBuilder params = new SqlParamsBuilder().add("username", username.getValue());
 
-        Optional<StaffAccountDao> optional = jdbcHelper.queryFirstOrDefault(sql, params, StaffAccountDao.class);
+        Optional<StaffAccountDao> optional = jdbcHelper.queryFirstOrDefault(
+                new SqlStatement(sql, params),
+                StaffAccountDao.class
+        );
         return optional.map(dao -> {
             List<PermissionCode> permissionCodes = getPermissionCodesBy(dao.id());
             return dao.toStaffAccount(permissionCodes);
@@ -109,7 +115,10 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
         String sql = "SELECT permission_code FROM staff_account_permissions WHERE staff_account_id = :id";
         SqlParamsBuilder params = new SqlParamsBuilder().add("id", staffAccountId);
 
-        List<PermissionCodeDao> permissionCodeDaos = jdbcHelper.query(sql, params, PermissionCodeDao.class);
+        List<PermissionCodeDao> permissionCodeDaos = jdbcHelper.query(
+                new SqlStatement(sql, params),
+                PermissionCodeDao.class
+        );
         return permissionCodeDaos
                 .stream()
                 .map(PermissionCodeDao::toPermissionCode)
@@ -146,7 +155,7 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
                 .add("id", staffAccount.getId().getValue())
                 .add("currentVersion", staffAccount.getVersion().getValue() - 1);
 
-        int affectedRows = jdbcHelper.execute(sql, params);
+        int affectedRows = jdbcHelper.execute(new SqlStatement(sql, params));
         if (affectedRows != 1) {
             throw new InfraException(); // potential concurrency detected
         }

@@ -3,6 +3,7 @@ package com.paragon.infrastructure.persistence.repos;
 import com.paragon.domain.interfaces.repos.AuditTrailWriteRepo;
 import com.paragon.domain.models.entities.AuditTrailEntry;
 import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
+import com.paragon.infrastructure.persistence.jdbc.SqlStatement;
 import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
 import org.springframework.stereotype.Repository;
 
@@ -33,6 +34,6 @@ public class AuditTrailWriteRepoImpl implements AuditTrailWriteRepo {
                 .add("targetType", auditTrailEntry.getTargetType() != null ? auditTrailEntry.getTargetType().toString() : null)
                 .add("createdAtUtc", Instant.now());
 
-        jdbcHelper.execute(sql, params);
+        jdbcHelper.execute(new SqlStatement(sql, params));
     }
 }

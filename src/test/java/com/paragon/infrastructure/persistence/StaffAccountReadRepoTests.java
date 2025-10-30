@@ -6,6 +6,7 @@ import com.paragon.infrastructure.persistence.daos.StaffAccountIdDao;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.ReadJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
+import com.paragon.infrastructure.persistence.jdbc.SqlStatement;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
 import com.paragon.infrastructure.persistence.repos.StaffAccountReadRepoImpl;
 import org.junit.jupiter.api.Nested;
@@ -35,23 +36,21 @@ public class StaffAccountReadRepoTests {
         void callsJdbcHelper_withExpectedSqlAndParams() {
             // Given
             StaffAccountId staffAccountId = StaffAccountId.generate();
-            ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
-            ArgumentCaptor<SqlParamsBuilder> paramsCaptor = ArgumentCaptor.forClass(SqlParamsBuilder.class);
+            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
 
-            when(readJdbcHelperMock.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountIdDao.class)))
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountIdDao.class)))
                     .thenReturn(Optional.empty());
 
             // When
             sut.exists(staffAccountId);
 
             // Then
-            verify(readJdbcHelperMock, times(1)).queryFirstOrDefault(sqlCaptor.capture(), paramsCaptor.capture(), eq(StaffAccountIdDao.class));
+            verify(readJdbcHelperMock, times(1)).queryFirstOrDefault(sqlStatementCaptor.capture(), eq(StaffAccountIdDao.class));
 
-            String sql = sqlCaptor.getValue();
-            SqlParamsBuilder sqlParams = paramsCaptor.getValue();
+            SqlStatement statement = sqlStatementCaptor.getValue();
 
-            assertThat(sql).isEqualTo("SELECT id FROM staff_accounts WHERE id = :id");
-            assertThat(sqlParams.build().get("id")).isEqualTo(staffAccountId.getValue());
+            assertThat(statement.sql()).isEqualTo("SELECT id FROM staff_accounts WHERE id = :id");
+            assertThat(statement.params().build().get("id")).isEqualTo(staffAccountId.getValue());
         }
 
         @Test
@@ -59,7 +58,7 @@ public class StaffAccountReadRepoTests {
             // Given
             StaffAccountId staffAccountId = StaffAccountId.generate();
             StaffAccountIdDao dao = new StaffAccountIdDao(staffAccountId.getValue());
-            when(readJdbcHelperMock.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountIdDao.class)))
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountIdDao.class)))
                     .thenReturn(Optional.of(dao));
 
             // When
@@ -73,7 +72,7 @@ public class StaffAccountReadRepoTests {
         void returnsFalse_whenStaffAccountDoesNotExist() {
             // Given
             StaffAccountId staffAccountId = StaffAccountId.generate();
-            when(readJdbcHelperMock.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountIdDao.class)))
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountIdDao.class)))
                     .thenReturn(Optional.empty());
 
             // When
@@ -87,7 +86,7 @@ public class StaffAccountReadRepoTests {
         void shouldPropagateInfraException_whenJdbcHelperThrows() {
             // Given
             StaffAccountId staffAccountId = StaffAccountId.generate();
-            when(readJdbcHelperMock.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountIdDao.class)))
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountIdDao.class)))
                     .thenThrow(InfraException.class);
 
             // When & Then
@@ -111,24 +110,22 @@ public class StaffAccountReadRepoTests {
             // Given
             StaffAccountId staffAccountId = StaffAccountId.generate();
             PermissionCode permissionCode = PermissionCode.of("VIEW_ACCOUNTS_LIST");
-            ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
-            ArgumentCaptor<SqlParamsBuilder> paramsCaptor = ArgumentCaptor.forClass(SqlParamsBuilder.class);
+            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
 
-            when(readJdbcHelperMock.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), any()))
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), any()))
                     .thenReturn(Optional.empty());
 
             // When
             sut.hasPermission(staffAccountId, permissionCode);
 
             // Then
-            verify(readJdbcHelperMock, times(1)).queryFirstOrDefault(sqlCaptor.capture(), paramsCaptor.capture(), any());
+            verify(readJdbcHelperMock, times(1)).queryFirstOrDefault(sqlStatementCaptor.capture(), any());
 
-            String sql = sqlCaptor.getValue();
-            SqlParamsBuilder sqlParams = paramsCaptor.getValue();
+            SqlStatement statement = sqlStatementCaptor.getValue();
 
-            assertThat(sql).isEqualTo("SELECT * FROM staff_account_permissions WHERE staff_account_id = :staffAccountId AND permission_code = :permissionCode");
-            assertThat(sqlParams.build().get("staffAccountId")).isEqualTo(staffAccountId.getValue());
-            assertThat(sqlParams.build().get("permissionCode")).isEqualTo(permissionCode.getValue());
+            assertThat(statement.sql()).isEqualTo("SELECT * FROM staff_account_permissions WHERE staff_account_id = :staffAccountId AND permission_code = :permissionCode");
+            assertThat(statement.params().build().get("staffAccountId")).isEqualTo(staffAccountId.getValue());
+            assertThat(statement.params().build().get("permissionCode")).isEqualTo(permissionCode.getValue());
         }
 
         @Test
@@ -137,7 +134,7 @@ public class StaffAccountReadRepoTests {
             StaffAccountId staffAccountId = StaffAccountId.generate();
             PermissionCode permissionCode = PermissionCode.of("VIEW_ACCOUNTS_LIST");
 
-            when(readJdbcHelperMock.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), any()))
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), any()))
                     .thenReturn(Optional.of(mock(Object.class)));
 
             // When
@@ -153,7 +150,7 @@ public class StaffAccountReadRepoTests {
             StaffAccountId staffAccountId = StaffAccountId.generate();
             PermissionCode permissionCode = PermissionCode.of("VIEW_ACCOUNTS_LIST");
 
-            when(readJdbcHelperMock.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), any()))
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), any()))
                     .thenReturn(Optional.empty());
 
             // When
@@ -169,7 +166,7 @@ public class StaffAccountReadRepoTests {
             StaffAccountId staffAccountId = StaffAccountId.generate();
             PermissionCode permissionCode = PermissionCode.of("VIEW_ACCOUNTS_LIST");
 
-            when(readJdbcHelperMock.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), any()))
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), any()))
                     .thenThrow(InfraException.class);
 
             // When & Then
@@ -191,20 +188,19 @@ public class StaffAccountReadRepoTests {
         @Test
         void callsJdbcHelper_withExpectedSql() {
             // Given
-            ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
-            ArgumentCaptor<SqlParamsBuilder> paramsCaptor = ArgumentCaptor.forClass(SqlParamsBuilder.class);
+            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
 
-            when(readJdbcHelperMock.query(anyString(), any(SqlParamsBuilder.class), any()))
+            when(readJdbcHelperMock.query(any(SqlStatement.class), any()))
                     .thenReturn(List.of());
 
             // When
             sut.findAllSummaries();
 
             // Then
-            verify(readJdbcHelperMock, times(1)).query(sqlCaptor.capture(), paramsCaptor.capture(), any());
+            verify(readJdbcHelperMock, times(1)).query(sqlStatementCaptor.capture(), any());
 
-            String sql = sqlCaptor.getValue();
-            assertThat(sql).isEqualTo("SELECT id, username, status, order_access_duration, modmail_transcript_access_duration, created_at_utc FROM staff_accounts ORDER BY created_at_utc DESC");
+            SqlStatement statement = sqlStatementCaptor.getValue();
+            assertThat(statement.sql()).isEqualTo("SELECT id, username, status, order_access_duration, modmail_transcript_access_duration, created_at_utc FROM staff_accounts ORDER BY created_at_utc DESC");
         }
 
         @Test
@@ -228,7 +224,7 @@ public class StaffAccountReadRepoTests {
             );
             List<StaffAccountSummaryReadModel> expectedSummaries = List.of(summary1, summary2);
 
-            when(readJdbcHelperMock.query(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountSummaryReadModel.class)))
+            when(readJdbcHelperMock.query(any(SqlStatement.class), eq(StaffAccountSummaryReadModel.class)))
                     .thenReturn(expectedSummaries);
 
             // When
@@ -245,7 +241,7 @@ public class StaffAccountReadRepoTests {
         @Test
         void returnsEmptyList_whenNoStaffAccountsExist() {
             // Given
-            when(readJdbcHelperMock.query(anyString(), any(SqlParamsBuilder.class), any()))
+            when(readJdbcHelperMock.query(any(SqlStatement.class), any()))
                     .thenReturn(List.of());
 
             // When
@@ -259,7 +255,7 @@ public class StaffAccountReadRepoTests {
         @Test
         void shouldPropagateInfraException_whenJdbcHelperThrows() {
             // Given
-            when(readJdbcHelperMock.query(anyString(), any(SqlParamsBuilder.class), any()))
+            when(readJdbcHelperMock.query(any(SqlStatement.class), any()))
                     .thenThrow(InfraException.class);
 
             // When & Then

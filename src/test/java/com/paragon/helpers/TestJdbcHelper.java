@@ -92,7 +92,10 @@ public class TestJdbcHelper {
         SqlParamsBuilder params = new SqlParamsBuilder().add("id", staffAccountId.getValue());
 
         Optional<StaffAccountDao> optionalDao =
-                writeJdbcHelper.queryFirstOrDefault(sql, params, StaffAccountDao.class);
+                writeJdbcHelper.queryFirstOrDefault(
+                        new SqlStatement(sql, params),
+                        StaffAccountDao.class
+                );
 
         return optionalDao.map(dao -> {
             List<PermissionCode> permissionCodes = getPermissionsForStaff(StaffAccountId.of(dao.id()));
@@ -104,7 +107,10 @@ public class TestJdbcHelper {
         String sql = "SELECT * FROM staff_accounts WHERE username = :username";
         SqlParamsBuilder params = new SqlParamsBuilder().add("username", username.getValue());
 
-        Optional<StaffAccountDao> optionalDao = writeJdbcHelper.queryFirstOrDefault(sql, params, StaffAccountDao.class);
+        Optional<StaffAccountDao> optionalDao = writeJdbcHelper.queryFirstOrDefault(
+                new SqlStatement(sql, params),
+                StaffAccountDao.class
+        );
 
         return optionalDao.map(dao -> {
             List<PermissionCode> permissionCodes = getPermissionsForStaff(StaffAccountId.of(dao.id()));
@@ -116,7 +122,10 @@ public class TestJdbcHelper {
         String sql = "SELECT permission_code FROM staff_account_permissions WHERE staff_account_id = :id";
         SqlParamsBuilder params = new SqlParamsBuilder().add("id", staffAccountId.getValue());
 
-        List<PermissionCodeDao> daos = writeJdbcHelper.query(sql, params, PermissionCodeDao.class);
+        List<PermissionCodeDao> daos = writeJdbcHelper.query(
+                new SqlStatement(sql, params),
+                PermissionCodeDao.class
+        );
         return daos.stream().map(PermissionCodeDao::toPermissionCode).toList();
     }
 
@@ -136,14 +145,17 @@ public class TestJdbcHelper {
                 .add("targetType", auditTrailEntry.getTargetType() != null ? auditTrailEntry.getTargetType().toString() : null)
                 .add("createdAtUtc", Instant.now());
 
-        writeJdbcHelper.execute(sql, params);
+        writeJdbcHelper.execute(new SqlStatement(sql, params));
     }
 
     public Optional<AuditTrailEntry> getAuditTrailEntryById(AuditEntryId auditEntryId) {
         String sql = "SELECT * FROM audit_trail WHERE id = :id";
         SqlParamsBuilder params = new SqlParamsBuilder().add("id", auditEntryId.getValue());
 
-        Optional<AuditTrailEntryDao> optionalDao = writeJdbcHelper.queryFirstOrDefault(sql, params, AuditTrailEntryDao.class);
+        Optional<AuditTrailEntryDao> optionalDao = writeJdbcHelper.queryFirstOrDefault(
+                new SqlStatement(sql, params),
+                AuditTrailEntryDao.class
+        );
 
         return optionalDao.map(AuditTrailEntryDao::toAuditTrailEntry);
     }
@@ -154,7 +166,10 @@ public class TestJdbcHelper {
                 .add("actorId", actorId.getValue())
                 .add("actionType", actionType.toString());
 
-        List<AuditTrailEntryDao> daos = writeJdbcHelper.query(sql, params, AuditTrailEntryDao.class);
+        List<AuditTrailEntryDao> daos = writeJdbcHelper.query(
+                new SqlStatement(sql, params),
+                AuditTrailEntryDao.class
+        );
         return daos.stream().map(AuditTrailEntryDao::toAuditTrailEntry).toList();
     }
 
@@ -181,14 +196,17 @@ public class TestJdbcHelper {
                 .add("createdAtUtc", Instant.now())
                 .add("updatedAtUtc", Instant.now());
 
-        writeJdbcHelper.execute(sql, params);
+        writeJdbcHelper.execute(new SqlStatement(sql, params));
     }
 
     public List<RefreshToken> getAllRefreshTokensByStaffAccountId(StaffAccountId staffAccountId) {
         String sql = "SELECT * FROM refresh_tokens WHERE staff_account_id = :staffAccountId";
         SqlParamsBuilder params = new SqlParamsBuilder().add("staffAccountId", staffAccountId.getValue());
 
-        List<RefreshTokenDao> daos = writeJdbcHelper.query(sql, params, RefreshTokenDao.class);
+        List<RefreshTokenDao> daos = writeJdbcHelper.query(
+                new SqlStatement(sql, params),
+                RefreshTokenDao.class
+        );
         return daos.stream().map(RefreshTokenDao::toRefreshToken).toList();
     }
 }

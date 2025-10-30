@@ -4,6 +4,7 @@ import com.paragon.domain.enums.AuditEntryActionType;
 import com.paragon.helpers.fixtures.AuditTrailEntryFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
+import com.paragon.infrastructure.persistence.jdbc.SqlStatement;
 import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
 import com.paragon.infrastructure.persistence.repos.AuditTrailWriteRepoImpl;
 import org.junit.jupiter.api.Nested;
@@ -28,24 +29,22 @@ public class AuditTrailWriteRepoTests {
         void callsJdbcHelper_withExpectedSqlAndParams() {
             // Given
             var auditTrailEntry = AuditTrailEntryFixture.validAuditTrailEntry();
-            ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
-            ArgumentCaptor<SqlParamsBuilder> paramsCaptor = ArgumentCaptor.forClass(SqlParamsBuilder.class);
+            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
 
             // When
             sut.create(auditTrailEntry);
 
             // Then
-            verify(jdbcHelperMock, times(1)).execute(sqlCaptor.capture(), paramsCaptor.capture());
+            verify(jdbcHelperMock, times(1)).execute(sqlStatementCaptor.capture());
 
-            String sql = sqlCaptor.getValue();
-            SqlParamsBuilder params = paramsCaptor.getValue();
+            SqlStatement statement = sqlStatementCaptor.getValue();
 
-            assertThat(sql).contains("INSERT INTO audit_trail");
-            assertThat(params.build().get("id")).isEqualTo(auditTrailEntry.getId().getValue());
-            assertThat(params.build().get("actorId")).isEqualTo(auditTrailEntry.getActorId().getValue());
-            assertThat(params.build().get("actionType")).isEqualTo(auditTrailEntry.getActionType().toString());
-            assertThat(params.build().get("targetId")).isEqualTo(auditTrailEntry.getTargetId().getValue());
-            assertThat(params.build().get("targetType")).isEqualTo(auditTrailEntry.getTargetType().toString());
+            assertThat(statement.sql()).contains("INSERT INTO audit_trail");
+            assertThat(statement.params().build().get("id")).isEqualTo(auditTrailEntry.getId().getValue());
+            assertThat(statement.params().build().get("actorId")).isEqualTo(auditTrailEntry.getActorId().getValue());
+            assertThat(statement.params().build().get("actionType")).isEqualTo(auditTrailEntry.getActionType().toString());
+            assertThat(statement.params().build().get("targetId")).isEqualTo(auditTrailEntry.getTargetId().getValue());
+            assertThat(statement.params().build().get("targetType")).isEqualTo(auditTrailEntry.getTargetType().toString());
         }
 
         @Test
@@ -54,16 +53,16 @@ public class AuditTrailWriteRepoTests {
             var auditTrailEntry = new AuditTrailEntryFixture()
                     .withTargetId(null)
                     .build();
-            ArgumentCaptor<SqlParamsBuilder> paramsCaptor = ArgumentCaptor.forClass(SqlParamsBuilder.class);
+            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
 
             // When
             sut.create(auditTrailEntry);
 
             // Then
-            verify(jdbcHelperMock, times(1)).execute(anyString(), paramsCaptor.capture());
-            SqlParamsBuilder params = paramsCaptor.getValue();
+            verify(jdbcHelperMock, times(1)).execute(sqlStatementCaptor.capture());
+            SqlStatement statement = sqlStatementCaptor.getValue();
 
-            assertThat(params.build().get("targetId")).isNull();
+            assertThat(statement.params().build().get("targetId")).isNull();
         }
 
         @Test
@@ -72,16 +71,16 @@ public class AuditTrailWriteRepoTests {
             var auditTrailEntry = new AuditTrailEntryFixture()
                     .withTargetType(null)
                     .build();
-            ArgumentCaptor<SqlParamsBuilder> paramsCaptor = ArgumentCaptor.forClass(SqlParamsBuilder.class);
+            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
 
             // When
             sut.create(auditTrailEntry);
 
             // Then
-            verify(jdbcHelperMock, times(1)).execute(anyString(), paramsCaptor.capture());
-            SqlParamsBuilder params = paramsCaptor.getValue();
+            verify(jdbcHelperMock, times(1)).execute(sqlStatementCaptor.capture());
+            SqlStatement statement = sqlStatementCaptor.getValue();
 
-            assertThat(params.build().get("targetType")).isNull();
+            assertThat(statement.params().build().get("targetType")).isNull();
         }
 
         @Test
@@ -90,16 +89,16 @@ public class AuditTrailWriteRepoTests {
             var auditTrailEntry = new AuditTrailEntryFixture()
                     .withActionType(AuditEntryActionType.LOGIN)
                     .build();
-            ArgumentCaptor<SqlParamsBuilder> paramsCaptor = ArgumentCaptor.forClass(SqlParamsBuilder.class);
+            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
 
             // When
             sut.create(auditTrailEntry);
 
             // Then
-            verify(jdbcHelperMock, times(1)).execute(anyString(), paramsCaptor.capture());
-            SqlParamsBuilder params = paramsCaptor.getValue();
+            verify(jdbcHelperMock, times(1)).execute(sqlStatementCaptor.capture());
+            SqlStatement statement = sqlStatementCaptor.getValue();
 
-            assertThat(params.build().get("actionType")).isEqualTo("LOGIN");
+            assertThat(statement.params().build().get("actionType")).isEqualTo("LOGIN");
         }
 
         @Test
@@ -107,7 +106,7 @@ public class AuditTrailWriteRepoTests {
             // Given
             doThrow(InfraException.class)
                     .when(jdbcHelperMock)
-                    .execute(anyString(), any(SqlParamsBuilder.class));
+                    .execute(any(SqlStatement.class));
 
             // When & Then
             assertThatThrownBy(() -> sut.create(AuditTrailEntryFixture.validAuditTrailEntry()))

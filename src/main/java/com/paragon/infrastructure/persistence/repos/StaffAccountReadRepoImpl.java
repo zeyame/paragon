@@ -7,6 +7,7 @@ import com.paragon.infrastructure.persistence.daos.StaffAccountIdDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountPermissionDao;
 import com.paragon.infrastructure.persistence.jdbc.ReadJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
+import com.paragon.infrastructure.persistence.jdbc.SqlStatement;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
 import org.springframework.stereotype.Repository;
 
@@ -25,7 +26,10 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
         String sql = "SELECT id FROM staff_accounts WHERE id = :id";
         SqlParamsBuilder params = new SqlParamsBuilder().add("id", staffAccountId.getValue());
 
-        return readJdbcHelper.queryFirstOrDefault(sql, params, StaffAccountIdDao.class).isPresent();
+        return readJdbcHelper.queryFirstOrDefault(
+                new SqlStatement(sql, params),
+                StaffAccountIdDao.class
+        ).isPresent();
     }
 
     @Override
@@ -35,12 +39,18 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
                 .add("staffAccountId", staffAccountId.getValue())
                 .add("permissionCode", permissionCode.getValue());
 
-        return readJdbcHelper.queryFirstOrDefault(sql, params, StaffAccountPermissionDao.class).isPresent();
+        return readJdbcHelper.queryFirstOrDefault(
+                new SqlStatement(sql, params),
+                StaffAccountPermissionDao.class
+        ).isPresent();
     }
 
     @Override
     public List<StaffAccountSummaryReadModel> findAllSummaries() {
         String sql = "SELECT id, username, status, order_access_duration, modmail_transcript_access_duration, created_at_utc FROM staff_accounts ORDER BY created_at_utc DESC";
-        return readJdbcHelper.query(sql, new SqlParamsBuilder(), StaffAccountSummaryReadModel.class);
+        return readJdbcHelper.query(
+                new SqlStatement(sql, new SqlParamsBuilder()),
+                StaffAccountSummaryReadModel.class
+        );
     }
 }

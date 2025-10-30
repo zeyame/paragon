@@ -24,15 +24,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class StaffAccountRefreshTokenRevocationHandlerTests extends IntegrationTestBase {
     private final EventBusImpl eventBus;
     private final TestJdbcHelper jdbcHelper;
-    private final StaffAccount staffAccount;
 
     @Autowired
     public StaffAccountRefreshTokenRevocationHandlerTests(EventBusImpl eventBus, WriteJdbcHelper writeJdbcHelper) {
         this.eventBus = eventBus;
         this.jdbcHelper = new TestJdbcHelper(writeJdbcHelper);
-        this.staffAccount = new StaffAccountFixture()
-                .withCreatedBy(adminId)
-                .build();
     }
 
     @Test

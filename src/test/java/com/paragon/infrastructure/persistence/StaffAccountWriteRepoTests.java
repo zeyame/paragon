@@ -7,8 +7,8 @@ import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.daos.StaffAccountDao;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
-import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.SqlStatement;
+import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
 import com.paragon.infrastructure.persistence.repos.StaffAccountWriteRepoImpl;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -127,20 +127,18 @@ public class StaffAccountWriteRepoTests {
         void callsJdbcHelper_withExpectedSqlAndParams() {
             // Given
             StaffAccountId staffAccountId = StaffAccountId.generate();
-            ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
-            ArgumentCaptor<SqlParamsBuilder> paramsCaptor = ArgumentCaptor.forClass(SqlParamsBuilder.class);
+            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
 
             // When
             sut.getById(staffAccountId);
 
             // Then
-            verify(jdbcHelper, times(1)).queryFirstOrDefault(sqlCaptor.capture(), paramsCaptor.capture(), eq(StaffAccountDao.class));
+            verify(jdbcHelper, times(1)).queryFirstOrDefault(sqlStatementCaptor.capture(), eq(StaffAccountDao.class));
 
-            String sql = sqlCaptor.getValue();
-            SqlParamsBuilder sqlParams = paramsCaptor.getValue();
+            SqlStatement statement = sqlStatementCaptor.getValue();
 
-            assertThat(sql).isEqualTo("SELECT * FROM staff_accounts WHERE id = :id");
-            assertThat(sqlParams.build().get("id")).isEqualTo(staffAccountId.getValue());
+            assertThat(statement.sql()).isEqualTo("SELECT * FROM staff_accounts WHERE id = :id");
+            assertThat(statement.params().build().get("id")).isEqualTo(staffAccountId.getValue());
         }
 
         @Test
@@ -149,7 +147,7 @@ public class StaffAccountWriteRepoTests {
             StaffAccountDao staffAccountDao = createStaffAccountDao();
             StaffAccountId staffAccountId = StaffAccountId.from(staffAccountDao.id().toString());
 
-            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountDao.class)))
+            when(jdbcHelper.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountDao.class)))
                     .thenReturn(Optional.of(staffAccountDao));
 
             // When
@@ -163,7 +161,7 @@ public class StaffAccountWriteRepoTests {
         @Test
         void returnsEmptyOptional_whenStaffAccountIsMissing() {
             // Given
-            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountDao.class)))
+            when(jdbcHelper.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountDao.class)))
                     .thenReturn(Optional.empty());
 
             // When
@@ -176,7 +174,7 @@ public class StaffAccountWriteRepoTests {
         @Test
         void shouldPropagateInfraException_whenJdbcHelperThrows() {
             // Given
-            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountDao.class)))
+            when(jdbcHelper.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountDao.class)))
                     .thenThrow(InfraException.class);
 
             // When & Then
@@ -199,20 +197,18 @@ public class StaffAccountWriteRepoTests {
         void callsJdbcHelper_withExpectedSqlAndParams() {
             // Given
             Username username = Username.of("john_doe");
-            ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
-            ArgumentCaptor<SqlParamsBuilder> paramsCaptor = ArgumentCaptor.forClass(SqlParamsBuilder.class);
+            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
 
             // When
             sut.getByUsername(username);
 
             // Then
-            verify(jdbcHelper, times(1)).queryFirstOrDefault(sqlCaptor.capture(), paramsCaptor.capture(), eq(StaffAccountDao.class));
+            verify(jdbcHelper, times(1)).queryFirstOrDefault(sqlStatementCaptor.capture(), eq(StaffAccountDao.class));
 
-            String sql = sqlCaptor.getValue();
-            SqlParamsBuilder sqlParams = paramsCaptor.getValue();
+            SqlStatement statement = sqlStatementCaptor.getValue();
 
-            assertThat(sql).isEqualTo("SELECT * FROM staff_accounts WHERE username = :username");
-            assertThat(sqlParams.build().get("username")).isEqualTo(username.getValue());
+            assertThat(statement.sql()).isEqualTo("SELECT * FROM staff_accounts WHERE username = :username");
+            assertThat(statement.params().build().get("username")).isEqualTo(username.getValue());
         }
 
         @Test
@@ -221,7 +217,7 @@ public class StaffAccountWriteRepoTests {
             StaffAccountDao staffAccountDao = createStaffAccountDao();
             Username username = Username.of(staffAccountDao.username());
 
-            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountDao.class)))
+            when(jdbcHelper.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountDao.class)))
                     .thenReturn(Optional.of(staffAccountDao));
 
             // When
@@ -235,7 +231,7 @@ public class StaffAccountWriteRepoTests {
         @Test
         void returnsEmptyOptional_whenStaffAccountIsMissing() {
             // Given
-            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountDao.class)))
+            when(jdbcHelper.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountDao.class)))
                     .thenReturn(Optional.empty());
 
             // When
@@ -248,7 +244,7 @@ public class StaffAccountWriteRepoTests {
         @Test
         void shouldPropagateInfraException_whenJdbcHelperThrows() {
             // Given
-            when(jdbcHelper.queryFirstOrDefault(anyString(), any(SqlParamsBuilder.class), eq(StaffAccountDao.class)))
+            when(jdbcHelper.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountDao.class)))
                     .thenThrow(InfraException.class);
 
             // When & Then
@@ -266,28 +262,27 @@ public class StaffAccountWriteRepoTests {
             this.jdbcHelper = mock(WriteJdbcHelper.class);
             this.sut = new StaffAccountWriteRepoImpl(jdbcHelper);
 
-            when(jdbcHelper.execute(anyString(), any(SqlParamsBuilder.class))).thenReturn(1);
+            when(jdbcHelper.execute(any(SqlStatement.class))).thenReturn(1);
         }
 
         @Test
         void callsJdbcHelper_withCorrectUpdateSqlStatementAndParams() {
             // Given
             var account = StaffAccountFixture.validStaffAccount();
-            ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
-            ArgumentCaptor<SqlParamsBuilder> paramsCaptor = ArgumentCaptor.forClass(SqlParamsBuilder.class);
+            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
 
             // When
             sut.update(account);
 
             // Then
-            verify(jdbcHelper, times(1)).execute(sqlCaptor.capture(), paramsCaptor.capture());
+            verify(jdbcHelper, times(1)).execute(sqlStatementCaptor.capture());
 
-            String sql = sqlCaptor.getValue();
-            var params = paramsCaptor.getValue().build();
+            SqlStatement statement = sqlStatementCaptor.getValue();
+            var params = statement.params().build();
 
-            assertThat(sql).contains("UPDATE staff_accounts");
-            assertThat(sql).contains("WHERE id = :id");
-            assertThat(sql).contains("AND version = :currentVersion");
+            assertThat(statement.sql()).contains("UPDATE staff_accounts");
+            assertThat(statement.sql()).contains("WHERE id = :id");
+            assertThat(statement.sql()).contains("AND version = :currentVersion");
             assertThat(params.get("id")).isEqualTo(account.getId().getValue());
             assertThat(params.get("username")).isEqualTo(account.getUsername().getValue());
             assertThat(params.get("email")).isEqualTo(account.getEmail() != null ? account.getEmail().getValue() : null);
@@ -307,15 +302,15 @@ public class StaffAccountWriteRepoTests {
         void updatesOnlyMutableFields_excludingImmutableFields() {
             // Given
             var account = StaffAccountFixture.validStaffAccount();
-            ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
 
             // When
             sut.update(account);
 
             // Then
-            verify(jdbcHelper, times(1)).execute(sqlCaptor.capture(), any(SqlParamsBuilder.class));
+            verify(jdbcHelper, times(1)).execute(sqlStatementCaptor.capture());
 
-            String sql = sqlCaptor.getValue();
+            String sql = sqlStatementCaptor.getValue().sql();
 
             // Should update mutable fields
             assertThat(sql).contains("username = :username");
@@ -342,7 +337,7 @@ public class StaffAccountWriteRepoTests {
         void shouldThrowInfraException_whenExecuteReturnsNoAffectedRows() {
             // Given
             var account = StaffAccountFixture.validStaffAccount();
-            when(jdbcHelper.execute(anyString(), any(SqlParamsBuilder.class))).thenReturn(0);
+            when(jdbcHelper.execute(any(SqlStatement.class))).thenReturn(0);
 
             // When & Then
             assertThatExceptionOfType(InfraException.class)
@@ -354,7 +349,7 @@ public class StaffAccountWriteRepoTests {
             // Given
             doThrow(InfraException.class)
                     .when(jdbcHelper)
-                    .execute(anyString(), any(SqlParamsBuilder.class));
+                    .execute(any(SqlStatement.class));
 
             // When & Then
             assertThatThrownBy(() -> sut.update(StaffAccountFixture.validStaffAccount()))

@@ -24,9 +24,9 @@ public class WriteJdbcHelperImpl implements WriteJdbcHelper {
     }
 
     @Override
-    public int execute(String sql, SqlParamsBuilder params) {
+    public int execute(SqlStatement sqlStatement) {
         try {
-            return jdbc.update(sql, params.build());
+            return jdbc.update(sqlStatement.sql(), sqlStatement.params().build());
         } catch (DataAccessException e) {
             throw infraExceptionHandler.handleDatabaseException(e);
         }
@@ -46,9 +46,9 @@ public class WriteJdbcHelperImpl implements WriteJdbcHelper {
     }
 
     @Override
-    public <T> List<T> query(String sql, SqlParamsBuilder params, Class<T> type) {
+    public <T> List<T> query(SqlStatement sqlStatement, Class<T> type) {
         try {
-            return jdbc.query(sql, params.build(), DataClassRowMapper.newInstance(type));
+            return jdbc.query(sqlStatement.sql(), sqlStatement.params().build(), DataClassRowMapper.newInstance(type));
         } catch (DataAccessException e) {
             log.error("e: ", e);
             throw infraExceptionHandler.handleDatabaseException(e);
@@ -56,8 +56,8 @@ public class WriteJdbcHelperImpl implements WriteJdbcHelper {
     }
 
     @Override
-    public <T> Optional<T> queryFirstOrDefault(String sql, SqlParamsBuilder params, Class<T> type) {
-        List<T> result = query(sql, params, type);
+    public <T> Optional<T> queryFirstOrDefault(SqlStatement sqlStatement, Class<T> type) {
+        List<T> result = query(sqlStatement, type);
         return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
     }
 }
