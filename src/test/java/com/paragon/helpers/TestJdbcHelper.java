@@ -1,6 +1,7 @@
 package com.paragon.helpers;
 
 import com.paragon.domain.enums.AuditEntryActionType;
+import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.entities.AuditTrailEntry;
 import com.paragon.domain.models.valueobjects.AuditEntryId;
@@ -9,6 +10,7 @@ import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.infrastructure.persistence.daos.AuditTrailEntryDao;
 import com.paragon.infrastructure.persistence.daos.PermissionCodeDao;
+import com.paragon.infrastructure.persistence.daos.RefreshTokenDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountDao;
 import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
@@ -154,5 +156,39 @@ public class TestJdbcHelper {
 
         List<AuditTrailEntryDao> daos = writeJdbcHelper.query(sql, params, AuditTrailEntryDao.class);
         return daos.stream().map(AuditTrailEntryDao::toAuditTrailEntry).toList();
+    }
+
+    public void insertRefreshToken(RefreshToken refreshToken) {
+        String sql = """
+                INSERT INTO refresh_tokens
+                (id, staff_account_id, token_hash, issued_from_ip_address, expires_at_utc, is_revoked,
+                 revoked_at_utc, replaced_by, version, created_at_utc, updated_at_utc)
+                VALUES
+                (:id, :staffAccountId, :tokenHash, :issuedFromIpAddress, :expiresAtUtc, :isRevoked,
+                 :revokedAtUtc, :replacedBy, :version, :createdAtUtc, :updatedAtUtc)
+                """;
+
+        SqlParamsBuilder params = new SqlParamsBuilder()
+                .add("id", refreshToken.getId().getValue())
+                .add("staffAccountId", refreshToken.getStaffAccountId().getValue())
+                .add("tokenHash", refreshToken.getTokenHash().getValue())
+                .add("issuedFromIpAddress", refreshToken.getIssuedFromIpAddress().getValue())
+                .add("expiresAtUtc", refreshToken.getExpiresAt())
+                .add("isRevoked", refreshToken.isRevoked())
+                .add("revokedAtUtc", refreshToken.getRevokedAt())
+                .add("replacedBy", refreshToken.getReplacedBy() != null ? refreshToken.getReplacedBy().getValue() : null)
+                .add("version", refreshToken.getVersion().getValue())
+                .add("createdAtUtc", Instant.now())
+                .add("updatedAtUtc", Instant.now());
+
+        writeJdbcHelper.execute(sql, params);
+    }
+
+    public List<RefreshToken> getAllRefreshTokensByStaffAccountId(StaffAccountId staffAccountId) {
+        String sql = "SELECT * FROM refresh_tokens WHERE staff_account_id = :staffAccountId";
+        SqlParamsBuilder params = new SqlParamsBuilder().add("staffAccountId", staffAccountId.getValue());
+
+        List<RefreshTokenDao> daos = writeJdbcHelper.query(sql, params, RefreshTokenDao.class);
+        return daos.stream().map(RefreshTokenDao::toRefreshToken).toList();
     }
 }

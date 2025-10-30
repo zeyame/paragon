@@ -53,7 +53,7 @@ public class RefreshTokenWriteRepoImpl implements RefreshTokenWriteRepo {
         String sql = """
                         SELECT * FROM refresh_tokens
                         WHERE staff_account_id = :staffAccountId
-                        AND expires_at > :now
+                        AND expires_at_utc > :now
                         AND is_revoked = :isRevoked
                     """;
         SqlParamsBuilder params = new SqlParamsBuilder()

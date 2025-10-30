@@ -8,6 +8,7 @@ import com.paragon.domain.events.staffaccountevents.StaffAccountLockedEvent;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.helpers.TestJdbcHelper;
+import com.paragon.helpers.fixtures.RefreshTokenFixture;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
 import com.paragon.integration.IntegrationTestBase;
@@ -17,23 +18,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class StaffAccountRefreshTokenRevocationHandlerTests extends IntegrationTestBase {
     private final EventBusImpl eventBus;
     private final TestJdbcHelper jdbcHelper;
+    private final StaffAccount staffAccount;
 
     @Autowired
     public StaffAccountRefreshTokenRevocationHandlerTests(EventBusImpl eventBus, WriteJdbcHelper writeJdbcHelper) {
         this.eventBus = eventBus;
         this.jdbcHelper = new TestJdbcHelper(writeJdbcHelper);
+        this.staffAccount = new StaffAccountFixture()
+                .withCreatedBy(adminId)
+                .build();
     }
 
-    // TODO: Complete test when refresh token repo logic is done
     @Test
-    void shouldRevokeStaffAccountRefreshTokens() {
+    void shouldRevokeStaffAccountRefreshTokens_uponStaffAccountLockedEvent() {
         // Given
         StaffAccount lockedStaffAccount = new StaffAccountFixture()
                 .withStatus(StaffAccountStatus.LOCKED)
@@ -43,11 +46,27 @@ public class StaffAccountRefreshTokenRevocationHandlerTests extends IntegrationT
                 .build();
         jdbcHelper.insertStaffAccount(lockedStaffAccount);
 
+        RefreshToken refreshToken1 = new RefreshTokenFixture()
+                .withStaffAccountId(lockedStaffAccount.getId().getValue().toString())
+                .build();
+        jdbcHelper.insertRefreshToken(refreshToken1);
+
+        RefreshToken refreshToken2 = new RefreshTokenFixture()
+                .withStaffAccountId(lockedStaffAccount.getId().getValue().toString())
+                .build();
+        jdbcHelper.insertRefreshToken(refreshToken2);
+
         StaffAccountLockedEvent staffAccountLockedEvent = new StaffAccountLockedEvent(lockedStaffAccount);
 
         // When
         eventBus.publishAll(List.of(staffAccountLockedEvent));
 
         // Then
+        List<RefreshToken> retrievedTokens = jdbcHelper.getAllRefreshTokensByStaffAccountId(lockedStaffAccount.getId());
+        assertThat(retrievedTokens).allSatisfy(token -> {
+            assertThat(token.isRevoked()).isTrue();
+            assertThat(token.getRevokedAt()).isNotNull();
+            assertThat(token.getVersion().getValue()).isGreaterThan(1);
+        });
     }
 }

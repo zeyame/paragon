@@ -71,6 +71,7 @@ public class RefreshToken extends EventSourcedAggregate<DomainEvent, RefreshToke
         }
         this.isRevoked = true;
         this.revokedAt = Instant.now();
+        increaseVersion();
     }
 
     public static RefreshToken createFrom(RefreshTokenId refreshTokenId,
