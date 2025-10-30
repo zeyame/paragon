@@ -21,6 +21,7 @@ public class RefreshToken extends EventSourcedAggregate<DomainEvent, RefreshToke
     private final IpAddress issuedFromIpAddress;
     private final Instant expiresAt;
     private boolean isRevoked;
+    private Instant revokedAt;
     private final RefreshTokenId replacedBy;
     private static final Duration EXPIRY_DURATION = Duration.ofDays(7);
 
@@ -30,6 +31,7 @@ public class RefreshToken extends EventSourcedAggregate<DomainEvent, RefreshToke
                          IpAddress issuedFromIpAddress,
                          Instant expiresAt,
                          boolean isRevoked,
+                         Instant revokedAt,
                          RefreshTokenId replacedBy,
                          Version version
     ) {
@@ -39,6 +41,7 @@ public class RefreshToken extends EventSourcedAggregate<DomainEvent, RefreshToke
         this.issuedFromIpAddress = issuedFromIpAddress;
         this.expiresAt = expiresAt;
         this.isRevoked = isRevoked;
+        this.revokedAt = revokedAt;
         this.replacedBy = replacedBy;
         this.version = version;
     }
@@ -49,7 +52,7 @@ public class RefreshToken extends EventSourcedAggregate<DomainEvent, RefreshToke
         RefreshTokenHash refreshTokenHash = RefreshTokenHash.generate(tokenHasher);
         return new RefreshToken(
                 RefreshTokenId.generate(), refreshTokenHash, staffAccountId, ipAddress,
-                Instant.now().plus(EXPIRY_DURATION), false, null, Version.initial()
+                Instant.now().plus(EXPIRY_DURATION), false, null, null, Version.initial()
         );
     }
 
@@ -67,6 +70,7 @@ public class RefreshToken extends EventSourcedAggregate<DomainEvent, RefreshToke
             throw new RefreshTokenException(RefreshTokenExceptionInfo.tokenAlreadyRevoked());
         }
         this.isRevoked = true;
+        this.revokedAt = Instant.now();
     }
 
     public static RefreshToken createFrom(RefreshTokenId refreshTokenId,
@@ -75,6 +79,7 @@ public class RefreshToken extends EventSourcedAggregate<DomainEvent, RefreshToke
                                           IpAddress issuedFromIpAddress,
                                           Instant expiresAt,
                                           boolean isRevoked,
+                                          Instant revokedAt,
                                           RefreshTokenId replacedBy,
                                           Version version) {
         return new RefreshToken(
@@ -84,6 +89,7 @@ public class RefreshToken extends EventSourcedAggregate<DomainEvent, RefreshToke
                 issuedFromIpAddress,
                 expiresAt,
                 isRevoked,
+                revokedAt,
                 replacedBy,
                 version
         );

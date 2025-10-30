@@ -44,6 +44,7 @@ public class RefreshTokenTests {
             assertThat(refreshToken.getIssuedFromIpAddress()).isEqualTo(ipAddress);
             assertThat(refreshToken.getExpiresAt()).isBeforeOrEqualTo(Instant.now().plus(Duration.ofDays(7)));
             assertThat(refreshToken.isRevoked()).isFalse();
+            assertThat(refreshToken.getRevokedAt()).isNull();
             assertThat(refreshToken.getReplacedBy()).isNull();
             assertThat(refreshToken.getVersion()).isEqualTo(Version.initial());
         }

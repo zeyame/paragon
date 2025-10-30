@@ -33,20 +33,22 @@ public class StaffAccountWriteRepoTests {
         }
 
         @Test
-        void callsJdbcHelper_withCorrectInsertStaffAccountSqlStatementAndParams() {
+        void callsJdbcHelper_withCorrectSqlAndParams() {
             // Given
             var account = StaffAccountFixture.validStaffAccount();
-            ArgumentCaptor<List<SqlStatement>> captor = ArgumentCaptor.forClass(List.class);
+            ArgumentCaptor<List<SqlStatement>> sqlStatementCaptor = ArgumentCaptor.forClass(List.class);
 
             // When
             sut.create(account);
-            verify(jdbcHelperMock, times(1)).executeMultiple(captor.capture());
-            List<SqlStatement> queries = captor.getValue();
 
-            SqlStatement insertQuery = queries.getFirst();
-            var params = insertQuery.params().build();
+            // Then
+            verify(jdbcHelperMock, times(1)).executeMultiple(sqlStatementCaptor.capture());
+            List<SqlStatement> sqlStatements = sqlStatementCaptor.getValue();
 
-            assertThat(insertQuery.sql()).contains("INSERT INTO staff_accounts");
+            SqlStatement insertStatement = sqlStatements.getFirst();
+            var params = insertStatement.params().build();
+
+            assertThat(insertStatement.sql()).contains("INSERT INTO staff_accounts");
             assertThat(params.get("id")).isEqualTo(account.getId().getValue());
             assertThat(params.get("username")).isEqualTo(account.getUsername().getValue());
             assertThat(params.get("password")).isEqualTo(account.getPassword().getValue());

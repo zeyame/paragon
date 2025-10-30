@@ -18,6 +18,7 @@ public class RefreshTokenFixture {
     private String issuedFromIpAddress = "192.168.1.1";
     private Instant expiresAt = Instant.now().plus(Duration.ofDays(7));
     private boolean isRevoked = false;
+    private Instant revokedAt = null;
     private String replacedBy = null;
     private int version = 1;
 
@@ -46,6 +47,11 @@ public class RefreshTokenFixture {
         return this;
     }
 
+    public RefreshTokenFixture withRevokedAt(Instant value) {
+        this.revokedAt = value;
+        return this;
+    }
+
     public RefreshTokenFixture withReplacedBy(String value) {
         this.replacedBy = value;
         return this;
@@ -69,6 +75,7 @@ public class RefreshTokenFixture {
                 IpAddress.of(issuedFromIpAddress),
                 expiresAt,
                 isRevoked,
+                revokedAt,
                 replacedBy != null ? RefreshTokenId.from(replacedBy) : null,
                 Version.of(version)
         );

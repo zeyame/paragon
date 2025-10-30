@@ -3,9 +3,14 @@ package com.paragon.infrastructure.persistence.repos;
 import com.paragon.domain.interfaces.repos.RefreshTokenWriteRepo;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
+import com.paragon.infrastructure.persistence.daos.RefreshTokenDao;
+import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
+import com.paragon.infrastructure.persistence.jdbc.SqlStatement;
 import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -17,15 +22,71 @@ public class RefreshTokenWriteRepoImpl implements RefreshTokenWriteRepo {
     }
 
     @Override
-    public void create(RefreshToken refreshToken) {}
+    public void create(RefreshToken refreshToken) {
+        String sql = """
+                    INSERT INTO refresh_tokens
+                    (id, staff_account_id, token_hash, issued_from_ip_address, expires_at_utc, is_revoked,
+                     revoked_at_utc, replaced_by, version, created_at_utc, updated_at_utc)
+                    VALUES
+                    (:id, :staffAccountId, :tokenHash, :issuedFromIpAddress, :expiresAtUtc, :isRevoked,
+                     :revokedAtUtc, :replacedBy, :version, :createdAtUtc, :updatedAtUtc
+                    """;
 
-    @Override
-    public List<RefreshToken> getActiveTokensByStaffAccountId(StaffAccountId staffAccountId) {
-        return List.of();
+        SqlParamsBuilder params = new SqlParamsBuilder()
+                .add("id", refreshToken.getId().getValue())
+                .add("staffAccountId", refreshToken.getStaffAccountId().getValue())
+                .add("tokenHash", refreshToken.getTokenHash().getValue())
+                .add("issuedFromIpAddress", refreshToken.getIssuedFromIpAddress().getValue())
+                .add("expiresAtUtc", refreshToken.getExpiresAt())
+                .add("isRevoked", refreshToken.isRevoked())
+                .add("revokedAtUtc", refreshToken.getRevokedAt())
+                .add("replacedBy", refreshToken.getReplacedBy() != null ? refreshToken.getReplacedBy().getValue() : null)
+                .add("version", refreshToken.getVersion().getValue())
+                .add("createdAtUtc", Instant.now())
+                .add("updatedAtUtc", Instant.now());
+
+        jdbcHelper.execute(sql, params);
     }
 
     @Override
-    public int updateAll(List<RefreshToken> refreshTokens) {
-        return 0;
+    public List<RefreshToken> getActiveTokensByStaffAccountId(StaffAccountId staffAccountId) {
+        String sql = """
+                        SELECT * FROM refresh_tokens
+                        WHERE staff_account_id = :staffAccountId
+                        AND expires_at > :now
+                        AND is_revoked = :isRevoked
+                    """;
+        SqlParamsBuilder params = new SqlParamsBuilder()
+                .add("staffAccountId", staffAccountId.getValue())
+                .add("now", Instant.now())
+                .add("isRevoked", false);
+
+        List<RefreshTokenDao> refreshTokenDaos = jdbcHelper.query(sql, params, RefreshTokenDao.class);
+        return refreshTokenDaos.stream()
+                .map(RefreshTokenDao::toRefreshToken)
+                .toList();
+    }
+
+    @Override
+    public void updateAll(List<RefreshToken> refreshTokens) {
+        String sql = """
+                    UPDATE refresh_tokens
+                    SET is_revoked = :isRevoked, revoked_at_utc = :revokedAtUtc, replaced_by = :replacedBy, version = :version, updated_at_utc = :updatedAtUtc
+                    WHERE id = :id
+                    """;
+
+        List<SqlStatement> sqlStatements = new ArrayList<>();
+        for (RefreshToken token : refreshTokens) {
+            SqlParamsBuilder params = new SqlParamsBuilder()
+                    .add("id", token.getId().getValue())
+                    .add("isRevoked", token.isRevoked())
+                    .add("revokedAtUtc", token.getRevokedAt())
+                    .add("replacedBy", token.getReplacedBy() != null ? token.getReplacedBy().getValue() : null)
+                    .add("version", token.getVersion().getValue())
+                    .add("updatedAtUtc", Instant.now());
+            sqlStatements.add(new SqlStatement(sql, params));
+        }
+
+        jdbcHelper.executeMultiple(sqlStatements);
     }
 }
