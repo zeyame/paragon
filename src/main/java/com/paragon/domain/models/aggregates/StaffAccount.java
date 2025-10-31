@@ -7,6 +7,7 @@ import com.paragon.domain.events.staffaccountevents.StaffAccountLoggedInEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
 import com.paragon.domain.exceptions.aggregate.StaffAccountException;
 import com.paragon.domain.exceptions.aggregate.StaffAccountExceptionInfo;
+import com.paragon.domain.interfaces.PasswordHasher;
 import com.paragon.domain.models.constants.SystemPermissions;
 import com.paragon.domain.models.valueobjects.*;
 import lombok.Getter;
@@ -82,11 +83,11 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         return account;
     }
 
-    public void login(Password enteredPassword) {
+    public void login(String plaintextPassword, PasswordHasher passwordHasher) {
         throwIfAccountIsDisabled();
         throwIfAccountIsLocked();
 
-        authenticatePassword(enteredPassword);
+        authenticatePassword(plaintextPassword, passwordHasher);
         failedLoginAttempts = failedLoginAttempts.reset();
 
         lastLoginAt = Instant.now();
@@ -172,8 +173,8 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         failedLoginAttempts = failedLoginAttempts.reset();
     }
 
-    private void authenticatePassword(Password enteredPassword) {
-        if (!this.password.equals(enteredPassword)) {
+    private void authenticatePassword(String plaintextPassword, PasswordHasher passwordHasher) {
+        if (!this.password.matches(plaintextPassword, passwordHasher)) {
             failedLoginAttempts = failedLoginAttempts.increment();
             lockAccountIfMaxLoginAttemptsReached();
             throw new StaffAccountException(StaffAccountExceptionInfo.invalidCredentials());

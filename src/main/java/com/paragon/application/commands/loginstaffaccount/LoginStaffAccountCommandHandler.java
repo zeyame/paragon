@@ -55,7 +55,7 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
             }
             staffAccount = optionalStaffAccount.get();
 
-            staffAccount.login(Password.fromPlainText(command.password(), passwordHasher));
+            staffAccount.login(command.password(), passwordHasher);
             staffAccountWriteRepo.update(staffAccount);
 
             RefreshToken refreshToken = RefreshToken.issue(staffAccount.getId(), IpAddress.of(command.ipAddress()), tokenHasher);

@@ -7,6 +7,7 @@ import com.paragon.domain.events.staffaccountevents.StaffAccountLoggedInEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
 import com.paragon.domain.exceptions.aggregate.StaffAccountException;
 import com.paragon.domain.exceptions.aggregate.StaffAccountExceptionInfo;
+import com.paragon.domain.interfaces.PasswordHasher;
 import com.paragon.domain.models.constants.SystemPermissions;
 import com.paragon.domain.models.valueobjects.*;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
@@ -16,7 +17,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -210,15 +211,22 @@ public class StaffAccountTests {
 
     @Nested
     class Login {
+        private final PasswordHasher passwordHasherMock;
+
+        public Login() {
+            passwordHasherMock = mock(PasswordHasher.class);
+        }
+
         @Test
         void shouldLoginSuccessfully() {
             // Given
             StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
-            String hashedPasswordValue = staffAccount.getPassword().getValue();
-            Password enteredPassword = Password.fromHashed(hashedPasswordValue);
+            String enteredPassword = "Password123?";
+            when(passwordHasherMock.verify(anyString(), anyString()))
+                    .thenReturn(true);
 
             // When
-            staffAccount.login(enteredPassword);
+            staffAccount.login(enteredPassword, passwordHasherMock);
 
             // Then
             assertThat(staffAccount.getFailedLoginAttempts().getValue()).isZero();
@@ -232,11 +240,12 @@ public class StaffAccountTests {
             StaffAccount staffAccount = new StaffAccountFixture()
                     .withFailedLoginAttempts(3)
                     .build();
-            String hashedPasswordValue = staffAccount.getPassword().getValue();
-            Password enteredPassword = Password.fromHashed(hashedPasswordValue);
+            String enteredPassword = "Password123?";
+            when(passwordHasherMock.verify(anyString(), anyString()))
+                    .thenReturn(true);
 
             // When
-            staffAccount.login(enteredPassword);
+            staffAccount.login(enteredPassword, passwordHasherMock);
 
             // Then
             assertThat(staffAccount.getFailedLoginAttempts().getValue()).isZero();
@@ -246,11 +255,12 @@ public class StaffAccountTests {
         void shouldIncreaseVersion_uponSuccessfulLogin() {
             // Given
             StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
-            String hashedPasswordValue = staffAccount.getPassword().getValue();
-            Password enteredPassword = Password.fromHashed(hashedPasswordValue);
+            String enteredPassword = "Password123?";
+            when(passwordHasherMock.verify(anyString(), anyString()))
+                    .thenReturn(true);
 
             // When
-            staffAccount.login(enteredPassword);
+            staffAccount.login(enteredPassword, passwordHasherMock);
 
             // Then
             assertThat(staffAccount.getVersion().getValue()).isEqualTo(2);
@@ -260,11 +270,12 @@ public class StaffAccountTests {
         void shouldEnqueueStaffAccountLoggedInEvent_uponSuccessfulLogin() {
             // Given
             StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
-            String hashedPasswordValue = staffAccount.getPassword().getValue();
-            Password enteredPassword = Password.fromHashed(hashedPasswordValue);
+            String enteredPassword = "Password123?";
+            when(passwordHasherMock.verify(anyString(), anyString()))
+                    .thenReturn(true);
 
             // When
-            staffAccount.login(enteredPassword);
+            staffAccount.login(enteredPassword, passwordHasherMock);
 
             // Then
             List<DomainEvent> queuedEvents = staffAccount.dequeueUncommittedEvents();
@@ -296,12 +307,9 @@ public class StaffAccountTests {
                     .withStatus(StaffAccountStatus.DISABLED)
                     .build();
 
-            String hashedPasswordValue = staffAccount.getPassword().getValue();
-            Password enteredPassword = Password.fromHashed(hashedPasswordValue);
-
             // When & Then
             assertThatExceptionOfType(StaffAccountException.class)
-                    .isThrownBy(() -> staffAccount.login(enteredPassword))
+                    .isThrownBy(() -> staffAccount.login("Correctpassword123?", passwordHasherMock))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(StaffAccountExceptionInfo.loginFailedAccountDisabled().getMessage(), StaffAccountExceptionInfo.loginFailedAccountDisabled().getDomainErrorCode());
         }
@@ -319,7 +327,7 @@ public class StaffAccountTests {
 
             // When & Then
             assertThatExceptionOfType(StaffAccountException.class)
-                    .isThrownBy(() -> staffAccount.login(enteredPassword))
+                    .isThrownBy(() -> staffAccount.login("Correctpassword123?", passwordHasherMock))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(StaffAccountExceptionInfo.loginFailedAccountLocked().getMessage(), StaffAccountExceptionInfo.loginFailedAccountLocked().getDomainErrorCode());
         }
@@ -328,11 +336,14 @@ public class StaffAccountTests {
         void shouldThrowStaffAccountException_whenEnteredPasswordIsIncorrect() {
             // Given
             StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
-            Password enteredPassword = Password.fromHashed("Incorrectpassword123!");
+            String enteredPassword = "Incorrectpassword123?";
+
+            when(passwordHasherMock.verify(anyString(), anyString()))
+                    .thenReturn(false);
 
             // When & Then
             assertThatExceptionOfType(StaffAccountException.class)
-                    .isThrownBy(() -> staffAccount.login(enteredPassword))
+                    .isThrownBy(() -> staffAccount.login(enteredPassword, passwordHasherMock))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(StaffAccountExceptionInfo.invalidCredentials().getMessage(), StaffAccountExceptionInfo.invalidCredentials().getDomainErrorCode());
         }
@@ -341,10 +352,13 @@ public class StaffAccountTests {
         void shouldIncrementFailedLoginAttempts_whenEnteredPasswordIsIncorrect() {
             // Given
             StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
-            Password enteredPassword = Password.fromHashed("Incorrectpassword123!");
+            String enteredPassword = "Incorrectpassword123?";
+
+            when(passwordHasherMock.verify(anyString(), anyString()))
+                    .thenReturn(false);
 
             // When & Then
-            assertThatThrownBy(() -> staffAccount.login(enteredPassword))
+            assertThatThrownBy(() -> staffAccount.login(enteredPassword, passwordHasherMock))
                     .isInstanceOf(StaffAccountException.class);
 
             assertThat(staffAccount.getFailedLoginAttempts().getValue()).isEqualTo(1);
@@ -356,10 +370,13 @@ public class StaffAccountTests {
             StaffAccount staffAccount = new StaffAccountFixture()
                     .withFailedLoginAttempts(4)
                     .build();
-            Password enteredPassword = Password.fromHashed("Incorrectpassword123!");
+            String enteredPassword = "Incorrectpassword123?";
+
+            when(passwordHasherMock.verify(anyString(), anyString()))
+                    .thenReturn(false);
 
             // When & Then
-            assertThatThrownBy(() -> staffAccount.login(enteredPassword))
+            assertThatThrownBy(() -> staffAccount.login(enteredPassword, passwordHasherMock))
                     .isInstanceOf(StaffAccountException.class);
 
             assertThat(staffAccount.getStatus()).isEqualTo(StaffAccountStatus.LOCKED);
@@ -369,15 +386,18 @@ public class StaffAccountTests {
         }
 
         @Test
-        void shouldEnqueueStaffAccountLockedEvent_whenAccountGetsLocked() {
+        void shouldEnqueueStaffAccountLockedEvent_whenAccountGetsLockedUponFinalLoginAttempt() {
             // Given
             StaffAccount staffAccount = new StaffAccountFixture()
                     .withFailedLoginAttempts(4)
                     .build();
-            Password enteredPassword = Password.fromHashed("Incorrectpassword123!");
+            String enteredPassword = "Incorrectpassword123?";
+
+            when(passwordHasherMock.verify(anyString(), anyString()))
+                    .thenReturn(false);
 
             // When & Then
-            assertThatThrownBy(() -> staffAccount.login(enteredPassword))
+            assertThatThrownBy(() -> staffAccount.login(enteredPassword, passwordHasherMock))
                     .isInstanceOf(StaffAccountException.class);
 
             List<DomainEvent> enqueuedEvents = staffAccount.dequeueUncommittedEvents();
@@ -411,11 +431,12 @@ public class StaffAccountTests {
                     .withStatus(StaffAccountStatus.LOCKED)
                     .withLockedUntil(Instant.now().minus(Duration.ofMinutes(1))) // expired
                     .build();
-            String hashedPasswordValue = staffAccount.getPassword().getValue();
-            Password enteredPassword = Password.fromHashed(hashedPasswordValue);
+            String enteredPassword = "Password123?";
+            when(passwordHasherMock.verify(anyString(), anyString()))
+                    .thenReturn(true);
 
             // When
-            staffAccount.login(enteredPassword);
+            staffAccount.login(enteredPassword, passwordHasherMock);
 
             // Then
             assertThat(staffAccount.getStatus()).isEqualTo(isPasswordTemporary ? StaffAccountStatus.PENDING_PASSWORD_CHANGE : StaffAccountStatus.ACTIVE);

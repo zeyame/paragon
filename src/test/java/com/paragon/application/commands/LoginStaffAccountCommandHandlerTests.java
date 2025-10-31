@@ -69,8 +69,8 @@ public class LoginStaffAccountCommandHandlerTests {
         when(staffAccountWriteRepoMock.getByUsername(any(Username.class)))
                 .thenReturn(Optional.of(staffAccountToLogin));
 
-        when(passwordHasherMock.hash(anyString()))
-                .thenReturn(staffAccountToLogin.getPassword().getValue());
+        when(passwordHasherMock.verify(anyString(), anyString()))
+                .thenReturn(true);
     }
 
     @Test
@@ -155,8 +155,8 @@ public class LoginStaffAccountCommandHandlerTests {
     void whenDomainExceptionIsThrown_shouldCatchAndTranslateToAppException() {
         // Given
         LoginStaffAccountCommand command = new LoginStaffAccountCommand(
-                "john_doe",
-                "", // force a domain exception
+                "", // forces a domain exception when constructing Username VO
+                "Password123?",
                 "192.168.1.1"
         );
 
