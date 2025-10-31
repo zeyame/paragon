@@ -41,7 +41,7 @@ public class RefreshTokenWriteRepoTests {
                      revoked_at_utc, replaced_by, version, created_at_utc, updated_at_utc)
                     VALUES
                     (:id, :staffAccountId, :tokenHash, :issuedFromIpAddress, :expiresAtUtc, :isRevoked,
-                     :revokedAtUtc, :replacedBy, :version, :createdAtUtc, :updatedAtUtc
+                     :revokedAtUtc, :replacedBy, :version, :createdAtUtc, :updatedAtUtc)
                     """;
 
             // When

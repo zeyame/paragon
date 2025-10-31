@@ -4,10 +4,7 @@ import com.paragon.domain.enums.AuditEntryActionType;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.entities.AuditTrailEntry;
-import com.paragon.domain.models.valueobjects.AuditEntryId;
-import com.paragon.domain.models.valueobjects.PermissionCode;
-import com.paragon.domain.models.valueobjects.StaffAccountId;
-import com.paragon.domain.models.valueobjects.Username;
+import com.paragon.domain.models.valueobjects.*;
 import com.paragon.infrastructure.persistence.daos.AuditTrailEntryDao;
 import com.paragon.infrastructure.persistence.daos.PermissionCodeDao;
 import com.paragon.infrastructure.persistence.daos.RefreshTokenDao;
@@ -197,6 +194,14 @@ public class TestJdbcHelper {
                 .add("updatedAtUtc", Instant.now());
 
         writeJdbcHelper.execute(new SqlStatement(sql, params));
+    }
+
+    public Optional<RefreshToken> getRefreshTokenById(RefreshTokenId refreshTokenId) {
+        String sql = "SELECT * FROM refresh_tokens WHERE id = :id";
+        SqlParamsBuilder params = new SqlParamsBuilder().add("id", refreshTokenId.getValue());
+
+        Optional<RefreshTokenDao> optionalDao = writeJdbcHelper.queryFirstOrDefault(new SqlStatement(sql, params), RefreshTokenDao.class);
+        return optionalDao.map(RefreshTokenDao::toRefreshToken);
     }
 
     public List<RefreshToken> getAllRefreshTokensByStaffAccountId(StaffAccountId staffAccountId) {
