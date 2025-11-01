@@ -57,7 +57,7 @@ public class StaffAccountControllerTests {
             MockHttpServletResponse response = result.getResponse();
             assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
 
-            String responseBody = result.getResponse().getContentAsString();
+            String responseBody = response.getContentAsString();
             ResponseDto<RegisterStaffAccountResponseDto> responseDto = objectMapper.readValue(responseBody, objectMapper.getTypeFactory().constructParametricType(ResponseDto.class, RegisterStaffAccountResponseDto.class));
 
             RegisterStaffAccountResponseDto resultBody = responseDto.result();
