@@ -4,7 +4,11 @@ import com.paragon.application.events.EventHandler;
 import com.paragon.domain.events.EventNames;
 import com.paragon.domain.events.staffaccountevents.StaffAccountLockedEvent;
 import com.paragon.domain.exceptions.DomainException;
+import com.paragon.domain.exceptions.services.RefreshTokenRevocationServiceException;
+import com.paragon.domain.exceptions.services.RefreshTokenRevocationServiceExceptionInfo;
+import com.paragon.domain.interfaces.repos.RefreshTokenWriteRepo;
 import com.paragon.domain.interfaces.services.RefreshTokenRevocationService;
+import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,29 +18,31 @@ import java.util.List;
 
 @Component
 public class StaffAccountRefreshTokenRevocationHandler implements EventHandler<StaffAccountLockedEvent> {
-    private final RefreshTokenRevocationService refreshTokenRevocationService;
+    private final RefreshTokenWriteRepo refreshTokenWriteRepo;
     private static final Logger log = LoggerFactory.getLogger(StaffAccountRefreshTokenRevocationHandler.class);
 
-    public StaffAccountRefreshTokenRevocationHandler(RefreshTokenRevocationService refreshTokenRevocationService) {
-        this.refreshTokenRevocationService = refreshTokenRevocationService;
+    public StaffAccountRefreshTokenRevocationHandler(RefreshTokenWriteRepo refreshTokenWriteRepo) {
+        this.refreshTokenWriteRepo = refreshTokenWriteRepo;
     }
 
     @Override
     public void handle(StaffAccountLockedEvent event) {
-        log.info("Handling StaffAccountLockedEvent for staffAccountId={} - revoking all refresh tokens",
-                event.getStaffAccountId().getValue());
-
         try {
-            refreshTokenRevocationService.revokeAllTokensForStaffAccount(event.getStaffAccountId());
+            log.info("Attempting to revoke all active refresh tokens for staff account with ID: {}, in event: {}",
+                    event.getStaffAccountId().getValue(), event.getEventName());
 
-            log.info("Successfully revoked all refresh tokens for staffAccountId={}",
-                    event.getStaffAccountId().getValue());
+            List<RefreshToken> activeTokens = refreshTokenWriteRepo.getActiveTokensByStaffAccountId(event.getStaffAccountId());
+            activeTokens.forEach(RefreshToken::revoke);
+            refreshTokenWriteRepo.updateAll(activeTokens);
+
+            log.info("Successfully revoked {} active refresh token(s) for staff account with ID: {}, in event: {}",
+                    activeTokens.size(), event.getStaffAccountId().getValue(), event.getEventName());
         } catch (DomainException ex) {
-            log.error("Domain rule violation while revoking refresh tokens for staffAccountId={}: {}",
-                    event.getStaffAccountId().getValue(), ex.getMessage(), ex);
+            log.error("Domain rule violation while revoking refresh tokens for staff account with ID={}, in event: {}. Error reason: {}",
+                    event.getStaffAccountId().getValue(), event.getEventName(), ex.getMessage(), ex);
         } catch (InfraException ex) {
-            log.error("Infrastructure error occurred while revoking refresh tokens for staffAccountId={}",
-                    event.getStaffAccountId().getValue(), ex);
+            log.error("Infrastructure related error occurred while revoking refresh tokens for staff account with ID={}, in event: {}. Error reason: {}",
+                    event.getStaffAccountId().getValue(), event.getEventName(), ex.getMessage(), ex);
         }
     }
 
