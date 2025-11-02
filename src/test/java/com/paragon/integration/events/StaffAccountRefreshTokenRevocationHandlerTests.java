@@ -1,7 +1,5 @@
 package com.paragon.integration.events;
 
-
-
 import com.paragon.application.events.EventBusImpl;
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.events.staffaccountevents.StaffAccountLockedEvent;

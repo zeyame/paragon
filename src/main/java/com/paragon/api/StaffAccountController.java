@@ -34,11 +34,11 @@ public class StaffAccountController {
     public StaffAccountController(
             CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> registerStaffAccountCommandHandler,
             QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> getAllStaffAccountsQueryHandler,
-            HttpContextHelper httpContextHelper) {
+            HttpContextHelper httpContextHelper, TaskExecutor taskExecutor) {
         this.registerStaffAccountCommandHandler = registerStaffAccountCommandHandler;
         this.getAllStaffAccountsQueryHandler = getAllStaffAccountsQueryHandler;
         this.httpContextHelper = httpContextHelper;
-        this.taskExecutor = Runnable::run;
+        this.taskExecutor = taskExecutor;
     }
 
     @PostMapping

@@ -45,11 +45,15 @@ public class StaffAccountControllerTests {
             registerStaffAccountCommandHandlerMock = mock(RegisterStaffAccountCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
             httpContextHelperMock = mock(HttpContextHelper.class);
+            TaskExecutor taskExecutor = Runnable::run;
 
             requestingStaffId = UUID.randomUUID().toString();
             when(httpContextHelperMock.getAuthenticatedStaffId()).thenReturn(requestingStaffId);
 
-            sut = new StaffAccountController(registerStaffAccountCommandHandlerMock, getAllStaffAccountsQueryHandlerMock, httpContextHelperMock);
+            sut = new StaffAccountController(
+                    registerStaffAccountCommandHandlerMock, getAllStaffAccountsQueryHandlerMock,
+                    httpContextHelperMock, taskExecutor
+            );
 
             commandResponse = new RegisterStaffAccountCommandResponse(
                     "id", "username123", "pending_password_change", 1
@@ -156,8 +160,12 @@ public class StaffAccountControllerTests {
             registerStaffAccountCommandHandlerMock = mock(RegisterStaffAccountCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
             httpContextHelperMock = mock(HttpContextHelper.class);
+            TaskExecutor taskExecutor = Runnable::run;
 
-            sut = new StaffAccountController(registerStaffAccountCommandHandlerMock, getAllStaffAccountsQueryHandlerMock, httpContextHelperMock);
+            sut = new StaffAccountController(
+                    registerStaffAccountCommandHandlerMock, getAllStaffAccountsQueryHandlerMock,
+                    httpContextHelperMock, taskExecutor
+            );
 
             queryResponse = new GetAllStaffAccountsQueryResponse(List.of(
                     new StaffAccountSummary(
