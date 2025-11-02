@@ -87,7 +87,10 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         throwIfAccountIsDisabled();
         throwIfAccountIsLocked();
 
-        if (!authenticatePassword(plaintextPassword, passwordHasher)) {
+        if (!validPassword(plaintextPassword, passwordHasher)) {
+            failedLoginAttempts = failedLoginAttempts.increment();
+            increaseVersion();
+            lockAccountIfMaxLoginAttemptsReached();
             return LoginResult.ofFailure();
         }
 
@@ -114,10 +117,6 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
                 createdBy, disabledBy,
                 permissionCodes, version
         );
-    }
-
-    public boolean canRegisterOtherStaffAccounts() {
-        return permissionCodes.contains(SystemPermissions.MANAGE_ACCOUNTS);
     }
 
     public boolean requiresPasswordReset() {
@@ -177,15 +176,10 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         failedLoginAttempts = failedLoginAttempts.reset();
     }
 
-    private boolean authenticatePassword(String plaintextPassword, PasswordHasher passwordHasher) {
-        if (!this.password.matches(plaintextPassword, passwordHasher)) {
-            failedLoginAttempts = failedLoginAttempts.increment();
-            increaseVersion();
-            lockAccountIfMaxLoginAttemptsReached();
-            return false;
-        }
-        return true;
+    private boolean validPassword(String plaintextPassword, PasswordHasher passwordHasher) {
+        return this.password.matches(plaintextPassword, passwordHasher);
     }
+
 
     private void lockAccountIfMaxLoginAttemptsReached() {
         if (failedLoginAttempts.hasReachedMax()) {
