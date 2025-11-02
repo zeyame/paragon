@@ -159,8 +159,8 @@ public class AuthControllerTests {
             assertThat(result).isNull();
             assertThat(errorDto).isNotNull();
 
-            assertThat(errorDto.message()).isEqualTo(StaffAccountExceptionInfo.invalidCredentials().getMessage());
-            assertThat(errorDto.code()).isEqualTo(StaffAccountExceptionInfo.invalidCredentials().getDomainErrorCode());
+            assertThat(errorDto.message()).isEqualTo(AppExceptionInfo.invalidLoginCredentials().getMessage());
+            assertThat(errorDto.code()).isEqualTo(AppExceptionInfo.invalidLoginCredentials().getAppErrorCode());
         }
 
         @Test

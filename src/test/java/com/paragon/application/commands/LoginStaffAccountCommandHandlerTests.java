@@ -151,6 +151,26 @@ public class LoginStaffAccountCommandHandlerTests {
         verify(staffAccountWriteRepoMock, never()).update(any(StaffAccount.class));
     }
 
+
+    @Test
+    void whenPasswordIsInvalid_shouldUpdateStaffAccountAndThrowAppException() {
+        // Given
+        when(passwordHasherMock.verify(anyString(), anyString()))
+                .thenReturn(false);
+
+        ArgumentCaptor<StaffAccount> staffAccountArgumentCaptor = ArgumentCaptor.forClass(StaffAccount.class);
+
+        // When & Then
+        assertThatThrownBy(() -> sut.handle(command))
+                .isInstanceOf(AppException.class);
+
+        verify(staffAccountWriteRepoMock, times(1)).update(staffAccountArgumentCaptor.capture());
+        StaffAccount updatedStaffAccount = staffAccountArgumentCaptor.getValue();
+
+        // Verify failed login attempts were incremented
+        assertThat(updatedStaffAccount.getFailedLoginAttempts().getValue()).isEqualTo(1);
+    }
+
     @Test
     void whenDomainExceptionIsThrown_shouldCatchAndTranslateToAppException() {
         // Given

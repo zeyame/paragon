@@ -369,6 +369,23 @@ public class StaffAccountTests {
         }
 
         @Test
+        void shouldIncreaseVersion_whenEnteredPasswordIsIncorrect() {
+            // Given
+            StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
+            String enteredPassword = "Incorrectpassword123?";
+
+            when(passwordHasherMock.verify(anyString(), anyString()))
+                    .thenReturn(false);
+
+            // When
+            LoginResult result = staffAccount.login(enteredPassword, passwordHasherMock);
+
+            // Then
+            assertThat(result.isFailed()).isTrue();
+            assertThat(staffAccount.getVersion().getValue()).isEqualTo(2);
+        }
+
+        @Test
         void locksAccountForFifteenMinutes_whenMaximumFailedLoginAttemptsAreReached() {
             // Given
             StaffAccount staffAccount = new StaffAccountFixture()
@@ -426,7 +443,7 @@ public class StaffAccountTests {
             assertThat(event.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
             assertThat(event.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
             assertThat(event.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
-            assertThat(event.getStaffAccountVersion()).isEqualTo(staffAccount.getVersion());
+            assertThat(event.getStaffAccountVersion().getValue()).isEqualTo(2);
         }
 
         @ParameterizedTest

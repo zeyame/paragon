@@ -13,6 +13,7 @@ import com.paragon.domain.interfaces.repos.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.IpAddress;
+import com.paragon.domain.models.valueobjects.LoginResult;
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
@@ -54,7 +55,12 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
             }
             staffAccount = optionalStaffAccount.get();
 
-            staffAccount.login(command.password(), passwordHasher);
+            LoginResult loginResult = staffAccount.login(command.password(), passwordHasher);
+            if (loginResult.isFailed()) {
+                staffAccountWriteRepo.update(staffAccount);
+                throw new AppException(AppExceptionInfo.invalidLoginCredentials());
+            }
+
             staffAccountWriteRepo.update(staffAccount);
 
             RefreshToken refreshToken = RefreshToken.issue(staffAccount.getId(), IpAddress.of(command.ipAddress()), tokenHasher);

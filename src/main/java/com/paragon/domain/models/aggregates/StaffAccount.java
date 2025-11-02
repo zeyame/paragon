@@ -180,6 +180,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     private boolean authenticatePassword(String plaintextPassword, PasswordHasher passwordHasher) {
         if (!this.password.matches(plaintextPassword, passwordHasher)) {
             failedLoginAttempts = failedLoginAttempts.increment();
+            increaseVersion();
             lockAccountIfMaxLoginAttemptsReached();
             return false;
         }
