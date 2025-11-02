@@ -83,16 +83,20 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         return account;
     }
 
-    public void login(String plaintextPassword, PasswordHasher passwordHasher) {
+    public LoginResult login(String plaintextPassword, PasswordHasher passwordHasher) {
         throwIfAccountIsDisabled();
         throwIfAccountIsLocked();
 
-        authenticatePassword(plaintextPassword, passwordHasher);
-        failedLoginAttempts = failedLoginAttempts.reset();
+        if (!authenticatePassword(plaintextPassword, passwordHasher)) {
+            return LoginResult.ofFailure();
+        }
 
+        failedLoginAttempts = failedLoginAttempts.reset();
         lastLoginAt = Instant.now();
         increaseVersion();
         enqueue(new StaffAccountLoggedInEvent(this));
+
+        return LoginResult.ofSuccess();
     }
 
     public static StaffAccount createFrom(StaffAccountId id, Username username, Email email, Password password,
@@ -173,12 +177,13 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         failedLoginAttempts = failedLoginAttempts.reset();
     }
 
-    private void authenticatePassword(String plaintextPassword, PasswordHasher passwordHasher) {
+    private boolean authenticatePassword(String plaintextPassword, PasswordHasher passwordHasher) {
         if (!this.password.matches(plaintextPassword, passwordHasher)) {
             failedLoginAttempts = failedLoginAttempts.increment();
             lockAccountIfMaxLoginAttemptsReached();
-            throw new StaffAccountException(StaffAccountExceptionInfo.invalidCredentials());
+            return false;
         }
+        return true;
     }
 
     private void lockAccountIfMaxLoginAttemptsReached() {

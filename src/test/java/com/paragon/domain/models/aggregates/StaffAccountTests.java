@@ -226,9 +226,11 @@ public class StaffAccountTests {
                     .thenReturn(true);
 
             // When
-            staffAccount.login(enteredPassword, passwordHasherMock);
+            LoginResult result = staffAccount.login(enteredPassword, passwordHasherMock);
 
             // Then
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(result.failureReason()).isNull();
             assertThat(staffAccount.getFailedLoginAttempts().getValue()).isZero();
             assertThat(staffAccount.getLastLoginAt()).isNotNull();
             assertThat(staffAccount.getLastLoginAt()).isBeforeOrEqualTo(Instant.now());
@@ -333,7 +335,7 @@ public class StaffAccountTests {
         }
 
         @Test
-        void shouldThrowStaffAccountException_whenEnteredPasswordIsIncorrect() {
+        void shouldReturnFailedLoginResult_whenEnteredPasswordIsIncorrect() {
             // Given
             StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
             String enteredPassword = "Incorrectpassword123?";
@@ -341,11 +343,12 @@ public class StaffAccountTests {
             when(passwordHasherMock.verify(anyString(), anyString()))
                     .thenReturn(false);
 
-            // When & Then
-            assertThatExceptionOfType(StaffAccountException.class)
-                    .isThrownBy(() -> staffAccount.login(enteredPassword, passwordHasherMock))
-                    .extracting("message", "domainErrorCode")
-                    .containsExactly(StaffAccountExceptionInfo.invalidCredentials().getMessage(), StaffAccountExceptionInfo.invalidCredentials().getDomainErrorCode());
+            // When
+            LoginResult result = staffAccount.login(enteredPassword, passwordHasherMock);
+
+            // Then
+            assertThat(result.isFailed()).isTrue();
+            assertThat(result.failureReason()).isEqualTo("Invalid credentials");
         }
 
         @Test
@@ -357,10 +360,11 @@ public class StaffAccountTests {
             when(passwordHasherMock.verify(anyString(), anyString()))
                     .thenReturn(false);
 
-            // When & Then
-            assertThatThrownBy(() -> staffAccount.login(enteredPassword, passwordHasherMock))
-                    .isInstanceOf(StaffAccountException.class);
+            // When
+            LoginResult result = staffAccount.login(enteredPassword, passwordHasherMock);
 
+            // Then
+            assertThat(result.isFailed()).isTrue();
             assertThat(staffAccount.getFailedLoginAttempts().getValue()).isEqualTo(1);
         }
 
@@ -375,10 +379,11 @@ public class StaffAccountTests {
             when(passwordHasherMock.verify(anyString(), anyString()))
                     .thenReturn(false);
 
-            // When & Then
-            assertThatThrownBy(() -> staffAccount.login(enteredPassword, passwordHasherMock))
-                    .isInstanceOf(StaffAccountException.class);
+            // When
+            LoginResult result = staffAccount.login(enteredPassword, passwordHasherMock);
 
+            // Then
+            assertThat(result.isFailed()).isTrue();
             assertThat(staffAccount.getStatus()).isEqualTo(StaffAccountStatus.LOCKED);
             assertThat(staffAccount.getLockedUntil())
                     .isNotNull()
@@ -396,9 +401,11 @@ public class StaffAccountTests {
             when(passwordHasherMock.verify(anyString(), anyString()))
                     .thenReturn(false);
 
-            // When & Then
-            assertThatThrownBy(() -> staffAccount.login(enteredPassword, passwordHasherMock))
-                    .isInstanceOf(StaffAccountException.class);
+            // When
+            LoginResult result = staffAccount.login(enteredPassword, passwordHasherMock);
+
+            // Then
+            assertThat(result.isFailed()).isTrue();
 
             List<DomainEvent> enqueuedEvents = staffAccount.dequeueUncommittedEvents();
             assertThat(enqueuedEvents).hasSize(1);
