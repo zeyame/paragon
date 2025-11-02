@@ -9,9 +9,9 @@ import com.paragon.infrastructure.persistence.daos.AuditTrailEntryDao;
 import com.paragon.infrastructure.persistence.daos.PermissionCodeDao;
 import com.paragon.infrastructure.persistence.daos.RefreshTokenDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountDao;
-import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
-import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
-import com.paragon.infrastructure.persistence.jdbc.SqlStatement;
+import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
+import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
+import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;

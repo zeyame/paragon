@@ -7,7 +7,7 @@ import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.helpers.TestJdbcHelper;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
-import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
+import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
 import com.paragon.infrastructure.persistence.repos.StaffAccountWriteRepoImpl;
 import com.paragon.integration.IntegrationTestBase;
 import org.junit.jupiter.api.DisplayNameGeneration;

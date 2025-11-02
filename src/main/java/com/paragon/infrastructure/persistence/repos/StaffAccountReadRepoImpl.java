@@ -5,9 +5,9 @@ import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.infrastructure.persistence.daos.StaffAccountIdDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountPermissionDao;
-import com.paragon.infrastructure.persistence.jdbc.ReadJdbcHelper;
-import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
-import com.paragon.infrastructure.persistence.jdbc.SqlStatement;
+import com.paragon.infrastructure.persistence.jdbc.helpers.ReadJdbcHelper;
+import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
+import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
 import org.springframework.stereotype.Repository;
 

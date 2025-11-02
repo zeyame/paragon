@@ -65,7 +65,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         this.lastLoginAt = lastLoginAt;
         this.createdBy = createdBy;
         this.disabledBy = disabledBy;
-        this.permissionCodes = permissionCodes;
+        this.permissionCodes = List.copyOf(permissionCodes);
         this.version = version;
     }
 

@@ -8,7 +8,7 @@ import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.helpers.TestJdbcHelper;
 import com.paragon.helpers.fixtures.RefreshTokenFixture;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
-import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
+import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
 import com.paragon.integration.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

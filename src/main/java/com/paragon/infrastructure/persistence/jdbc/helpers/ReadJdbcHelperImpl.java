@@ -1,5 +1,6 @@
-package com.paragon.infrastructure.persistence.jdbc;
+package com.paragon.infrastructure.persistence.jdbc.helpers;
 
+import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.DataClassRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;

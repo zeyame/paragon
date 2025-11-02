@@ -1,4 +1,4 @@
-package com.paragon.infrastructure.persistence.jdbc;
+package com.paragon.infrastructure.persistence.jdbc.sql;
 
 import java.sql.Timestamp;
 import java.time.Instant;

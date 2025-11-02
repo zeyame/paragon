@@ -1,4 +1,4 @@
-package com.paragon.infrastructure.persistence;
+package com.paragon.infrastructure.persistence.repos;
 
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
@@ -6,10 +6,8 @@ import com.paragon.helpers.fixtures.RefreshTokenDaoFixture;
 import com.paragon.helpers.fixtures.RefreshTokenFixture;
 import com.paragon.infrastructure.persistence.daos.RefreshTokenDao;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
-import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
-import com.paragon.infrastructure.persistence.jdbc.SqlStatement;
-import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
-import com.paragon.infrastructure.persistence.repos.RefreshTokenWriteRepoImpl;
+import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
+import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;

@@ -4,9 +4,9 @@ import com.paragon.domain.interfaces.repos.RefreshTokenWriteRepo;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.infrastructure.persistence.daos.RefreshTokenDao;
-import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
-import com.paragon.infrastructure.persistence.jdbc.SqlStatement;
-import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
+import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
+import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
+import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;

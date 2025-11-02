@@ -2,9 +2,9 @@ package com.paragon.infrastructure.persistence.repos;
 
 import com.paragon.domain.interfaces.repos.AuditTrailWriteRepo;
 import com.paragon.domain.models.entities.AuditTrailEntry;
-import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
-import com.paragon.infrastructure.persistence.jdbc.SqlStatement;
-import com.paragon.infrastructure.persistence.jdbc.WriteJdbcHelper;
+import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
+import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
+import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;

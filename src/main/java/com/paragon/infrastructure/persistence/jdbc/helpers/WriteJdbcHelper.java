@@ -1,4 +1,6 @@
-package com.paragon.infrastructure.persistence.jdbc;
+package com.paragon.infrastructure.persistence.jdbc.helpers;
+
+import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
 
 import java.util.List;
 import java.util.Optional;

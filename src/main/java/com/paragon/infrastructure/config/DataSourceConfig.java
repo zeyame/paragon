@@ -1,5 +1,6 @@
 package com.paragon.infrastructure.config;
 
+import com.paragon.infrastructure.persistence.jdbc.transaction.UnitOfWorkAwareDataSource;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
@@ -25,9 +26,10 @@ public class DataSourceConfig {
     @Primary
     @ConfigurationProperties("spring.datasource.write")
     public DataSource writeDataSource(@Qualifier("writeDataSourceProperties") DataSourceProperties properties) {
-        return properties.initializeDataSourceBuilder()
+        DataSource hikariDataSource = properties.initializeDataSourceBuilder()
                 .type(HikariDataSource.class)
                 .build();
+        return new UnitOfWorkAwareDataSource(hikariDataSource);
     }
 
     @Bean

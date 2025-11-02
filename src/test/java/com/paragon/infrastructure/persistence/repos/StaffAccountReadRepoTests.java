@@ -1,14 +1,12 @@
-package com.paragon.infrastructure.persistence;
+package com.paragon.infrastructure.persistence.repos;
 
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.infrastructure.persistence.daos.StaffAccountIdDao;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
-import com.paragon.infrastructure.persistence.jdbc.ReadJdbcHelper;
-import com.paragon.infrastructure.persistence.jdbc.SqlParamsBuilder;
-import com.paragon.infrastructure.persistence.jdbc.SqlStatement;
+import com.paragon.infrastructure.persistence.jdbc.helpers.ReadJdbcHelper;
+import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
-import com.paragon.infrastructure.persistence.repos.StaffAccountReadRepoImpl;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;

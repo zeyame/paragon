@@ -1,6 +1,7 @@
-package com.paragon.infrastructure.persistence.jdbc;
+package com.paragon.infrastructure.persistence.jdbc.helpers;
 
 import com.paragon.infrastructure.persistence.exceptions.InfraExceptionHandler;
+import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
@@ -33,14 +34,12 @@ public class WriteJdbcHelperImpl implements WriteJdbcHelper {
     }
 
     @Override
-    @Transactional
     public void executeMultiple(List<SqlStatement> queries) {
         try {
             for (SqlStatement query : queries) {
                 jdbc.update(query.sql(), query.params().build());
             }
         } catch (DataAccessException e) {
-            log.error("e: ", e);
             throw infraExceptionHandler.handleDatabaseException(e);
         }
     }
@@ -50,7 +49,6 @@ public class WriteJdbcHelperImpl implements WriteJdbcHelper {
         try {
             return jdbc.query(sqlStatement.sql(), sqlStatement.params().build(), DataClassRowMapper.newInstance(type));
         } catch (DataAccessException e) {
-            log.error("e: ", e);
             throw infraExceptionHandler.handleDatabaseException(e);
         }
     }
