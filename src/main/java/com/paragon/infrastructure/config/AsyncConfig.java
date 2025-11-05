@@ -9,6 +9,8 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
 import java.util.Map;
 
@@ -33,16 +35,21 @@ public class AsyncConfig {
         public Runnable decorate(Runnable runnable) {
             Map<String, String> contextMap = MDC.getCopyOfContextMap();
             SecurityContext context = SecurityContextHolder.getContext();
+            RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
 
             return () -> {
                 try {
                     if (contextMap != null) MDC.setContextMap(contextMap);
                     SecurityContextHolder.setContext(context);
+                    if (requestAttributes != null) {
+                        RequestContextHolder.setRequestAttributes(requestAttributes);
+                    }
 
                     runnable.run();
                 } finally {
                     MDC.clear();
                     SecurityContextHolder.clearContext();
+                    org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();
                 }
             };
         }

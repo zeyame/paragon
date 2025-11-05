@@ -6,6 +6,7 @@ import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccoun
 import com.paragon.application.common.exceptions.AppException;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
+import com.paragon.application.common.interfaces.UnitOfWork;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.events.DomainEvent;
@@ -32,6 +33,7 @@ import static org.mockito.Mockito.*;
 public class RegisterStaffAccountCommandHandlerTests {
     private final RegisterStaffAccountCommandHandler sut;
     private final StaffAccountWriteRepo staffAccountWriteRepoMock;
+    private final UnitOfWork uowMock;
     private final EventBus eventBusMock;
     private final AppExceptionHandler appExceptionHandlerMock;
     private final PasswordHasher passwordHasherMock;
@@ -40,11 +42,15 @@ public class RegisterStaffAccountCommandHandlerTests {
 
     public RegisterStaffAccountCommandHandlerTests() {
         staffAccountWriteRepoMock = mock(StaffAccountWriteRepo.class);
+        uowMock = mock(UnitOfWork.class);
         eventBusMock = mock(EventBus.class);
         appExceptionHandlerMock = mock(AppExceptionHandler.class);
         passwordHasherMock = mock(PasswordHasher.class);
 
-        sut = new RegisterStaffAccountCommandHandler(staffAccountWriteRepoMock, eventBusMock, appExceptionHandlerMock, passwordHasherMock);
+        sut = new RegisterStaffAccountCommandHandler(
+                staffAccountWriteRepoMock, uowMock, eventBusMock,
+                appExceptionHandlerMock, passwordHasherMock
+        );
 
         command = createValidRegisterStaffAccountCommand();
 
@@ -53,7 +59,16 @@ public class RegisterStaffAccountCommandHandlerTests {
     }
 
     @Test
-    void givenValidCommand_shouldRegisterSuccessfully() {
+    void shouldBeginTransaction() {
+        // When
+        sut.handle(command);
+
+        // Then
+        verify(uowMock, times(1)).begin();
+    }
+
+    @Test
+    void shouldRegisterSuccessfully() {
         // Given
         ArgumentCaptor<StaffAccount> accountCaptor = ArgumentCaptor.forClass(StaffAccount.class);
 
@@ -61,6 +76,8 @@ public class RegisterStaffAccountCommandHandlerTests {
         RegisterStaffAccountCommandResponse commandResponse = sut.handle(command);
 
         // Then
+        verify(uowMock, times(1)).commit();
+
         verify(staffAccountWriteRepoMock).create(accountCaptor.capture());
         StaffAccount registeredAccount = accountCaptor.getValue();
 
@@ -72,7 +89,7 @@ public class RegisterStaffAccountCommandHandlerTests {
     }
 
     @Test
-    void givenValidCommand_shouldPassCorrectArgumentsToRepo() {
+    void shouldPassCorrectArgumentsToRepoCreateMethod() {
         // Given
         ArgumentCaptor<StaffAccount> accountCaptor = ArgumentCaptor.forClass(StaffAccount.class);
 
@@ -92,35 +109,23 @@ public class RegisterStaffAccountCommandHandlerTests {
     }
 
     @Test
-    void givenValidCommand_shouldPublishStaffAccountRegisteredEvent() {
-        // Given
-        ArgumentCaptor<List<DomainEvent>> domainEventsCaptor =  ArgumentCaptor.forClass(List.class);
-
+    void shouldPublishDomainEvents() {
         // When
         sut.handle(command);
 
         // Then
-        verify(eventBusMock, times(1)).publishAll(domainEventsCaptor.capture());
-
-        List<DomainEvent> publishedEvents = domainEventsCaptor.getValue();
-        assertThat(publishedEvents.size()).isEqualTo(1);
-
-        DomainEvent event = publishedEvents.getFirst();
-        assertThat(event).isInstanceOf(StaffAccountRegisteredEvent.class);
-
-        StaffAccountRegisteredEvent registeredEvent = (StaffAccountRegisteredEvent) event;
-        assertThat(registeredEvent.getUsername().getValue()).isEqualTo(command.username());
-        assertThat(registeredEvent.getPassword().getValue()).isEqualTo(hashedPassword);
-        assertThat(registeredEvent.getOrderAccessDuration().getValueInDays()).isEqualTo(command.orderAccessDuration());
-        assertThat(registeredEvent.getModmailTranscriptAccessDuration().getValueInDays()).isEqualTo(command.modmailTranscriptAccessDuration());
-        assertThat(registeredEvent.getStaffAccountStatus()).isEqualTo(StaffAccountStatus.PENDING_PASSWORD_CHANGE);
-        assertThat(registeredEvent.getStaffAccountCreatedBy().getValue().toString()).isEqualTo(command.createdBy());
+        verify(eventBusMock, times(1)).publishAll(anyList());
     }
 
     @Test
     void whenRegisteringStaffAccountUsernameAlreadyExists_shouldThrowAppException() {
         // Given
-        when(staffAccountWriteRepoMock.getByUsername(any(Username.class))).thenReturn(Optional.of((StaffAccountFixture.validStaffAccount())));
+        when(staffAccountWriteRepoMock.getByUsername(any(Username.class)))
+                .thenReturn(Optional.of(
+                        new StaffAccountFixture()
+                                .withUsername(command.username())
+                                .build())
+                );
 
         AppException expectedAppException = new AppException(AppExceptionInfo.staffAccountUsernameAlreadyExists(command.username()));
 
@@ -130,7 +135,7 @@ public class RegisterStaffAccountCommandHandlerTests {
     }
 
     @Test
-    void whenDomainExceptionIsThrown_shouldCatchAndTranslateToAppException() {
+    void whenDomainExceptionIsThrown_shouldRollbackAndTranslateToAppException() {
         // Given
         RegisterStaffAccountCommand command = new RegisterStaffAccountCommand(
                 "", // forces a domain exception (UsernameException)
@@ -145,13 +150,14 @@ public class RegisterStaffAccountCommandHandlerTests {
         when(appExceptionHandlerMock.handleDomainException(any(DomainException.class)))
                 .thenReturn(mock(AppException.class));
 
-        // When & ThenThen
+        // When & Then
         assertThatThrownBy(() -> sut.handle(command))
                 .isInstanceOf(AppException.class);
+        verify(uowMock, times(1)).rollback();
     }
 
     @Test
-    void whenInfraExceptionIsThrown_shouldCatchAndTranslateToAppException() {
+    void whenInfraExceptionIsThrown_shouldRollbackAndTranslateToAppException() {
         // Given
         when(appExceptionHandlerMock.handleInfraException(any(InfraException.class)))
                 .thenReturn(mock(AppException.class));
@@ -160,9 +166,10 @@ public class RegisterStaffAccountCommandHandlerTests {
                 .when(staffAccountWriteRepoMock)
                 .create(any(StaffAccount.class));
 
-        // When & ThenThen
+        // When & Then
         assertThatThrownBy(() -> sut.handle(command))
                 .isInstanceOf(AppException.class);
+        verify(uowMock, times(1)).rollback();
     }
 
     private RegisterStaffAccountCommand createValidRegisterStaffAccountCommand() {

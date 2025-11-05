@@ -27,11 +27,12 @@ public class AuthController {
     private final TaskExecutor taskExecutor;
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
-    public AuthController(LoginStaffAccountCommandHandler loginStaffAccountCommandHandler, HttpContextHelper httpContextHelper, JwtGenerator jwtGenerator) {
+    public AuthController(LoginStaffAccountCommandHandler loginStaffAccountCommandHandler, HttpContextHelper httpContextHelper,
+                          JwtGenerator jwtGenerator, TaskExecutor taskExecutor) {
         this.loginStaffAccountCommandHandler = loginStaffAccountCommandHandler;
         this.httpContextHelper = httpContextHelper;
         this.jwtGenerator = jwtGenerator;
-        this.taskExecutor = Runnable::run;
+        this.taskExecutor = taskExecutor;
     }
 
     @PostMapping("/login")

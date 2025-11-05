@@ -78,6 +78,15 @@ public class LoginStaffAccountCommandHandlerTests {
     }
 
     @Test
+    void shouldBeginTransaction() {
+        // When
+        sut.handle(command);
+
+        // Then
+        verify(uowMock, times(1)).begin();
+    }
+
+    @Test
     void shouldLoginSuccessfully() {
         // Given
         ArgumentCaptor<StaffAccount> staffAccountArgumentCaptor = ArgumentCaptor.forClass(StaffAccount.class);
@@ -94,6 +103,8 @@ public class LoginStaffAccountCommandHandlerTests {
         assertThat(loggedInStaffAccount.getUsername()).isEqualTo(staffAccountToLogin.getUsername());
         assertThat(loggedInStaffAccount.getPassword()).isEqualTo(staffAccountToLogin.getPassword());
         assertThat(loggedInStaffAccount.getLastLoginAt()).isAfterOrEqualTo(staffAccountToLogin.getLastLoginAt());
+
+        verify(uowMock, times(1)).commit();
     }
 
     @Test

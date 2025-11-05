@@ -50,6 +50,7 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
 
     @Override
     public LoginStaffAccountCommandResponse handle(LoginStaffAccountCommand command) {
+        uow.begin();
         StaffAccount staffAccount = null;
         try {
             Optional<StaffAccount> optionalStaffAccount = staffAccountWriteRepo.getByUsername(Username.of(command.username()));
@@ -92,14 +93,14 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
                     staffAccount.getVersion().getValue()
             );
         } catch (DomainException ex) {
-            uow.rollback();
             log.error("Staff account login failed for username='{}': domain rule violation - {}",
                     command.username(), ex.getMessage(), ex);
+            uow.rollback();
             throw appExceptionHandler.handleDomainException(ex);
         } catch (InfraException ex) {
-            uow.rollback();
             log.error("Staff account login failed for username='{}': infrastructure related error occurred - {}",
                     command.username(), ex.getMessage(), ex);
+            uow.rollback();
             throw appExceptionHandler.handleInfraException(ex);
         } finally {
             if (staffAccount != null) {

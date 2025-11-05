@@ -12,6 +12,7 @@ import com.paragon.application.common.exceptions.AppException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -40,11 +41,15 @@ public class AuthControllerTests {
             loginStaffAccountCommandHandlerMock = mock(LoginStaffAccountCommandHandler.class);
             httpContextHelperMock = mock(HttpContextHelper.class);
             jwtGeneratorMock = mock(JwtGenerator.class);
+            TaskExecutor taskExecutor = Runnable::run;
 
             when(httpContextHelperMock.extractIpAddress()).thenReturn("192.168.1.1");
             when(jwtGeneratorMock.generateAccessToken(anyString(), any(List.class))).thenReturn("generated.jwt.token");
 
-            sut = new AuthController(loginStaffAccountCommandHandlerMock, httpContextHelperMock, jwtGeneratorMock);
+            sut = new AuthController(
+                    loginStaffAccountCommandHandlerMock, httpContextHelperMock,
+                    jwtGeneratorMock, taskExecutor
+            );
 
             requestDto = createValidLoginStaffAccountRequestDto();
             commandResponse = new LoginStaffAccountCommandResponse(

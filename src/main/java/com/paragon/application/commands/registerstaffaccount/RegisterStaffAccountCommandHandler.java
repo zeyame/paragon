@@ -4,6 +4,7 @@ import com.paragon.application.commands.CommandHandler;
 import com.paragon.application.common.exceptions.AppException;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
+import com.paragon.application.common.interfaces.UnitOfWork;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.PasswordHasher;
@@ -21,16 +22,18 @@ import java.util.stream.Collectors;
 public class RegisterStaffAccountCommandHandler implements CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> {
 
     private final StaffAccountWriteRepo staffAccountWriteRepo;
+    private final UnitOfWork uow;
     private final EventBus eventBus;
     private final AppExceptionHandler appExceptionHandler;
     private final PasswordHasher passwordHasher;
     private static final Logger log = LoggerFactory.getLogger(RegisterStaffAccountCommandHandler.class);
 
-    public RegisterStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo,
+    public RegisterStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo, UnitOfWork uow,
                                               EventBus eventBus, AppExceptionHandler appExceptionHandler,
                                               PasswordHasher passwordHasher
     ) {
         this.staffAccountWriteRepo = staffAccountWriteRepo;
+        this.uow = uow;
         this.eventBus = eventBus;
         this.appExceptionHandler = appExceptionHandler;
         this.passwordHasher = passwordHasher;
@@ -38,6 +41,7 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
 
     @Override
     public RegisterStaffAccountCommandResponse handle(RegisterStaffAccountCommand command) {
+        uow.begin();
         try {
             assertUniqueUsername(command.username());
 
@@ -53,6 +57,8 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
             staffAccountWriteRepo.create(staffAccount);
 
             eventBus.publishAll(staffAccount.dequeueUncommittedEvents());
+
+            uow.commit();
 
             log.info(
                     "Staff account registered: id={}, username={}, status={}, registeredBy={}",
@@ -71,10 +77,12 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
         } catch (DomainException ex) {
             log.error("Staff account registration failed for createdBy={}: domain rule violation - {}",
                     command.createdBy(), ex.getMessage(), ex);
+            uow.rollback();
             throw appExceptionHandler.handleDomainException(ex);
         } catch (InfraException ex) {
             log.error("Staff account registration failed for createdBy={}: infrastructure related error occurred - {}",
                     command.createdBy(), ex.getMessage(), ex);
+            uow.rollback();
             throw appExceptionHandler.handleInfraException(ex);
         }
     }

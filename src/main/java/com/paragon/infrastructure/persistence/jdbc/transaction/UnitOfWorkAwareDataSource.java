@@ -2,6 +2,8 @@ package com.paragon.infrastructure.persistence.jdbc.transaction;
 
 import javax.sql.DataSource;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
@@ -20,11 +22,28 @@ public class UnitOfWorkAwareDataSource implements DataSource {
         Connection connection = connectionHolder.get();
 
         if (connection != null) {
-            return connection;
+            // Return proxy that ignores close() - JdbcTemplate will call close() after each query,
+            // but we need to keep the connection open until commit/rollback
+            return createNonClosingProxy(connection);
         }
 
         // no active transaction - get new connection from pool
         return delegate.getConnection();
+    }
+
+    private Connection createNonClosingProxy(Connection target) {
+        return (Connection) Proxy.newProxyInstance(
+                Connection.class.getClassLoader(),
+                new Class<?>[]{Connection.class},
+                (InvocationHandler) (proxy, method, args) -> {
+                    // Ignore close() calls during transaction
+                    if ("close".equals(method.getName())) {
+                        return null;
+                    }
+                    // Delegate everything else to the real connection
+                    return method.invoke(target, args);
+                }
+        );
     }
     
     public Connection beginTransaction() throws SQLException {
