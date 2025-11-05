@@ -55,12 +55,13 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
             }
             staffAccount = optionalStaffAccount.get();
 
-            LoginResult loginResult = staffAccount.login(command.password(), passwordHasher);
-            if (loginResult.isFailed()) {
+            if (!isValidPassword(command.password(), staffAccount.getPassword().getValue())) {
+                staffAccount.registerFailedLoginAttempt();
                 staffAccountWriteRepo.update(staffAccount);
                 throw new AppException(AppExceptionInfo.invalidLoginCredentials());
             }
 
+            staffAccount.login();
             staffAccountWriteRepo.update(staffAccount);
 
             RefreshToken refreshToken = RefreshToken.issue(staffAccount.getId(), IpAddress.of(command.ipAddress()), tokenHasher);
@@ -97,5 +98,9 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
                 eventBus.publishAll(staffAccount.dequeueUncommittedEvents());
             }
         }
+    }
+
+    private boolean isValidPassword(String plaintextPassword, String hashedPassword) {
+        return passwordHasher.verify(plaintextPassword, hashedPassword);
     }
 }

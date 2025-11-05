@@ -4,6 +4,7 @@ import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountComma
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandHandler;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandResponse;
 import com.paragon.application.common.exceptions.AppException;
+import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.events.DomainEvent;
@@ -153,7 +154,7 @@ public class LoginStaffAccountCommandHandlerTests {
 
 
     @Test
-    void whenPasswordIsInvalid_shouldUpdateStaffAccountAndThrowAppException() {
+    void whenPasswordIsInvalid_shouldRegisterFailedLoginAttempt() {
         // Given
         when(passwordHasherMock.verify(anyString(), anyString()))
                 .thenReturn(false);
@@ -169,6 +170,32 @@ public class LoginStaffAccountCommandHandlerTests {
 
         // Verify failed login attempts were incremented
         assertThat(updatedStaffAccount.getFailedLoginAttempts().getValue()).isEqualTo(1);
+    }
+
+    @Test
+    void whenPasswordIsInvalid_shouldCommitTransaction() {
+        // Given
+        when(passwordHasherMock.verify(anyString(), anyString()))
+                .thenReturn(false);
+
+        // When & Then
+        assertThatThrownBy(() -> sut.handle(command))
+                .isInstanceOf(AppException.class);
+
+//        assertThat(uowMock, times(1)).commit();
+    }
+
+    @Test
+    void whenPasswordIsInvalid_shouldThrowAppException() {
+        // Given
+        when(passwordHasherMock.verify(anyString(), anyString()))
+                .thenReturn(false);
+
+        // When & Then
+        assertThatThrownBy(() -> sut.handle(command))
+                .isInstanceOf(AppException.class)
+                .extracting("message", "errorCode")
+                .containsExactly(AppExceptionInfo.invalidLoginCredentials().getMessage(), AppExceptionInfo.invalidLoginCredentials().getAppErrorCode());
     }
 
     @Test

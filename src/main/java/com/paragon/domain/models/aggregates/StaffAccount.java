@@ -83,16 +83,19 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         return account;
     }
 
-    public LoginResult login(String plaintextPassword, PasswordHasher passwordHasher) {
+    public void registerFailedLoginAttempt() {
+        failedLoginAttempts = failedLoginAttempts.increment();
+        increaseVersion();
+        if (failedLoginAttempts.hasReachedMax()) {
+            status = StaffAccountStatus.LOCKED;
+            lockedUntil = Instant.now().plus(Duration.ofMinutes(15));
+            enqueue(new StaffAccountLockedEvent(this));
+        }
+    }
+
+    public LoginResult login() {
         throwIfAccountIsDisabled();
         throwIfAccountIsLocked();
-
-        if (!validPassword(plaintextPassword, passwordHasher)) {
-            failedLoginAttempts = failedLoginAttempts.increment();
-            increaseVersion();
-            lockAccountIfMaxLoginAttemptsReached();
-            return LoginResult.ofFailure();
-        }
 
         failedLoginAttempts = failedLoginAttempts.reset();
         lastLoginAt = Instant.now();
@@ -174,18 +177,5 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         status = isPasswordTemporary ? StaffAccountStatus.PENDING_PASSWORD_CHANGE : StaffAccountStatus.ACTIVE;
         lockedUntil = null;
         failedLoginAttempts = failedLoginAttempts.reset();
-    }
-
-    private boolean validPassword(String plaintextPassword, PasswordHasher passwordHasher) {
-        return this.password.matches(plaintextPassword, passwordHasher);
-    }
-
-
-    private void lockAccountIfMaxLoginAttemptsReached() {
-        if (failedLoginAttempts.hasReachedMax()) {
-            status = StaffAccountStatus.LOCKED;
-            lockedUntil = Instant.now().plus(Duration.ofMinutes(15));
-            enqueue(new StaffAccountLockedEvent(this));
-        }
     }
 }
