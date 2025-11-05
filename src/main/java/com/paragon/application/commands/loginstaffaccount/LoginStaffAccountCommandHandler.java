@@ -4,6 +4,7 @@ import com.paragon.application.commands.CommandHandler;
 import com.paragon.application.common.exceptions.AppException;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
+import com.paragon.application.common.interfaces.UnitOfWork;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.PasswordHasher;
@@ -29,16 +30,18 @@ import java.util.stream.Collectors;
 public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaffAccountCommand, LoginStaffAccountCommandResponse> {
     private final StaffAccountWriteRepo staffAccountWriteRepo;
     private final RefreshTokenWriteRepo refreshTokenWriteRepo;
+    private final UnitOfWork uow;
     private final EventBus eventBus;
     private final AppExceptionHandler appExceptionHandler;
     private final PasswordHasher passwordHasher;
     private final TokenHasher tokenHasher;
 
     public LoginStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo, RefreshTokenWriteRepo refreshTokenWriteRepo,
-                                           EventBus eventBus, AppExceptionHandler appExceptionHandler, PasswordHasher passwordHasher,
-                                           TokenHasher tokenHasher) {
+                                           UnitOfWork uow, EventBus eventBus, AppExceptionHandler appExceptionHandler,
+                                           PasswordHasher passwordHasher, TokenHasher tokenHasher) {
         this.staffAccountWriteRepo = staffAccountWriteRepo;
         this.refreshTokenWriteRepo = refreshTokenWriteRepo;
+        this.uow = uow;
         this.eventBus = eventBus;
         this.appExceptionHandler = appExceptionHandler;
         this.passwordHasher = passwordHasher;
@@ -58,6 +61,7 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
             if (!isValidPassword(command.password(), staffAccount.getPassword().getValue())) {
                 staffAccount.registerFailedLoginAttempt();
                 staffAccountWriteRepo.update(staffAccount);
+                uow.commit();
                 throw new AppException(AppExceptionInfo.invalidLoginCredentials());
             }
 
@@ -71,6 +75,8 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
                     .stream()
                     .map(PermissionCode::getValue)
                     .collect(Collectors.toList());
+
+            uow.commit();
 
             log.info("Staff account '{}' (ID: {}) successfully logged in.",
                     staffAccount.getUsername().getValue(),
@@ -86,10 +92,12 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
                     staffAccount.getVersion().getValue()
             );
         } catch (DomainException ex) {
+            uow.rollback();
             log.error("Staff account login failed for username='{}': domain rule violation - {}",
                     command.username(), ex.getMessage(), ex);
             throw appExceptionHandler.handleDomainException(ex);
         } catch (InfraException ex) {
+            uow.rollback();
             log.error("Staff account login failed for username='{}': infrastructure related error occurred - {}",
                     command.username(), ex.getMessage(), ex);
             throw appExceptionHandler.handleInfraException(ex);

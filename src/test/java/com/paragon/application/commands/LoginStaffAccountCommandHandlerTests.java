@@ -6,6 +6,7 @@ import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountComma
 import com.paragon.application.common.exceptions.AppException;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
+import com.paragon.application.common.interfaces.UnitOfWork;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.events.DomainEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountLoggedInEvent;
@@ -34,6 +35,7 @@ public class LoginStaffAccountCommandHandlerTests {
 
     private final StaffAccountWriteRepo staffAccountWriteRepoMock;
     private final RefreshTokenWriteRepo refreshTokenWriteRepoMock;
+    private final UnitOfWork uowMock;
     private final EventBus eventBusMock;
     private final AppExceptionHandler appExceptionHandlerMock;
     private final PasswordHasher passwordHasherMock;
@@ -45,13 +47,14 @@ public class LoginStaffAccountCommandHandlerTests {
     public LoginStaffAccountCommandHandlerTests() {
         staffAccountWriteRepoMock = mock(StaffAccountWriteRepo.class);
         refreshTokenWriteRepoMock = mock(RefreshTokenWriteRepo.class);
+        uowMock = mock(UnitOfWork.class);
         eventBusMock = mock(EventBus.class);
         appExceptionHandlerMock = mock(AppExceptionHandler.class);
         passwordHasherMock = mock(PasswordHasher.class);
         tokenHasherMock = mock(TokenHasher.class);
 
         sut = new LoginStaffAccountCommandHandler(
-                staffAccountWriteRepoMock, refreshTokenWriteRepoMock, eventBusMock,
+                staffAccountWriteRepoMock, refreshTokenWriteRepoMock, uowMock, eventBusMock,
                 appExceptionHandlerMock, passwordHasherMock, tokenHasherMock
         );
 
@@ -75,7 +78,7 @@ public class LoginStaffAccountCommandHandlerTests {
     }
 
     @Test
-    void givenValidCommand_shouldLoginSuccessfully() {
+    void shouldLoginSuccessfully() {
         // Given
         ArgumentCaptor<StaffAccount> staffAccountArgumentCaptor = ArgumentCaptor.forClass(StaffAccount.class);
 
@@ -83,6 +86,8 @@ public class LoginStaffAccountCommandHandlerTests {
         sut.handle(command);
 
         // Then
+        verify(uowMock, times(1)).commit();
+
         verify(staffAccountWriteRepoMock).update(staffAccountArgumentCaptor.capture());
         StaffAccount loggedInStaffAccount = staffAccountArgumentCaptor.getValue();
 
@@ -92,7 +97,7 @@ public class LoginStaffAccountCommandHandlerTests {
     }
 
     @Test
-    void givenValidCommand_shouldReturnExpectedResponse() {
+    void shouldReturnExpectedResponse() {
         // Given
         ArgumentCaptor<StaffAccount> staffAccountArgumentCaptor = ArgumentCaptor.forClass(StaffAccount.class);
 
@@ -106,11 +111,8 @@ public class LoginStaffAccountCommandHandlerTests {
         assertThat(commandResponse.id()).isEqualTo(loggedInStaffAccount.getId().getValue().toString());
         assertThat(commandResponse.username()).isEqualTo(loggedInStaffAccount.getUsername().getValue());
         assertThat(commandResponse.requiresPasswordReset()).isEqualTo(loggedInStaffAccount.requiresPasswordReset());
-        assertThat(commandResponse.version()).isEqualTo(loggedInStaffAccount.getVersion().getValue());
-
-        // Verify permission codes are returned
-        assertThat(commandResponse.permissionCodes()).isNotNull();
         assertThat(commandResponse.permissionCodes()).hasSize(loggedInStaffAccount.getPermissionCodes().size());
+        assertThat(commandResponse.version()).isEqualTo(loggedInStaffAccount.getVersion().getValue());
     }
 
     @Test
@@ -173,7 +175,7 @@ public class LoginStaffAccountCommandHandlerTests {
     }
 
     @Test
-    void whenPasswordIsInvalid_shouldCommitTransaction() {
+    void whenPasswordIsInvalid_shouldCommitTransactionBeforeThrowing() {
         // Given
         when(passwordHasherMock.verify(anyString(), anyString()))
                 .thenReturn(false);
@@ -182,7 +184,7 @@ public class LoginStaffAccountCommandHandlerTests {
         assertThatThrownBy(() -> sut.handle(command))
                 .isInstanceOf(AppException.class);
 
-//        assertThat(uowMock, times(1)).commit();
+        verify(uowMock, times(1)).commit();
     }
 
     @Test
@@ -199,7 +201,7 @@ public class LoginStaffAccountCommandHandlerTests {
     }
 
     @Test
-    void whenDomainExceptionIsThrown_shouldCatchAndTranslateToAppException() {
+    void whenDomainExceptionIsThrown_shouldRollbackAndTranslateToAppException() {
         // Given
         LoginStaffAccountCommand command = new LoginStaffAccountCommand(
                 "", // forces a domain exception when constructing Username VO
@@ -213,10 +215,11 @@ public class LoginStaffAccountCommandHandlerTests {
         // When & ThenThen
         assertThatThrownBy(() -> sut.handle(command))
                 .isInstanceOf(AppException.class);
+        verify(uowMock, times(1)).rollback();
     }
 
     @Test
-    void whenInfraExceptionIsThrown_shouldCatchAndTranslateToAppException() {
+    void whenInfraExceptionIsThrown_shouldRollbackAndTranslateToAppException() {
         // Given
         when(appExceptionHandlerMock.handleInfraException(any(InfraException.class)))
                 .thenReturn(mock(AppException.class));
@@ -228,5 +231,6 @@ public class LoginStaffAccountCommandHandlerTests {
         // When & ThenThen
         assertThatThrownBy(() -> sut.handle(command))
                 .isInstanceOf(AppException.class);
+        verify(uowMock, times(1)).rollback();
     }
 }
