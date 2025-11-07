@@ -6,12 +6,15 @@ import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.StaffAccountSummaryResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
+import com.paragon.api.dtos.staffaccount.resetpassword.ResetStaffAccountPasswordResponseDto;
 import com.paragon.api.security.HttpContextHelper;
 import com.paragon.application.commands.CommandHandler;
 import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommand;
 import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommandResponse;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommand;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandResponse;
+import com.paragon.application.commands.resetstaffaccountpassword.ResetStaffAccountPasswordCommand;
+import com.paragon.application.commands.resetstaffaccountpassword.ResetStaffAccountPasswordCommandResponse;
 import com.paragon.application.queries.QueryHandler;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQuery;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryResponse;
@@ -30,6 +33,7 @@ import java.util.concurrent.CompletableFuture;
 public class StaffAccountController {
     private final CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> registerStaffAccountCommandHandler;
     private final CommandHandler<DisableStaffAccountCommand, DisableStaffAccountCommandResponse> disableStaffAccountCommandHandler;
+    private final CommandHandler<ResetStaffAccountPasswordCommand, ResetStaffAccountPasswordCommandResponse> resetStaffAccountPasswordCommandHandler;
     private final QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> getAllStaffAccountsQueryHandler;
     private final HttpContextHelper httpContextHelper;
     private final TaskExecutor taskExecutor;
@@ -38,10 +42,12 @@ public class StaffAccountController {
     public StaffAccountController(
             CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> registerStaffAccountCommandHandler,
             CommandHandler<DisableStaffAccountCommand, DisableStaffAccountCommandResponse> disableStaffAccountCommandHandler,
+            CommandHandler<ResetStaffAccountPasswordCommand, ResetStaffAccountPasswordCommandResponse> resetStaffAccountPasswordCommandHandler,
             QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> getAllStaffAccountsQueryHandler,
             HttpContextHelper httpContextHelper, TaskExecutor taskExecutor) {
         this.registerStaffAccountCommandHandler = registerStaffAccountCommandHandler;
         this.disableStaffAccountCommandHandler = disableStaffAccountCommandHandler;
+        this.resetStaffAccountPasswordCommandHandler = resetStaffAccountPasswordCommandHandler;
         this.getAllStaffAccountsQueryHandler = getAllStaffAccountsQueryHandler;
         this.httpContextHelper = httpContextHelper;
         this.taskExecutor = taskExecutor;
@@ -72,6 +78,21 @@ public class StaffAccountController {
             var command = createDisableStaffAccountCommand(staffAccountIdToBeDisabled, requestingStaffAccountId);
             var commandResponse = disableStaffAccountCommandHandler.handle(command);
             var responseDto = new ResponseDto<>(createDisableStaffAccountResponseDto(commandResponse), null);
+            return ResponseEntity.ok(responseDto);
+        }, taskExecutor);
+    }
+
+    @PostMapping("/reset-password/{id}")
+    @PreAuthorize("hasAuthority('RESET_ACCOUNT_PASSWORD')")
+    public CompletableFuture<ResponseEntity<ResponseDto<ResetStaffAccountPasswordResponseDto>>> resetPassword(@PathVariable("id") String staffAccountIdToReset) {
+        String requestingStaffAccountId = httpContextHelper.getAuthenticatedStaffId();
+        log.info("Received request to reset password for staff account ID: {} from staff account ID: {}.",
+                staffAccountIdToReset, requestingStaffAccountId);
+
+        return CompletableFuture.supplyAsync(() -> {
+            var command = createResetStaffAccountPasswordCommand(staffAccountIdToReset, requestingStaffAccountId);
+            var commandResponse = resetStaffAccountPasswordCommandHandler.handle(command);
+            var responseDto = new ResponseDto<>(createResetStaffAccountPasswordResponseDto(commandResponse), null);
             return ResponseEntity.ok(responseDto);
         }, taskExecutor);
     }
@@ -119,6 +140,20 @@ public class StaffAccountController {
                 commandResponse.id(),
                 commandResponse.status(),
                 commandResponse.disabledBy(),
+                commandResponse.version()
+        );
+    }
+
+    private ResetStaffAccountPasswordCommand createResetStaffAccountPasswordCommand(String staffAccountIdToReset, String requestingStaffAccountId) {
+        return new ResetStaffAccountPasswordCommand(staffAccountIdToReset, requestingStaffAccountId);
+    }
+
+    private ResetStaffAccountPasswordResponseDto createResetStaffAccountPasswordResponseDto(ResetStaffAccountPasswordCommandResponse commandResponse) {
+        return new ResetStaffAccountPasswordResponseDto(
+                commandResponse.id(),
+                commandResponse.temporaryPassword(),
+                commandResponse.status(),
+                commandResponse.passwordIssuedAt(),
                 commandResponse.version()
         );
     }
