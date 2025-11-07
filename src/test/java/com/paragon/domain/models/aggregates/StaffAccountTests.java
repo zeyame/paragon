@@ -2,10 +2,7 @@ package com.paragon.domain.models.aggregates;
 
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.events.DomainEvent;
-import com.paragon.domain.events.staffaccountevents.StaffAccountDisabledEvent;
-import com.paragon.domain.events.staffaccountevents.StaffAccountLockedEvent;
-import com.paragon.domain.events.staffaccountevents.StaffAccountLoggedInEvent;
-import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
+import com.paragon.domain.events.staffaccountevents.*;
 import com.paragon.domain.exceptions.aggregate.StaffAccountException;
 import com.paragon.domain.exceptions.aggregate.StaffAccountExceptionInfo;
 import com.paragon.domain.models.constants.SystemPermissions;
@@ -473,35 +470,35 @@ public class StaffAccountTests {
             assertThat(staffAccount.getVersion().getValue()).isEqualTo(2);
         }
 
-//        @Test
-//        void shouldEnqueueStaffAccountPasswordResetEvent() {
-//            // Given
-//            StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
-//
-//            // When
-//            staffAccount.resetPassword(Password.of("hashed-password"));
-//
-//            // Then
-//            List<DomainEvent> enqueuedEvents = staffAccount.dequeueUncommittedEvents();
-//            assertThat(enqueuedEvents).isNotEmpty();
-//
-//            StaffAccountDisabledEvent disabledEvent = (StaffAccountDisabledEvent) enqueuedEvents.getFirst();
-//            assertThat(disabledEvent.getStaffAccountId()).isEqualTo(staffAccount.getId());
-//            assertThat(disabledEvent.getUsername()).isEqualTo(staffAccount.getUsername());
-//            assertThat(disabledEvent.getEmail()).isEqualTo(staffAccount.getEmail());
-//            assertThat(disabledEvent.getPassword()).isEqualTo(staffAccount.getPassword());
-//            assertThat(disabledEvent.getPasswordIssuedAt()).isEqualTo(staffAccount.getPasswordIssuedAt());
-//            assertThat(disabledEvent.getOrderAccessDuration()).isEqualTo(staffAccount.getOrderAccessDuration());
-//            assertThat(disabledEvent.getModmailTranscriptAccessDuration()).isEqualTo(staffAccount.getModmailTranscriptAccessDuration());
-//            assertThat(disabledEvent.getStaffAccountStatus()).isEqualTo(staffAccount.getStatus());
-//            assertThat(disabledEvent.getFailedLoginAttempts()).isEqualTo(staffAccount.getFailedLoginAttempts());
-//            assertThat(disabledEvent.getLockedUntil()).isEqualTo(staffAccount.getLockedUntil());
-//            assertThat(disabledEvent.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
-//            assertThat(disabledEvent.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
-//            assertThat(disabledEvent.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
-//            assertThat(disabledEvent.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
-//            assertThat(disabledEvent.getStaffAccountVersion()).isEqualTo(staffAccount.getVersion());
-//        }
+        @Test
+        void shouldEnqueueStaffAccountPasswordResetEvent() {
+            // Given
+            StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
+
+            // When
+            staffAccount.resetPassword(Password.of("hashed-password"));
+
+            //Then
+            List<DomainEvent> enqueuedEvents = staffAccount.dequeueUncommittedEvents();
+            assertThat(enqueuedEvents).isNotEmpty();
+
+            StaffAccountPasswordResetEvent passwordResetEvent = (StaffAccountPasswordResetEvent) enqueuedEvents.getFirst();
+            assertThat(passwordResetEvent.getStaffAccountId()).isEqualTo(staffAccount.getId());
+            assertThat(passwordResetEvent.getUsername()).isEqualTo(staffAccount.getUsername());
+            assertThat(passwordResetEvent.getEmail()).isEqualTo(staffAccount.getEmail());
+            assertThat(passwordResetEvent.getPassword()).isEqualTo(staffAccount.getPassword());
+            assertThat(passwordResetEvent.getPasswordIssuedAt()).isEqualTo(staffAccount.getPasswordIssuedAt());
+            assertThat(passwordResetEvent.getOrderAccessDuration()).isEqualTo(staffAccount.getOrderAccessDuration());
+            assertThat(passwordResetEvent.getModmailTranscriptAccessDuration()).isEqualTo(staffAccount.getModmailTranscriptAccessDuration());
+            assertThat(passwordResetEvent.getStaffAccountStatus()).isEqualTo(staffAccount.getStatus());
+            assertThat(passwordResetEvent.getFailedLoginAttempts()).isEqualTo(staffAccount.getFailedLoginAttempts());
+            assertThat(passwordResetEvent.getLockedUntil()).isEqualTo(staffAccount.getLockedUntil());
+            assertThat(passwordResetEvent.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
+            assertThat(passwordResetEvent.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
+            assertThat(passwordResetEvent.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
+            assertThat(passwordResetEvent.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
+            assertThat(passwordResetEvent.getStaffAccountVersion()).isEqualTo(staffAccount.getVersion());
+        }
 
         @Test
         void shouldThrowStaffAccountException_whenAccountIsDisabled() {
