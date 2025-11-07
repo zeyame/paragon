@@ -4,10 +4,7 @@ import com.paragon.application.events.EventBusImpl;
 import com.paragon.domain.enums.AuditEntryActionType;
 import com.paragon.domain.enums.AuditEntryTargetType;
 import com.paragon.domain.enums.StaffAccountStatus;
-import com.paragon.domain.events.staffaccountevents.StaffAccountDisabledEvent;
-import com.paragon.domain.events.staffaccountevents.StaffAccountLockedEvent;
-import com.paragon.domain.events.staffaccountevents.StaffAccountLoggedInEvent;
-import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
+import com.paragon.domain.events.staffaccountevents.*;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.entities.AuditTrailEntry;
 import com.paragon.domain.models.valueobjects.AuditEntryTargetId;
@@ -126,5 +123,29 @@ public class StaffAccountEventAuditTrailHandlerTests extends IntegrationTestBase
         assertThat(disabledEntry.getActionType()).isEqualTo(AuditEntryActionType.DISABLE_ACCOUNT);
         assertThat(disabledEntry.getTargetId()).isEqualTo(AuditEntryTargetId.of(staffAccountDisabledEvent.getStaffAccountId().getValue().toString()));
         assertThat(disabledEntry.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
+    }
+
+    @Test
+    void shouldPersistAuditTrailEntryForStaffAccountPasswordResetEvent() {
+        // Given
+        StaffAccount staffAccount = new StaffAccountFixture()
+                .withPasswordResetBy(adminId)
+                .build();
+        StaffAccountPasswordResetEvent passwordResetEvent = new StaffAccountPasswordResetEvent(staffAccount);
+
+        // When
+        eventBus.publishAll(List.of(passwordResetEvent));
+
+        // Then
+        List<AuditTrailEntry> auditTrailEntries = jdbcHelper.getAuditTrailEntriesByActorAndAction(
+                passwordResetEvent.getStaffAccountPasswordResetBy(), AuditEntryActionType.RESET_ACCOUNT_PASSWORD
+        );
+        assertThat(auditTrailEntries).hasSize(1);
+
+        AuditTrailEntry passwordResetEntry = auditTrailEntries.getFirst();
+        assertThat(passwordResetEntry.getActorId()).isEqualTo(passwordResetEvent.getStaffAccountPasswordResetBy());
+        assertThat(passwordResetEntry.getActionType()).isEqualTo(AuditEntryActionType.RESET_ACCOUNT_PASSWORD);
+        assertThat(passwordResetEntry.getTargetId()).isEqualTo(AuditEntryTargetId.of(passwordResetEvent.getStaffAccountId().getValue().toString()));
+        assertThat(passwordResetEntry.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
     }
 }

@@ -46,9 +46,10 @@ public class StaffAccountEventAuditTrailHandler implements EventHandler<StaffAcc
     public List<String> subscribedToEvents() {
         return List.of(
                 EventNames.STAFF_ACCOUNT_REGISTERED,
-                EventNames.STAFF_ACCOUNT_LOCKED,
                 EventNames.STAFF_ACCOUNT_LOGGED_IN,
-                EventNames.STAFF_ACCOUNT_DISABLED
+                EventNames.STAFF_ACCOUNT_LOCKED,
+                EventNames.STAFF_ACCOUNT_DISABLED,
+                EventNames.STAFF_ACCOUNT_PASSWORD_RESET
         );
     }
 }

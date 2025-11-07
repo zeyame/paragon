@@ -1,6 +1,6 @@
 package com.paragon.application.events.audittrail;
 
-import com.paragon.domain.events.staffaccountevents.StaffAccountLockedEvent;
+import com.paragon.domain.events.staffaccountevents.*;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.repos.AuditTrailWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
@@ -8,10 +8,15 @@ import com.paragon.domain.models.entities.AuditTrailEntry;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -24,14 +29,9 @@ public class StaffAccountEventAuditTrailHandlerTests {
         sut = new StaffAccountEventAuditTrailHandler(auditTrailWriteRepoMock);
     }
 
-    @Test
-    void shouldCallRepoCreateWithAuditTrailEntry() {
-        // Given
-        StaffAccount staffAccount = new StaffAccountFixture()
-                .withId(UUID.randomUUID().toString())
-                .build();
-        StaffAccountLockedEvent event = new StaffAccountLockedEvent(staffAccount);
-
+    @ParameterizedTest
+    @MethodSource("provideEvents")
+    void shouldCallRepoCreateWithAuditTrailEntry(StaffAccountEventBase event) {
         // When
         sut.handle(event);
 
@@ -72,5 +72,21 @@ public class StaffAccountEventAuditTrailHandlerTests {
         // When & Then
         assertThatNoException()
                 .isThrownBy(() -> sut.handle(event));
+    }
+
+    private static Stream<Arguments> provideEvents() {
+        return Stream.of(
+                arguments(new StaffAccountRegisteredEvent(StaffAccountFixture.validStaffAccount())),
+                arguments(new StaffAccountLoggedInEvent(StaffAccountFixture.validStaffAccount())),
+                arguments(new StaffAccountLockedEvent(StaffAccountFixture.validStaffAccount())),
+                arguments(new StaffAccountDisabledEvent(new StaffAccountFixture()
+                        .withDisabledBy(UUID.randomUUID().toString())
+                        .build()
+                )),
+                arguments(new StaffAccountPasswordResetEvent(new StaffAccountFixture()
+                        .withPasswordResetBy(UUID.randomUUID().toString())
+                        .build()
+                ))
+        );
     }
 }

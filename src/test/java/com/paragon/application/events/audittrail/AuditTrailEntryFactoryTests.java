@@ -6,119 +6,124 @@ import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.events.staffaccountevents.*;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.entities.AuditTrailEntry;
-import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class AuditTrailEntryFactoryTests {
 
-    @ParameterizedTest
-    @MethodSource("provideStaffAccountEvents")
-    void shouldCreateCorrectAuditTrailEntryForEvent(
-            StaffAccountEventBase event,
-            StaffAccountId expectedActorId,
-            AuditEntryActionType expectedActionType,
-            String expectedTargetId,
-            AuditEntryTargetType expectedTargetType
-    ) {
+    @Test
+    void shouldCreateAuditTrailEntryForStaffAccountRegisteredEvent() {
+        // Given
+        String creatorId = UUID.randomUUID().toString();
+        String accountId = UUID.randomUUID().toString();
+
+        StaffAccount account = new StaffAccountFixture()
+                .withId(accountId)
+                .withCreatedBy(creatorId)
+                .build();
+
+        StaffAccountRegisteredEvent event = new StaffAccountRegisteredEvent(account);
+
         // When
         AuditTrailEntry result = AuditTrailEntryFactory.fromStaffAccountEvent(event);
 
         // Then
-        assertThat(result.getActorId()).isEqualTo(expectedActorId);
-        assertThat(result.getActionType()).isEqualTo(expectedActionType);
-        assertThat(result.getTargetId().getValue()).isEqualTo(expectedTargetId);
-        assertThat(result.getTargetType()).isEqualTo(expectedTargetType);
+        assertThat(result.getActorId().getValue().toString()).isEqualTo(creatorId);
+        assertThat(result.getActionType()).isEqualTo(AuditEntryActionType.REGISTER_ACCOUNT);
+        assertThat(result.getTargetId().getValue()).isEqualTo(accountId);
+        assertThat(result.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
     }
 
-    private static Stream<Arguments> provideStaffAccountEvents() {
-        String creatorId = UUID.randomUUID().toString();
+    @Test
+    void shouldCreateAuditTrailEntryForStaffAccountLockedEvent() {
+        // Given
+        String accountId = UUID.randomUUID().toString();
+
+        StaffAccount account = new StaffAccountFixture()
+                .withId(accountId)
+                .build();
+
+        StaffAccountLockedEvent event = new StaffAccountLockedEvent(account);
+
+        // When
+        AuditTrailEntry result = AuditTrailEntryFactory.fromStaffAccountEvent(event);
+
+        // Then
+        assertThat(result.getActorId().getValue().toString()).isEqualTo(accountId);
+        assertThat(result.getActionType()).isEqualTo(AuditEntryActionType.ACCOUNT_LOCKED);
+        assertThat(result.getTargetId().getValue()).isEqualTo(accountId);
+        assertThat(result.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
+    }
+
+    @Test
+    void shouldCreateAuditTrailEntryForStaffAccountLoggedInEvent() {
+        // Given
+        String accountId = UUID.randomUUID().toString();
+
+        StaffAccount account = new StaffAccountFixture()
+                .withId(accountId)
+                .build();
+
+        StaffAccountLoggedInEvent event = new StaffAccountLoggedInEvent(account);
+
+        // When
+        AuditTrailEntry result = AuditTrailEntryFactory.fromStaffAccountEvent(event);
+
+        // Then
+        assertThat(result.getActorId().getValue().toString()).isEqualTo(accountId);
+        assertThat(result.getActionType()).isEqualTo(AuditEntryActionType.LOGIN);
+        assertThat(result.getTargetId().getValue()).isEqualTo(accountId);
+        assertThat(result.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
+    }
+
+    @Test
+    void shouldCreateAuditTrailEntryForStaffAccountDisabledEvent() {
+        // Given
         String disablerId = UUID.randomUUID().toString();
-        String registeredAccountId = UUID.randomUUID().toString();
-        String lockedAccountId = UUID.randomUUID().toString();
-        String loggedInAccountId = UUID.randomUUID().toString();
-        String disabledAccountId = UUID.randomUUID().toString();
+        String accountId = UUID.randomUUID().toString();
 
-        // Create a creator account for REGISTERED events
-        StaffAccount creator = new StaffAccountFixture()
-                .withId(creatorId)
-                .build();
-
-        // Create a disabler account for DISABLED event
-        StaffAccount disabler = new StaffAccountFixture()
-                .withId(disablerId)
-                .build();
-
-
-        // Create the account being registered
-        StaffAccount registeredAccount = new StaffAccountFixture()
-                .withId(registeredAccountId)
-                .withCreatedBy(creatorId)
-                .build();
-
-        // Create account for LOCKED event
-        StaffAccount lockedAccount = new StaffAccountFixture()
-                .withId(lockedAccountId)
-                .build();
-
-        // Create account for LOGGED_IN event
-        StaffAccount loggedInAccount = new StaffAccountFixture()
-                .withId(loggedInAccountId)
-                .build();
-
-        // Create account for DISABLED event
-        StaffAccount disabledAccount = new StaffAccountFixture()
-                .withId(disabledAccountId)
+        StaffAccount account = new StaffAccountFixture()
+                .withId(accountId)
                 .withStatus(StaffAccountStatus.DISABLED)
                 .withDisabledBy(disablerId)
                 .build();
 
+        StaffAccountDisabledEvent event = new StaffAccountDisabledEvent(account);
 
+        // When
+        AuditTrailEntry result = AuditTrailEntryFactory.fromStaffAccountEvent(event);
 
-        return Stream.of(
-                // STAFF_ACCOUNT_REGISTERED: actor is creator, target is new account
-                arguments(
-                        new StaffAccountRegisteredEvent(registeredAccount),
-                        StaffAccountId.from(creatorId),
-                        AuditEntryActionType.REGISTER_ACCOUNT,
-                        registeredAccountId,
-                        AuditEntryTargetType.ACCOUNT
-                ),
+        // Then
+        assertThat(result.getActorId().getValue().toString()).isEqualTo(disablerId);
+        assertThat(result.getActionType()).isEqualTo(AuditEntryActionType.DISABLE_ACCOUNT);
+        assertThat(result.getTargetId().getValue()).isEqualTo(accountId);
+        assertThat(result.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
+    }
 
-                // STAFF_ACCOUNT_LOCKED: actor is account itself, target is account itself
-                arguments(
-                        new StaffAccountLockedEvent(lockedAccount),
-                        StaffAccountId.from(lockedAccountId),
-                        AuditEntryActionType.ACCOUNT_LOCKED,
-                        lockedAccountId,
-                        AuditEntryTargetType.ACCOUNT
-                ),
+    @Test
+    void shouldCreateAuditTrailEntryForStaffAccountPasswordResetEvent() {
+        // Given
+        String resetById = UUID.randomUUID().toString();
+        String accountId = UUID.randomUUID().toString();
 
-                // STAFF_ACCOUNT_LOGGED_IN: actor is account itself, target is account itself
-                arguments(
-                        new StaffAccountLoggedInEvent(loggedInAccount),
-                        StaffAccountId.from(loggedInAccountId),
-                        AuditEntryActionType.LOGIN,
-                        loggedInAccountId,
-                        AuditEntryTargetType.ACCOUNT
-                ),
+        StaffAccount account = new StaffAccountFixture()
+                .withId(accountId)
+                .withPasswordResetBy(resetById)
+                .build();
 
-                // STAFF_ACCOUNT_DISABLED: actor is the disabler
-                arguments(
-                        new StaffAccountDisabledEvent(disabledAccount),
-                        StaffAccountId.from(disablerId),
-                        AuditEntryActionType.DISABLE_ACCOUNT,
-                        disabledAccountId,
-                        AuditEntryTargetType.ACCOUNT
-                )
-        );
+        StaffAccountPasswordResetEvent event = new StaffAccountPasswordResetEvent(account);
+
+        // When
+        AuditTrailEntry result = AuditTrailEntryFactory.fromStaffAccountEvent(event);
+
+        // Then
+        assertThat(result.getActorId().getValue().toString()).isEqualTo(resetById);
+        assertThat(result.getActionType()).isEqualTo(AuditEntryActionType.RESET_ACCOUNT_PASSWORD);
+        assertThat(result.getTargetId().getValue()).isEqualTo(accountId);
+        assertThat(result.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
     }
 }
