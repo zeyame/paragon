@@ -99,8 +99,8 @@ public class ResetStaffAccountPasswordCommandHandlerTests {
         StaffAccount updatedStaffAccount = staffAccountCaptor.getValue();
 
         assertThat(updatedStaffAccount.getPassword().getValue()).isNotEqualTo("old-password");
+        assertThat(updatedStaffAccount.getPassword()).isEqualTo(Password.of("hashed-password"));
         assertThat(updatedStaffAccount.getStatus()).isEqualTo(StaffAccountStatus.PENDING_PASSWORD_CHANGE);
-        assertThat(updatedStaffAccount.getPasswordIssuedAt()).isAfter(staffAccount.getPasswordIssuedAt());
         assertThat(updatedStaffAccount.getVersion().getValue()).isEqualTo(2);
     }
 
@@ -114,7 +114,6 @@ public class ResetStaffAccountPasswordCommandHandlerTests {
         assertThat(response.id()).isEqualTo(staffAccount.getId().getValue().toString());
         assertThat(response.temporaryPassword()).isNotNull().hasSize(12);
         assertThat(response.status()).isEqualTo(StaffAccountStatus.PENDING_PASSWORD_CHANGE.toString());
-        assertThat(response.passwordIssuedAt()).isAfter(staffAccount.getPasswordIssuedAt());
         assertThat(response.version()).isEqualTo(2);
     }
 

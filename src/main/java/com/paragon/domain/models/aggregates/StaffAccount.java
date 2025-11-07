@@ -114,6 +114,13 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     }
 
     public void resetPassword(Password password) {
+        throwIfAccountIsDisabled(StaffAccountExceptionInfo.accountAlreadyDisabled());
+        this.password = password;
+        passwordIssuedAt = Instant.now();
+        isPasswordTemporary = true;
+        status = StaffAccountStatus.PENDING_PASSWORD_CHANGE;
+        failedLoginAttempts = failedLoginAttempts.reset();
+        increaseVersion();
     }
 
     public static StaffAccount createFrom(StaffAccountId id, Username username, Email email, Password password,

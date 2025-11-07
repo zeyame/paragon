@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 public class StaffAccountTests {
@@ -441,6 +442,77 @@ public class StaffAccountTests {
             // When & Then
             assertThatExceptionOfType(StaffAccountException.class)
                     .isThrownBy(() -> staffAccount.disable(StaffAccountId.generate()))
+                    .extracting("message", "domainErrorCode")
+                    .containsExactly(StaffAccountExceptionInfo.accountAlreadyDisabled().getMessage(), StaffAccountExceptionInfo.accountAlreadyDisabled().getDomainErrorCode());
+        }
+    }
+
+    @Nested
+    class ResetPassword {
+        @Test
+        void shouldResetPassword() {
+            // Given
+            Instant oldPasswordIssuedAt = Instant.now().minus(1, ChronoUnit.DAYS);
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withPassword("old-password")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withPasswordTemporary(false)
+                    .withPasswordIssuedAt(oldPasswordIssuedAt)
+                    .withFailedLoginAttempts(3)
+                    .build();
+
+            // When
+            staffAccount.resetPassword(Password.of("hashed-password"));
+
+            // Then
+            assertThat(staffAccount.getPassword()).isEqualTo(Password.of("hashed-password"));
+            assertThat(staffAccount.getStatus()).isEqualTo(StaffAccountStatus.PENDING_PASSWORD_CHANGE);
+            assertThat(staffAccount.isPasswordTemporary()).isTrue();
+            assertThat(staffAccount.getPasswordIssuedAt()).isAfter(oldPasswordIssuedAt);
+            assertThat(staffAccount.getFailedLoginAttempts()).isEqualTo(FailedLoginAttempts.zero());
+            assertThat(staffAccount.getVersion().getValue()).isEqualTo(2);
+        }
+
+//        @Test
+//        void shouldEnqueueStaffAccountPasswordResetEvent() {
+//            // Given
+//            StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
+//
+//            // When
+//            staffAccount.resetPassword(Password.of("hashed-password"));
+//
+//            // Then
+//            List<DomainEvent> enqueuedEvents = staffAccount.dequeueUncommittedEvents();
+//            assertThat(enqueuedEvents).isNotEmpty();
+//
+//            StaffAccountDisabledEvent disabledEvent = (StaffAccountDisabledEvent) enqueuedEvents.getFirst();
+//            assertThat(disabledEvent.getStaffAccountId()).isEqualTo(staffAccount.getId());
+//            assertThat(disabledEvent.getUsername()).isEqualTo(staffAccount.getUsername());
+//            assertThat(disabledEvent.getEmail()).isEqualTo(staffAccount.getEmail());
+//            assertThat(disabledEvent.getPassword()).isEqualTo(staffAccount.getPassword());
+//            assertThat(disabledEvent.getPasswordIssuedAt()).isEqualTo(staffAccount.getPasswordIssuedAt());
+//            assertThat(disabledEvent.getOrderAccessDuration()).isEqualTo(staffAccount.getOrderAccessDuration());
+//            assertThat(disabledEvent.getModmailTranscriptAccessDuration()).isEqualTo(staffAccount.getModmailTranscriptAccessDuration());
+//            assertThat(disabledEvent.getStaffAccountStatus()).isEqualTo(staffAccount.getStatus());
+//            assertThat(disabledEvent.getFailedLoginAttempts()).isEqualTo(staffAccount.getFailedLoginAttempts());
+//            assertThat(disabledEvent.getLockedUntil()).isEqualTo(staffAccount.getLockedUntil());
+//            assertThat(disabledEvent.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
+//            assertThat(disabledEvent.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
+//            assertThat(disabledEvent.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
+//            assertThat(disabledEvent.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
+//            assertThat(disabledEvent.getStaffAccountVersion()).isEqualTo(staffAccount.getVersion());
+//        }
+
+        @Test
+        void shouldThrowStaffAccountException_whenAccountIsDisabled() {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withStatus(StaffAccountStatus.DISABLED)
+                    .build();
+
+            // When & Then
+            assertThatExceptionOfType(StaffAccountException.class)
+                    .isThrownBy(() -> staffAccount.resetPassword(Password.of("hashed-password")))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(StaffAccountExceptionInfo.accountAlreadyDisabled().getMessage(), StaffAccountExceptionInfo.accountAlreadyDisabled().getDomainErrorCode());
         }
