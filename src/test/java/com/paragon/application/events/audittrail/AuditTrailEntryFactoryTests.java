@@ -2,10 +2,8 @@ package com.paragon.application.events.audittrail;
 
 import com.paragon.domain.enums.AuditEntryActionType;
 import com.paragon.domain.enums.AuditEntryTargetType;
-import com.paragon.domain.events.staffaccountevents.StaffAccountEventBase;
-import com.paragon.domain.events.staffaccountevents.StaffAccountLockedEvent;
-import com.paragon.domain.events.staffaccountevents.StaffAccountLoggedInEvent;
-import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
+import com.paragon.domain.enums.StaffAccountStatus;
+import com.paragon.domain.events.staffaccountevents.*;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.entities.AuditTrailEntry;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
@@ -43,14 +41,22 @@ public class AuditTrailEntryFactoryTests {
 
     private static Stream<Arguments> provideStaffAccountEvents() {
         String creatorId = UUID.randomUUID().toString();
+        String disablerId = UUID.randomUUID().toString();
         String registeredAccountId = UUID.randomUUID().toString();
         String lockedAccountId = UUID.randomUUID().toString();
         String loggedInAccountId = UUID.randomUUID().toString();
+        String disabledAccountId = UUID.randomUUID().toString();
 
         // Create a creator account for REGISTERED events
         StaffAccount creator = new StaffAccountFixture()
                 .withId(creatorId)
                 .build();
+
+        // Create a disabler account for DISABLED event
+        StaffAccount disabler = new StaffAccountFixture()
+                .withId(disablerId)
+                .build();
+
 
         // Create the account being registered
         StaffAccount registeredAccount = new StaffAccountFixture()
@@ -67,6 +73,15 @@ public class AuditTrailEntryFactoryTests {
         StaffAccount loggedInAccount = new StaffAccountFixture()
                 .withId(loggedInAccountId)
                 .build();
+
+        // Create account for DISABLED event
+        StaffAccount disabledAccount = new StaffAccountFixture()
+                .withId(disabledAccountId)
+                .withStatus(StaffAccountStatus.DISABLED)
+                .withDisabledBy(disablerId)
+                .build();
+
+
 
         return Stream.of(
                 // STAFF_ACCOUNT_REGISTERED: actor is creator, target is new account
@@ -93,6 +108,15 @@ public class AuditTrailEntryFactoryTests {
                         StaffAccountId.from(loggedInAccountId),
                         AuditEntryActionType.LOGIN,
                         loggedInAccountId,
+                        AuditEntryTargetType.ACCOUNT
+                ),
+
+                // STAFF_ACCOUNT_DISABLED: actor is the disabler
+                arguments(
+                        new StaffAccountDisabledEvent(disabledAccount),
+                        StaffAccountId.from(disablerId),
+                        AuditEntryActionType.DISABLE_ACCOUNT,
+                        disabledAccountId,
                         AuditEntryTargetType.ACCOUNT
                 )
         );
