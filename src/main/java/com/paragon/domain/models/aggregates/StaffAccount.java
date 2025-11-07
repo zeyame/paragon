@@ -2,6 +2,7 @@ package com.paragon.domain.models.aggregates;
 
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.events.DomainEvent;
+import com.paragon.domain.events.staffaccountevents.StaffAccountDisabledEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountLockedEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountLoggedInEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
@@ -103,13 +104,13 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         return LoginResult.ofSuccess();
     }
 
-    // TODO: enqueue staff account disabled event
     public void disable(StaffAccountId disabledBy) {
         throwIfAccountIsDisabled(StaffAccountExceptionInfo.accountAlreadyDisabled());
-        failedLoginAttempts = failedLoginAttempts.reset();
         status = StaffAccountStatus.DISABLED;
         this.disabledBy = disabledBy;
+        failedLoginAttempts = failedLoginAttempts.reset();
         increaseVersion();
+        enqueue(new StaffAccountDisabledEvent(this));
     }
 
     public static StaffAccount createFrom(StaffAccountId id, Username username, Email email, Password password,

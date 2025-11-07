@@ -2,6 +2,7 @@ package com.paragon.domain.models.aggregates;
 
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.events.DomainEvent;
+import com.paragon.domain.events.staffaccountevents.StaffAccountDisabledEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountLockedEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountLoggedInEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
@@ -302,32 +303,6 @@ public class StaffAccountTests {
         }
 
         @Test
-        void shouldResetFailedLoginAttempts() {
-            // Given
-            StaffAccount staffAccount = new StaffAccountFixture()
-                    .withFailedLoginAttempts(3)
-                    .build();
-
-            // When
-            staffAccount.login();
-
-            // Then
-            assertThat(staffAccount.getFailedLoginAttempts().getValue()).isZero();
-        }
-
-        @Test
-        void shouldIncreaseVersion() {
-            // Given
-            StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
-
-            // When
-            staffAccount.login();
-
-            // Then
-            assertThat(staffAccount.getVersion().getValue()).isEqualTo(2);
-        }
-
-        @Test
         void shouldEnqueueStaffAccountLoggedInEvent() {
             // Given
             StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
@@ -340,22 +315,22 @@ public class StaffAccountTests {
             assertThat(queuedEvents).hasSize(1);
             assertThat(queuedEvents.getFirst()).isInstanceOf(StaffAccountLoggedInEvent.class);
 
-            StaffAccountLoggedInEvent event = (StaffAccountLoggedInEvent) queuedEvents.getFirst();
-            assertThat(event.getStaffAccountId()).isEqualTo(staffAccount.getId());
-            assertThat(event.getUsername()).isEqualTo(staffAccount.getUsername());
-            assertThat(event.getEmail()).isEqualTo(staffAccount.getEmail());
-            assertThat(event.getPassword()).isEqualTo(staffAccount.getPassword());
-            assertThat(event.getPasswordIssuedAt()).isEqualTo(staffAccount.getPasswordIssuedAt());
-            assertThat(event.getOrderAccessDuration()).isEqualTo(staffAccount.getOrderAccessDuration());
-            assertThat(event.getModmailTranscriptAccessDuration()).isEqualTo(staffAccount.getModmailTranscriptAccessDuration());
-            assertThat(event.getStaffAccountStatus()).isEqualTo(staffAccount.getStatus());
-            assertThat(event.getFailedLoginAttempts()).isEqualTo(staffAccount.getFailedLoginAttempts());
-            assertThat(event.getLockedUntil()).isEqualTo(staffAccount.getLockedUntil());
-            assertThat(event.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
-            assertThat(event.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
-            assertThat(event.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
-            assertThat(event.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
-            assertThat(event.getStaffAccountVersion()).isEqualTo(staffAccount.getVersion());
+            StaffAccountLoggedInEvent loggedInEvent = (StaffAccountLoggedInEvent) queuedEvents.getFirst();
+            assertThat(loggedInEvent.getStaffAccountId()).isEqualTo(staffAccount.getId());
+            assertThat(loggedInEvent.getUsername()).isEqualTo(staffAccount.getUsername());
+            assertThat(loggedInEvent.getEmail()).isEqualTo(staffAccount.getEmail());
+            assertThat(loggedInEvent.getPassword()).isEqualTo(staffAccount.getPassword());
+            assertThat(loggedInEvent.getPasswordIssuedAt()).isEqualTo(staffAccount.getPasswordIssuedAt());
+            assertThat(loggedInEvent.getOrderAccessDuration()).isEqualTo(staffAccount.getOrderAccessDuration());
+            assertThat(loggedInEvent.getModmailTranscriptAccessDuration()).isEqualTo(staffAccount.getModmailTranscriptAccessDuration());
+            assertThat(loggedInEvent.getStaffAccountStatus()).isEqualTo(staffAccount.getStatus());
+            assertThat(loggedInEvent.getFailedLoginAttempts()).isEqualTo(staffAccount.getFailedLoginAttempts());
+            assertThat(loggedInEvent.getLockedUntil()).isEqualTo(staffAccount.getLockedUntil());
+            assertThat(loggedInEvent.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
+            assertThat(loggedInEvent.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
+            assertThat(loggedInEvent.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
+            assertThat(loggedInEvent.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
+            assertThat(loggedInEvent.getStaffAccountVersion()).isEqualTo(staffAccount.getVersion());
         }
 
         @Test
@@ -404,6 +379,70 @@ public class StaffAccountTests {
             assertThat(staffAccount.getStatus()).isEqualTo(isPasswordTemporary ? StaffAccountStatus.PENDING_PASSWORD_CHANGE : StaffAccountStatus.ACTIVE);
             assertThat(staffAccount.getLockedUntil()).isNull();
             assertThat(staffAccount.getLastLoginAt()).isNotNull();
+        }
+    }
+
+    @Nested
+    class Disable {
+        @Test
+        void shouldDisableStaffAccount() {
+            // Given
+            StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
+            StaffAccountId disabledBy = StaffAccountId.generate();
+
+            // When
+            staffAccount.disable(disabledBy);
+
+            // Then
+            assertThat(staffAccount.getStatus()).isEqualTo(StaffAccountStatus.DISABLED);
+            assertThat(staffAccount.getDisabledBy()).isEqualTo(disabledBy);
+            assertThat(staffAccount.getFailedLoginAttempts()).isEqualTo(FailedLoginAttempts.zero());
+            assertThat(staffAccount.getVersion()).isEqualTo(Version.of(2));
+        }
+
+        @Test
+        void shouldEnqueueStaffAccountDisabledEvent() {
+            // Given
+            StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
+            StaffAccountId disabledBy = StaffAccountId.generate();
+
+            // When
+            staffAccount.disable(disabledBy);
+
+            // Then
+            List<DomainEvent> enqueuedEvents = staffAccount.dequeueUncommittedEvents();
+            assertThat(enqueuedEvents).isNotEmpty();
+
+            StaffAccountDisabledEvent disabledEvent = (StaffAccountDisabledEvent) enqueuedEvents.getFirst();
+            assertThat(disabledEvent.getStaffAccountId()).isEqualTo(staffAccount.getId());
+            assertThat(disabledEvent.getUsername()).isEqualTo(staffAccount.getUsername());
+            assertThat(disabledEvent.getEmail()).isEqualTo(staffAccount.getEmail());
+            assertThat(disabledEvent.getPassword()).isEqualTo(staffAccount.getPassword());
+            assertThat(disabledEvent.getPasswordIssuedAt()).isEqualTo(staffAccount.getPasswordIssuedAt());
+            assertThat(disabledEvent.getOrderAccessDuration()).isEqualTo(staffAccount.getOrderAccessDuration());
+            assertThat(disabledEvent.getModmailTranscriptAccessDuration()).isEqualTo(staffAccount.getModmailTranscriptAccessDuration());
+            assertThat(disabledEvent.getStaffAccountStatus()).isEqualTo(staffAccount.getStatus());
+            assertThat(disabledEvent.getFailedLoginAttempts()).isEqualTo(staffAccount.getFailedLoginAttempts());
+            assertThat(disabledEvent.getLockedUntil()).isEqualTo(staffAccount.getLockedUntil());
+            assertThat(disabledEvent.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
+            assertThat(disabledEvent.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
+            assertThat(disabledEvent.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
+            assertThat(disabledEvent.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
+            assertThat(disabledEvent.getStaffAccountVersion()).isEqualTo(staffAccount.getVersion());
+        }
+
+        @Test
+        void shouldThrowStaffAccountException_whenAccountIsAlreadyDisabled() {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withStatus(StaffAccountStatus.DISABLED)
+                    .build();
+
+            // When & Then
+            assertThatExceptionOfType(StaffAccountException.class)
+                    .isThrownBy(() -> staffAccount.disable(StaffAccountId.generate()))
+                    .extracting("message", "domainErrorCode")
+                    .containsExactly(StaffAccountExceptionInfo.accountAlreadyDisabled().getMessage(), StaffAccountExceptionInfo.accountAlreadyDisabled().getDomainErrorCode());
         }
     }
 }
