@@ -53,7 +53,8 @@ public class ResetStaffAccountPasswordCommandHandler implements CommandHandler<R
             PlaintextPassword tempPassword = PlaintextPassword.generate();
             String hashedTempPassword = passwordHasher.hash(tempPassword.getValue());
 
-            staffAccount.resetPassword(Password.of(hashedTempPassword));
+            StaffAccountId resetBy = StaffAccountId.from(command.requestingStaffAccountId());
+            staffAccount.resetPassword(Password.of(hashedTempPassword), resetBy);
             staffAccountWriteRepo.update(staffAccount);
 
             eventBus.publishAll(staffAccount.dequeueUncommittedEvents());

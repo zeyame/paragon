@@ -371,6 +371,7 @@ public class StaffAccountWriteRepoTests {
                 Instant.parse("2024-01-03T12:00:00Z"),
                 UUID.randomUUID(),
                 null,
+                null,
                 1,
                 Instant.parse("2024-01-02T12:00:00Z"),
                 Instant.parse("2024-01-03T12:00:00Z")

@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS staff_accounts (
 
     created_by                      UUID NOT NULL REFERENCES staff_accounts(id),
     disabled_by                     UUID REFERENCES staff_accounts(id),
+    password_reset_by               UUID REFERENCES staff_accounts(id),
 
     version                         INTEGER NOT NULL DEFAULT 1,
 

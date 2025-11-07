@@ -28,6 +28,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     private Instant lastLoginAt;
     private final StaffAccountId createdBy;
     private StaffAccountId disabledBy;
+    private StaffAccountId passwordResetBy;
     private final List<PermissionCode> permissionCodes;
 
     private StaffAccount(StaffAccountId id,
@@ -44,6 +45,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
                          Instant lastLoginAt,
                          StaffAccountId createdBy,
                          StaffAccountId disabledBy,
+                         StaffAccountId passwordResetBy,
                          List<PermissionCode> permissionCodes,
                          Version version)
     {
@@ -61,6 +63,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         this.lastLoginAt = lastLoginAt;
         this.createdBy = createdBy;
         this.disabledBy = disabledBy;
+        this.passwordResetBy = passwordResetBy;
         this.permissionCodes = List.copyOf(permissionCodes);
         this.version = version;
     }
@@ -73,7 +76,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         StaffAccount account = new StaffAccount(
                 StaffAccountId.generate(), username, email, password, true, Instant.now(),
                 orderAccessDuration, modmailTranscriptAccessDuration, StaffAccountStatus.PENDING_PASSWORD_CHANGE,
-                FailedLoginAttempts.zero(), null, null, createdBy, null, permissionCodes, Version.initial()
+                FailedLoginAttempts.zero(), null, null, createdBy, null, null, permissionCodes, Version.initial()
         );
         account.enqueue(new StaffAccountRegisteredEvent(account));
         return account;
@@ -110,9 +113,10 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         enqueue(new StaffAccountDisabledEvent(this));
     }
 
-    public void resetPassword(Password password) {
+    public void resetPassword(Password password, StaffAccountId resetBy) {
         throwIfAccountIsDisabled(StaffAccountExceptionInfo.accountAlreadyDisabled());
         this.password = password;
+        this.passwordResetBy = resetBy;
         passwordIssuedAt = Instant.now();
         isPasswordTemporary = true;
         status = StaffAccountStatus.PENDING_PASSWORD_CHANGE;
@@ -126,14 +130,15 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
                                           ModmailTranscriptAccessDuration modmailTranscriptAccessDuration,
                                           StaffAccountStatus status, FailedLoginAttempts failedLoginAttempts,
                                           Instant lockedUntil, Instant lastLoginAt, StaffAccountId createdBy,
-                                          StaffAccountId disabledBy, List<PermissionCode> permissionCodes, Version version) {
+                                          StaffAccountId disabledBy, StaffAccountId passwordResetBy,
+                                          List<PermissionCode> permissionCodes, Version version) {
         return new StaffAccount(
                 id, username, email, password, isPasswordTemporary,
                 passwordIssuedAt, orderAccessDuration,
                 modmailTranscriptAccessDuration,
                 status, failedLoginAttempts,
                 lockedUntil, lastLoginAt,
-                createdBy, disabledBy,
+                createdBy, disabledBy, passwordResetBy,
                 permissionCodes, version
         );
     }

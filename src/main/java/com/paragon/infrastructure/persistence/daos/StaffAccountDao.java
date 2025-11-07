@@ -23,6 +23,7 @@ public record StaffAccountDao(
         Instant lastLoginAtUtc,
         UUID createdBy,
         UUID disabledBy,
+        UUID passwordResetBy,
         int version,
         Instant createdAtUtc,
         Instant updatedAtUtc
@@ -44,6 +45,7 @@ public record StaffAccountDao(
                 lastLoginAtUtc,
                 StaffAccountId.of(createdBy),
                 disabledBy != null ? StaffAccountId.of(disabledBy) : null,
+                passwordResetBy != null ? StaffAccountId.of(passwordResetBy) : null,
                 permissionCodes,
                 Version.of(version)
         );

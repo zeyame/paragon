@@ -60,6 +60,8 @@ public class StaffAccountTests {
             assertThat(staffAccount.getLockedUntil()).isNull();
             assertThat(staffAccount.getLastLoginAt()).isNull();
             assertThat(staffAccount.getCreatedBy()).isEqualTo(createdBy);
+            assertThat(staffAccount.getDisabledBy()).isNull();
+            assertThat(staffAccount.getPasswordResetBy()).isNull();
             assertThat(staffAccount.getPermissionCodes()).isEqualTo(permissionCodes);
             assertThat(staffAccount.getVersion().getValue()).isEqualTo(1);
         }
@@ -83,6 +85,8 @@ public class StaffAccountTests {
             assertThat(staffAccount.getLockedUntil()).isNull();
             assertThat(staffAccount.getLastLoginAt()).isNull();
             assertThat(staffAccount.getCreatedBy()).isEqualTo(createdBy);
+            assertThat(staffAccount.getDisabledBy()).isNull();
+            assertThat(staffAccount.getPasswordResetBy()).isNull();
             assertThat(staffAccount.getPermissionCodes()).isEqualTo(permissionCodes);
             assertThat(staffAccount.getVersion().getValue()).isEqualTo(1);
         }
@@ -123,6 +127,7 @@ public class StaffAccountTests {
             assertThat(event.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
             assertThat(event.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
             assertThat(event.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
+            assertThat(event.getStaffAccountPasswordResetBy()).isEqualTo(staffAccount.getPasswordResetBy());
             assertThat(event.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
             assertThat(event.getStaffAccountVersion()).isEqualTo(staffAccount.getVersion());
         }
@@ -450,6 +455,7 @@ public class StaffAccountTests {
         void shouldResetPassword() {
             // Given
             Instant oldPasswordIssuedAt = Instant.now().minus(1, ChronoUnit.DAYS);
+            StaffAccountId resetBy = StaffAccountId.generate();
             StaffAccount staffAccount = new StaffAccountFixture()
                     .withPassword("old-password")
                     .withStatus(StaffAccountStatus.ACTIVE)
@@ -459,10 +465,11 @@ public class StaffAccountTests {
                     .build();
 
             // When
-            staffAccount.resetPassword(Password.of("hashed-password"));
+            staffAccount.resetPassword(Password.of("hashed-password"), resetBy);
 
             // Then
             assertThat(staffAccount.getPassword()).isEqualTo(Password.of("hashed-password"));
+            assertThat(staffAccount.getPasswordResetBy()).isEqualTo(resetBy);
             assertThat(staffAccount.getStatus()).isEqualTo(StaffAccountStatus.PENDING_PASSWORD_CHANGE);
             assertThat(staffAccount.isPasswordTemporary()).isTrue();
             assertThat(staffAccount.getPasswordIssuedAt()).isAfter(oldPasswordIssuedAt);
@@ -473,10 +480,11 @@ public class StaffAccountTests {
         @Test
         void shouldEnqueueStaffAccountPasswordResetEvent() {
             // Given
+            StaffAccountId resetBy = StaffAccountId.generate();
             StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
 
             // When
-            staffAccount.resetPassword(Password.of("hashed-password"));
+            staffAccount.resetPassword(Password.of("hashed-password"), resetBy);
 
             //Then
             List<DomainEvent> enqueuedEvents = staffAccount.dequeueUncommittedEvents();
@@ -503,13 +511,14 @@ public class StaffAccountTests {
         @Test
         void shouldThrowStaffAccountException_whenAccountIsDisabled() {
             // Given
+            StaffAccountId resetBy = StaffAccountId.generate();
             StaffAccount staffAccount = new StaffAccountFixture()
                     .withStatus(StaffAccountStatus.DISABLED)
                     .build();
 
             // When & Then
             assertThatExceptionOfType(StaffAccountException.class)
-                    .isThrownBy(() -> staffAccount.resetPassword(Password.of("hashed-password")))
+                    .isThrownBy(() -> staffAccount.resetPassword(Password.of("hashed-password"), resetBy))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(StaffAccountExceptionInfo.accountAlreadyDisabled().getMessage(), StaffAccountExceptionInfo.accountAlreadyDisabled().getDomainErrorCode());
         }
