@@ -42,7 +42,7 @@ public class DisableStaffAccountCommandHandler implements CommandHandler<Disable
             StaffAccount staffAccount = staffAccountWriteRepo.getById(staffAccountId)
                     .orElseThrow(() -> new AppException(AppExceptionInfo.staffAccountNotFound(command.staffAccountIdToBeDisabled())));
 
-            staffAccount.disable();
+            staffAccount.disable(StaffAccountId.from(command.requestingStaffAccountId()));
             staffAccountWriteRepo.update(staffAccount);
 
             eventBus.publishAll(staffAccount.dequeueUncommittedEvents());

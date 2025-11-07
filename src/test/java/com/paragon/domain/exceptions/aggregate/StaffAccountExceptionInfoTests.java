@@ -77,4 +77,12 @@ public class StaffAccountExceptionInfoTests {
         assertThat(info.getMessage()).isEqualTo("Invalid username or password.");
         assertThat(info.getDomainErrorCode()).isEqualTo(10009);
     }
+
+    @Test
+    void accountAlreadyDisabled_shouldHaveExpectedCodeAndMessage() {
+        StaffAccountExceptionInfo info = StaffAccountExceptionInfo.accountAlreadyDisabled();
+
+        assertThat(info.getMessage()).isEqualTo("Staff account is already disabled");
+        assertThat(info.getDomainErrorCode()).isEqualTo(10010);
+    }
 }

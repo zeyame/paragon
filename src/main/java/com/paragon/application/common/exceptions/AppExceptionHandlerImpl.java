@@ -53,6 +53,9 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
             case 10007, 10008, 10009 -> // authentication failures (account disabled/locked, invalid credentials)
                     new AppException(exception, AppExceptionStatusCode.AUTHENTICATION_FAILED);
 
+            case 10010 -> // state conflict (account already disabled)
+                    new AppException(exception, AppExceptionStatusCode.INVALID_RESOURCE_STATE);
+
             default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);
         };
     }

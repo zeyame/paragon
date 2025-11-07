@@ -39,10 +39,10 @@ public class GlobalExceptionFilter {
     private HttpStatus mapToHttpStatusCode(AppExceptionStatusCode appExceptionStatusCode) {
         return switch (appExceptionStatusCode) {
             case CLIENT_ERROR -> HttpStatus.BAD_REQUEST;
-            case INVALID_RESOURCE_STATE, SERVER_ERROR, UNHANDLED_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
+            case SERVER_ERROR, UNHANDLED_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
             case RESOURCE_NOT_FOUND -> HttpStatus.NOT_FOUND;
             case RESOURCE_OWNERSHIP_VIOLATION, PERMISSION_DENIED -> HttpStatus.FORBIDDEN;
-            case RESOURCE_UNIQUENESS_VIOLATION -> HttpStatus.CONFLICT;
+            case INVALID_RESOURCE_STATE, RESOURCE_UNIQUENESS_VIOLATION -> HttpStatus.CONFLICT;
             case AUTHENTICATION_FAILED -> HttpStatus.UNAUTHORIZED;
         };
     }

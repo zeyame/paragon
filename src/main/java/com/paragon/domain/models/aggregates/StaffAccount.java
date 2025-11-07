@@ -7,8 +7,6 @@ import com.paragon.domain.events.staffaccountevents.StaffAccountLoggedInEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
 import com.paragon.domain.exceptions.aggregate.StaffAccountException;
 import com.paragon.domain.exceptions.aggregate.StaffAccountExceptionInfo;
-import com.paragon.domain.interfaces.PasswordHasher;
-import com.paragon.domain.models.constants.SystemPermissions;
 import com.paragon.domain.models.valueobjects.*;
 import lombok.Getter;
 
@@ -94,7 +92,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     }
 
     public LoginResult login() {
-        throwIfAccountIsDisabled();
+        throwIfAccountIsDisabled(StaffAccountExceptionInfo.loginFailedAccountDisabled());
         throwIfAccountIsLocked();
 
         failedLoginAttempts = failedLoginAttempts.reset();
@@ -105,7 +103,14 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         return LoginResult.ofSuccess();
     }
 
-    public void disable() {}
+    // TODO: enqueue staff account disabled event
+    public void disable(StaffAccountId disabledBy) {
+        throwIfAccountIsDisabled(StaffAccountExceptionInfo.accountAlreadyDisabled());
+        failedLoginAttempts = failedLoginAttempts.reset();
+        status = StaffAccountStatus.DISABLED;
+        this.disabledBy = disabledBy;
+        increaseVersion();
+    }
 
     public static StaffAccount createFrom(StaffAccountId id, Username username, Email email, Password password,
                                           boolean isPasswordTemporary, Instant passwordIssuedAt, OrderAccessDuration orderAccessDuration,
@@ -152,9 +157,9 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         }
     }
 
-    private void throwIfAccountIsDisabled() {
+    private void throwIfAccountIsDisabled(StaffAccountExceptionInfo exceptionInfo) {
         if (status == StaffAccountStatus.DISABLED) {
-            throw new StaffAccountException(StaffAccountExceptionInfo.loginFailedAccountDisabled());
+            throw new StaffAccountException(exceptionInfo);
         }
     }
 

@@ -95,8 +95,8 @@ public class DisableStaffAccountCommandHandlerTests {
 
         // Then
         assertThat(commandResponse.id()).isEqualTo(staffAccountToBeDisabled.getId().getValue().toString());
-        assertThat(commandResponse.status()).isEqualTo(staffAccountToBeDisabled.getStatus().toString());
-        assertThat(commandResponse.disabledBy()).isEqualTo("DISABLED");
+        assertThat(commandResponse.status()).isEqualTo("DISABLED");
+        assertThat(commandResponse.disabledBy()).isEqualTo(command.requestingStaffAccountId());
         assertThat(commandResponse.version()).isEqualTo(2);
     }
 

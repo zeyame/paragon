@@ -84,6 +84,12 @@ public class AppExceptionHandlerTests {
                             AppExceptionStatusCode.AUTHENTICATION_FAILED
                     ),
 
+                    // StaffAccountException - state conflict (INVALID_RESOURCE_STATE)
+                    arguments(
+                            new StaffAccountException(StaffAccountExceptionInfo.accountAlreadyDisabled()),
+                            AppExceptionStatusCode.INVALID_RESOURCE_STATE
+                    ),
+
                     // AuditTrailEntryException - internal errors (SERVER_ERROR)
                     arguments(
                             new AuditTrailEntryException(AuditTrailEntryExceptionInfo.actorIdRequired()),
