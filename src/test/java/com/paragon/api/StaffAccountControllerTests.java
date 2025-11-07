@@ -72,7 +72,7 @@ public class StaffAccountControllerTests {
             );
 
             commandResponse = new RegisterStaffAccountCommandResponse(
-                    "id", "username123", "pending_password_change", 1
+                    "id", "username123", "temp_password", "pending_password_change", 1
             );
             when(registerStaffAccountCommandHandlerMock.handle(any(RegisterStaffAccountCommand.class)))
                     .thenReturn(commandResponse);
@@ -144,7 +144,6 @@ public class StaffAccountControllerTests {
             return new RegisterStaffAccountRequestDto(
                     "username123",
                     "testemail123@gmail.com",
-                    "password123",
                     14,
                     7,
                     List.of("MANAGE_ACCOUNTS")
@@ -155,7 +154,6 @@ public class StaffAccountControllerTests {
             return new RegisterStaffAccountCommand(
                     request.username(),
                     request.email(),
-                    request.tempPassword(),
                     request.orderAccessDuration(),
                     request.modmailTranscriptAccessDuration(),
                     request.permissionCodes(),

@@ -52,7 +52,6 @@ public class CommandHandlerTransactionTests {
             RegisterStaffAccountCommand command = new RegisterStaffAccountCommand(
                     "Username123", // duplicate username
                     "new-user@email.com",
-                    "TempPass123!",
                     10,
                     20,
                     List.of(SystemPermissions.VIEW_ACCOUNTS_LIST.getValue()),

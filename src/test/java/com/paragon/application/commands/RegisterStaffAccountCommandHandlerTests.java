@@ -8,9 +8,6 @@ import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.common.interfaces.UnitOfWork;
 import com.paragon.application.events.EventBus;
-import com.paragon.domain.enums.StaffAccountStatus;
-import com.paragon.domain.events.DomainEvent;
-import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.PasswordHasher;
 import com.paragon.domain.interfaces.repos.StaffAccountWriteRepo;
@@ -84,6 +81,7 @@ public class RegisterStaffAccountCommandHandlerTests {
         assertThat(commandResponse).isNotNull();
         assertThat(commandResponse.id()).isEqualTo(registeredAccount.getId().getValue().toString());
         assertThat(commandResponse.username()).isEqualTo(registeredAccount.getUsername().getValue());
+        assertThat(commandResponse.tempPassword()).isNotNull();
         assertThat(commandResponse.status()).isEqualTo(registeredAccount.getStatus().toString());
         assertThat(commandResponse.version()).isEqualTo(registeredAccount.getVersion().getValue());
     }
@@ -140,7 +138,6 @@ public class RegisterStaffAccountCommandHandlerTests {
         RegisterStaffAccountCommand command = new RegisterStaffAccountCommand(
                 "", // forces a domain exception (UsernameException)
                 "testuser@example.com",
-                "TempPass123!",
                 7,
                 14,
                 List.of(UUID.randomUUID().toString()),
@@ -176,7 +173,6 @@ public class RegisterStaffAccountCommandHandlerTests {
         return new RegisterStaffAccountCommand(
                 "testuser",
                 "testuser@example.com",
-                "TempPass123!",
                 7,
                 14,
                 List.of("MANAGE_ACCOUNTS"),

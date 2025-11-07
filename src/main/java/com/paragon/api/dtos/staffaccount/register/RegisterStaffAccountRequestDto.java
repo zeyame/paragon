@@ -11,9 +11,6 @@ public record RegisterStaffAccountRequestDto (
     @JsonProperty("email")
     String email,
 
-    @JsonProperty("temp_password")
-    String tempPassword,
-
     @JsonProperty("order_access_duration")
     int orderAccessDuration,
 

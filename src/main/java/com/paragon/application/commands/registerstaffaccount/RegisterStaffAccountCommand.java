@@ -5,7 +5,6 @@ import java.util.List;
 public record RegisterStaffAccountCommand(
         String username,
         String email,
-        String tempPassword,
         int orderAccessDuration,
         int modmailTranscriptAccessDuration,
         List<String> permissionCodes,

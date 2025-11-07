@@ -45,10 +45,13 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
         try {
             assertUniqueUsername(command.username());
 
+            PlaintextPassword tempPassword = PlaintextPassword.generate();
+            String hashedTempPassword = passwordHasher.hash(tempPassword.getValue());
+
             StaffAccount staffAccount = StaffAccount.register(
                     Username.of(command.username()),
                     command.email() != null ? Email.of(command.email()) : null,
-                    Password.fromPlainText(command.tempPassword(), passwordHasher),
+                    Password.of(hashedTempPassword),
                     OrderAccessDuration.from(command.orderAccessDuration()),
                     ModmailTranscriptAccessDuration.from(command.modmailTranscriptAccessDuration()),
                     StaffAccountId.from(command.createdBy()),
@@ -71,6 +74,7 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
             return new RegisterStaffAccountCommandResponse(
                     staffAccount.getId().getValue().toString(),
                     staffAccount.getUsername().getValue(),
+                    tempPassword.getValue(),
                     staffAccount.getStatus().toString(),
                     staffAccount.getVersion().getValue()
             );

@@ -9,6 +9,9 @@ public record RegisterStaffAccountResponseDto(
         @JsonProperty("username")
         String username,
 
+        @JsonProperty("temp_password")
+        String tempPassword,
+
         @JsonProperty("status")
         String status,
 

@@ -114,7 +114,6 @@ public class StaffAccountController {
         return new RegisterStaffAccountCommand(
                 requestDto.username(),
                 requestDto.email(),
-                requestDto.tempPassword(),
                 requestDto.orderAccessDuration(),
                 requestDto.modmailTranscriptAccessDuration(),
                 requestDto.permissionCodes(),
@@ -126,6 +125,7 @@ public class StaffAccountController {
         return new RegisterStaffAccountResponseDto(
                 commandResponse.id(),
                 commandResponse.username(),
+                commandResponse.tempPassword(),
                 commandResponse.status(),
                 commandResponse.version()
         );
