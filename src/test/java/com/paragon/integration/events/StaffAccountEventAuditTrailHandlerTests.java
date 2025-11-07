@@ -3,9 +3,12 @@ package com.paragon.integration.events;
 import com.paragon.application.events.EventBusImpl;
 import com.paragon.domain.enums.AuditEntryActionType;
 import com.paragon.domain.enums.AuditEntryTargetType;
+import com.paragon.domain.enums.StaffAccountStatus;
+import com.paragon.domain.events.staffaccountevents.StaffAccountDisabledEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountLockedEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountLoggedInEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountRegisteredEvent;
+import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.entities.AuditTrailEntry;
 import com.paragon.domain.models.valueobjects.AuditEntryTargetId;
 import com.paragon.helpers.TestJdbcHelper;
@@ -16,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -96,5 +100,31 @@ public class StaffAccountEventAuditTrailHandlerTests extends IntegrationTestBase
         assertThat(staffAccountLoggedInEntry.getActionType()).isEqualTo(AuditEntryActionType.LOGIN);
         assertThat(staffAccountLoggedInEntry.getTargetId()).isEqualTo(AuditEntryTargetId.of(staffAccountLoggedInEvent.getStaffAccountId().getValue().toString()));
         assertThat(staffAccountLoggedInEntry.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
+    }
+
+    @Test
+    void shouldPersistAuditTrailEntryForStaffAccountDisabledEvent() {
+        // Given
+        StaffAccount disabledStaffAccount = new StaffAccountFixture()
+                .withId(UUID.randomUUID().toString())
+                .withDisabledBy(adminId)
+                .withStatus(StaffAccountStatus.DISABLED)
+                .build();
+        StaffAccountDisabledEvent staffAccountDisabledEvent = new StaffAccountDisabledEvent(disabledStaffAccount);
+
+        // When
+        eventBus.publishAll(List.of(staffAccountDisabledEvent));
+
+        // Then
+        List<AuditTrailEntry> auditTrailEntries = jdbcHelper.getAuditTrailEntriesByActorAndAction(
+                staffAccountDisabledEvent.getStaffAccountDisabledBy(), AuditEntryActionType.DISABLE_ACCOUNT
+        );
+        assertThat(auditTrailEntries).hasSize(1);
+
+        AuditTrailEntry disabledEntry = auditTrailEntries.getFirst();
+        assertThat(disabledEntry.getActorId()).isEqualTo(staffAccountDisabledEvent.getStaffAccountDisabledBy());
+        assertThat(disabledEntry.getActionType()).isEqualTo(AuditEntryActionType.DISABLE_ACCOUNT);
+        assertThat(disabledEntry.getTargetId()).isEqualTo(AuditEntryTargetId.of(staffAccountDisabledEvent.getStaffAccountId().getValue().toString()));
+        assertThat(disabledEntry.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
     }
 }

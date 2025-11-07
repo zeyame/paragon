@@ -47,7 +47,8 @@ public class StaffAccountEventAuditTrailHandler implements EventHandler<StaffAcc
         return List.of(
                 EventNames.STAFF_ACCOUNT_REGISTERED,
                 EventNames.STAFF_ACCOUNT_LOCKED,
-                EventNames.STAFF_ACCOUNT_LOGGED_IN
+                EventNames.STAFF_ACCOUNT_LOGGED_IN,
+                EventNames.STAFF_ACCOUNT_DISABLED
         );
     }
 }
