@@ -2,6 +2,7 @@ package com.paragon.application.events.refreshtokens;
 
 import com.paragon.application.events.EventHandler;
 import com.paragon.domain.events.EventNames;
+import com.paragon.domain.events.staffaccountevents.StaffAccountEventBase;
 import com.paragon.domain.events.staffaccountevents.StaffAccountLockedEvent;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.repos.RefreshTokenWriteRepo;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class StaffAccountRefreshTokenRevocationHandler implements EventHandler<StaffAccountLockedEvent> {
+public class StaffAccountRefreshTokenRevocationHandler implements EventHandler<StaffAccountEventBase> {
     private final RefreshTokenWriteRepo refreshTokenWriteRepo;
     private static final Logger log = LoggerFactory.getLogger(StaffAccountRefreshTokenRevocationHandler.class);
 
@@ -23,7 +24,7 @@ public class StaffAccountRefreshTokenRevocationHandler implements EventHandler<S
     }
 
     @Override
-    public void handle(StaffAccountLockedEvent event) {
+    public void handle(StaffAccountEventBase event) {
         try {
             log.info("Attempting to revoke all active refresh tokens for staff account with ID: {}, in event: {}",
                     event.getStaffAccountId().getValue(), event.getEventName());
@@ -45,6 +46,9 @@ public class StaffAccountRefreshTokenRevocationHandler implements EventHandler<S
 
     @Override
     public List<String> subscribedToEvents() {
-        return List.of(EventNames.STAFF_ACCOUNT_LOCKED);
+        return List.of(
+                EventNames.STAFF_ACCOUNT_LOCKED,
+                EventNames.STAFF_ACCOUNT_DISABLED
+        );
     }
 }
