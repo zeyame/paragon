@@ -48,7 +48,8 @@ public class StaffAccountRefreshTokenRevocationHandler implements EventHandler<S
     public List<String> subscribedToEvents() {
         return List.of(
                 EventNames.STAFF_ACCOUNT_LOCKED,
-                EventNames.STAFF_ACCOUNT_DISABLED
+                EventNames.STAFF_ACCOUNT_DISABLED,
+                EventNames.STAFF_ACCOUNT_PASSWORD_RESET
         );
     }
 }

@@ -3,6 +3,7 @@ package com.paragon.integration.events;
 import com.paragon.application.events.EventBusImpl;
 import com.paragon.domain.events.staffaccountevents.StaffAccountDisabledEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountLockedEvent;
+import com.paragon.domain.events.staffaccountevents.StaffAccountPasswordResetEvent;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.helpers.TestJdbcHelper;
@@ -48,6 +49,19 @@ public class StaffAccountRefreshTokenRevocationHandlerTests extends IntegrationT
 
         // When
         eventBus.publishAll(List.of(new StaffAccountDisabledEvent(staffAccount)));
+
+        // Then
+        assertAllTokensRevoked(staffAccount);
+    }
+
+    @Test
+    void shouldRevokeRefreshTokens_whenStaffAccountPasswordReset() {
+        // Given
+        StaffAccount staffAccount = createAndInsertStaffAccount();
+        insertRefreshTokensFor(staffAccount);
+
+        // When
+        eventBus.publishAll(List.of(new StaffAccountPasswordResetEvent(staffAccount)));
 
         // Then
         assertAllTokensRevoked(staffAccount);
