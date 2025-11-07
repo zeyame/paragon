@@ -25,6 +25,7 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
             case UsernameException usernameException -> handleUsernameException(usernameException);
             case EmailException emailException -> handleEmailException(emailException);
             case PasswordException passwordException -> handlePasswordException(passwordException);
+            case PlaintextPasswordException plaintextPasswordException -> handlePlaintextPasswordException(plaintextPasswordException);
             case OrderAccessDurationException orderAccessDurationException -> handleOrderAccessDurationException(orderAccessDurationException);
             case ModmailTranscriptAccessDurationException modmailTranscriptAccessDurationException -> handleModmailTranscriptAccessDurationException(modmailTranscriptAccessDurationException);
             case FailedLoginAttemptsException failedLoginAttemptsException -> handleFailedLoginAttemptsException(failedLoginAttemptsException);
@@ -141,7 +142,18 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
         int domainErrorCode = exception.getDomainErrorCode();
 
         return switch (domainErrorCode) {
-            case 105001, 105002, 105003, 105004, 105005, 105006, 105007, 105008 -> // all password validation errors - user input
+            case 105001 -> // missing value - internal error (hashed password from DB)
+                    new AppException(exception, AppExceptionStatusCode.SERVER_ERROR);
+
+            default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);
+        };
+    }
+
+    private AppException handlePlaintextPasswordException(PlaintextPasswordException exception) {
+        int domainErrorCode = exception.getDomainErrorCode();
+
+        return switch (domainErrorCode) {
+            case 113001, 113002, 113003, 113004, 113005, 113006, 113007, 113008 -> // all plaintext password validation errors - user input
                     new AppException(exception, AppExceptionStatusCode.CLIENT_ERROR);
 
             default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);

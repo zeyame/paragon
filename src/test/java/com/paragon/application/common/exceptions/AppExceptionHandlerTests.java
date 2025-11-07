@@ -176,37 +176,43 @@ public class AppExceptionHandlerTests {
                             AppExceptionStatusCode.CLIENT_ERROR
                     ),
 
-                    // PasswordException - user input (CLIENT_ERROR)
+                    // PasswordException - internal error (SERVER_ERROR)
                     arguments(
                             new PasswordException(PasswordExceptionInfo.missingValue()),
+                            AppExceptionStatusCode.SERVER_ERROR
+                    ),
+
+                    // PlaintextPasswordException - user input (CLIENT_ERROR)
+                    arguments(
+                            new PlaintextPasswordException(PlaintextPasswordExceptionInfo.missingValue()),
                             AppExceptionStatusCode.CLIENT_ERROR
                     ),
                     arguments(
-                            new PasswordException(PasswordExceptionInfo.tooShort(8)),
+                            new PlaintextPasswordException(PlaintextPasswordExceptionInfo.tooShort(8)),
                             AppExceptionStatusCode.CLIENT_ERROR
                     ),
                     arguments(
-                            new PasswordException(PasswordExceptionInfo.tooLong(128)),
+                            new PlaintextPasswordException(PlaintextPasswordExceptionInfo.tooLong(128)),
                             AppExceptionStatusCode.CLIENT_ERROR
                     ),
                     arguments(
-                            new PasswordException(PasswordExceptionInfo.missingUppercase()),
+                            new PlaintextPasswordException(PlaintextPasswordExceptionInfo.missingUppercase()),
                             AppExceptionStatusCode.CLIENT_ERROR
                     ),
                     arguments(
-                            new PasswordException(PasswordExceptionInfo.missingLowercase()),
+                            new PlaintextPasswordException(PlaintextPasswordExceptionInfo.missingLowercase()),
                             AppExceptionStatusCode.CLIENT_ERROR
                     ),
                     arguments(
-                            new PasswordException(PasswordExceptionInfo.missingDigit()),
+                            new PlaintextPasswordException(PlaintextPasswordExceptionInfo.missingDigit()),
                             AppExceptionStatusCode.CLIENT_ERROR
                     ),
                     arguments(
-                            new PasswordException(PasswordExceptionInfo.missingSpecialCharacter()),
+                            new PlaintextPasswordException(PlaintextPasswordExceptionInfo.missingSpecialCharacter()),
                             AppExceptionStatusCode.CLIENT_ERROR
                     ),
                     arguments(
-                            new PasswordException(PasswordExceptionInfo.containsWhitespace()),
+                            new PlaintextPasswordException(PlaintextPasswordExceptionInfo.containsWhitespace()),
                             AppExceptionStatusCode.CLIENT_ERROR
                     ),
 
