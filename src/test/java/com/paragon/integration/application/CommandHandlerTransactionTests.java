@@ -1,10 +1,13 @@
 package com.paragon.integration.application;
 
+import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommand;
+import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommandHandler;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommand;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandHandler;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommand;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandHandler;
 import com.paragon.application.common.exceptions.AppException;
+import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.constants.SystemPermissions;
 import com.paragon.domain.models.valueobjects.Username;
@@ -107,10 +110,57 @@ public class CommandHandlerTransactionTests {
             Optional<StaffAccount> result = jdbcHelper.getStaffAccountByUsername(Username.of("LoginUser123"));
             assertThat(result).isPresent();
 
+            // assert that staff account state was rolled back and remained unchanged
             StaffAccount accountAfterRollback = result.get();
             assertThat(accountAfterRollback.getLastLoginAt()).isNull();
             assertThat(accountAfterRollback.getVersion().getValue()).isEqualTo(1);
             assertThat(accountAfterRollback.getFailedLoginAttempts().getValue()).isEqualTo(0);
+        }
+    }
+
+    @Nested
+    class DisableStaffAccount extends IntegrationTestBase {
+        private final DisableStaffAccountCommandHandler handler;
+        private final WriteJdbcHelper writeJdbcHelper;
+        private final TestJdbcHelper jdbcHelper;
+
+        @Autowired
+        public DisableStaffAccount(DisableStaffAccountCommandHandler handler, WriteJdbcHelper writeJdbcHelper) {
+            this.handler = handler;
+            this.writeJdbcHelper = writeJdbcHelper;
+            this.jdbcHelper = new TestJdbcHelper(writeJdbcHelper);
+        }
+
+        @Test
+        void shouldRollbackTransaction_whenAccountAlreadyDisabled() {
+            // Given
+            StaffAccount alreadyDisabledAccount = new StaffAccountFixture()
+                    .withUsername("DisabledUser123")
+                    .withCreatedBy(adminId)
+                    .withStatus(com.paragon.domain.enums.StaffAccountStatus.DISABLED)
+                    .withDisabledBy(adminId)
+                    .build();
+            jdbcHelper.insertStaffAccount(alreadyDisabledAccount);
+
+            DisableStaffAccountCommand command =
+                    new DisableStaffAccountCommand(
+                            alreadyDisabledAccount.getId().getValue().toString(),
+                            adminId
+                    );
+
+            // When
+            assertThatThrownBy(() -> handler.handle(command))
+                    .isInstanceOf(AppException.class);
+
+            // Then
+            Optional<StaffAccount> result = jdbcHelper.getStaffAccountById(alreadyDisabledAccount.getId());
+            assertThat(result).isPresent();
+
+            // assert that staff account state remained unchanged (no version increment)
+            StaffAccount accountAfterRollback = result.get();
+            assertThat(accountAfterRollback.getStatus()).isEqualTo(StaffAccountStatus.DISABLED);
+            assertThat(accountAfterRollback.getVersion().getValue()).isEqualTo(1);
+            assertThat(accountAfterRollback.getDisabledBy()).isEqualTo(alreadyDisabledAccount.getDisabledBy());
         }
     }
 }
