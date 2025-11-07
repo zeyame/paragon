@@ -105,6 +105,8 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         return LoginResult.ofSuccess();
     }
 
+    public void disable() {}
+
     public static StaffAccount createFrom(StaffAccountId id, Username username, Email email, Password password,
                                           boolean isPasswordTemporary, Instant passwordIssuedAt, OrderAccessDuration orderAccessDuration,
                                           ModmailTranscriptAccessDuration modmailTranscriptAccessDuration,
