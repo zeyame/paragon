@@ -1,5 +1,6 @@
 package com.paragon.api;
 
+import com.paragon.api.controllers.AuthController;
 import com.paragon.api.dtos.ResponseDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountRequestDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountResponseDto;

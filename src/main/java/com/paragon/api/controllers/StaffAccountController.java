@@ -1,12 +1,15 @@
-package com.paragon.api;
+package com.paragon.api.controllers;
 
 import com.paragon.api.dtos.ResponseDto;
+import com.paragon.api.dtos.staffaccount.disable.DisableStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.StaffAccountSummaryResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
 import com.paragon.api.security.HttpContextHelper;
 import com.paragon.application.commands.CommandHandler;
+import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommand;
+import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommandResponse;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommand;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandResponse;
 import com.paragon.application.queries.QueryHandler;
@@ -26,6 +29,7 @@ import java.util.concurrent.CompletableFuture;
 @RequestMapping("v1/staff-accounts")
 public class StaffAccountController {
     private final CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> registerStaffAccountCommandHandler;
+    private final CommandHandler<DisableStaffAccountCommand, DisableStaffAccountCommandResponse> disableStaffAccountCommandHandler;
     private final QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> getAllStaffAccountsQueryHandler;
     private final HttpContextHelper httpContextHelper;
     private final TaskExecutor taskExecutor;
@@ -33,9 +37,11 @@ public class StaffAccountController {
 
     public StaffAccountController(
             CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> registerStaffAccountCommandHandler,
+            CommandHandler<DisableStaffAccountCommand, DisableStaffAccountCommandResponse> disableStaffAccountCommandHandler,
             QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> getAllStaffAccountsQueryHandler,
             HttpContextHelper httpContextHelper, TaskExecutor taskExecutor) {
         this.registerStaffAccountCommandHandler = registerStaffAccountCommandHandler;
+        this.disableStaffAccountCommandHandler = disableStaffAccountCommandHandler;
         this.getAllStaffAccountsQueryHandler = getAllStaffAccountsQueryHandler;
         this.httpContextHelper = httpContextHelper;
         this.taskExecutor = taskExecutor;
@@ -51,6 +57,21 @@ public class StaffAccountController {
             var command = createRegisterStaffAccountCommand(requestDto, requestingStaffAccountId);
             var commandResponse = registerStaffAccountCommandHandler.handle(command);
             var responseDto = new ResponseDto<>(createRegisterStaffAccountResponseDto(commandResponse), null);
+            return ResponseEntity.ok(responseDto);
+        }, taskExecutor);
+    }
+
+    @PostMapping("/disable/{id}")
+    @PreAuthorize("hasAuthority('MANAGE_ACCOUNTS')")
+    public CompletableFuture<ResponseEntity<ResponseDto<DisableStaffAccountResponseDto>>> disable(@PathVariable("id") String staffAccountIdToBeDisabled) {
+        String requestingStaffAccountId = httpContextHelper.getAuthenticatedStaffId();
+        log.info("Received request to disable a staff account with ID: {} was received from a staff account with ID: {}.",
+                staffAccountIdToBeDisabled, requestingStaffAccountId);
+
+        return CompletableFuture.supplyAsync(() -> {
+            var command = createDisableStaffAccountCommand(staffAccountIdToBeDisabled, requestingStaffAccountId);
+            var commandResponse = disableStaffAccountCommandHandler.handle(command);
+            var responseDto = new ResponseDto<>(createDisableStaffAccountResponseDto(commandResponse), null);
             return ResponseEntity.ok(responseDto);
         }, taskExecutor);
     }
@@ -85,6 +106,19 @@ public class StaffAccountController {
                 commandResponse.id(),
                 commandResponse.username(),
                 commandResponse.status(),
+                commandResponse.version()
+        );
+    }
+
+    private DisableStaffAccountCommand createDisableStaffAccountCommand(String staffAccountIdToBeDisabled, String requestingStaffAccountId) {
+        return new DisableStaffAccountCommand(staffAccountIdToBeDisabled, requestingStaffAccountId);
+    }
+
+    private DisableStaffAccountResponseDto createDisableStaffAccountResponseDto(DisableStaffAccountCommandResponse commandResponse) {
+        return new DisableStaffAccountResponseDto(
+                commandResponse.id(),
+                commandResponse.status(),
+                commandResponse.disabledBy(),
                 commandResponse.version()
         );
     }

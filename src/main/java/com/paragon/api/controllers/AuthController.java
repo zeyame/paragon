@@ -1,4 +1,4 @@
-package com.paragon.api;
+package com.paragon.api.controllers;
 
 import com.paragon.api.dtos.ResponseDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountRequestDto;
