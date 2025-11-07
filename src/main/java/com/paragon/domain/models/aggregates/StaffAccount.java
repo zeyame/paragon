@@ -113,6 +113,9 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         enqueue(new StaffAccountDisabledEvent(this));
     }
 
+    public void resetPassword(Password password) {
+    }
+
     public static StaffAccount createFrom(StaffAccountId id, Username username, Email email, Password password,
                                           boolean isPasswordTemporary, Instant passwordIssuedAt, OrderAccessDuration orderAccessDuration,
                                           ModmailTranscriptAccessDuration modmailTranscriptAccessDuration,
