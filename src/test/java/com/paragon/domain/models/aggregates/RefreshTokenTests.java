@@ -2,7 +2,6 @@ package com.paragon.domain.models.aggregates;
 
 import com.paragon.domain.exceptions.aggregate.RefreshTokenException;
 import com.paragon.domain.exceptions.aggregate.RefreshTokenExceptionInfo;
-import com.paragon.domain.interfaces.TokenHasher;
 import com.paragon.domain.models.valueobjects.IpAddress;
 import com.paragon.domain.models.valueobjects.RefreshTokenHash;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
@@ -15,20 +14,10 @@ import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class RefreshTokenTests {
     @Nested
     class Issue {
-        private final TokenHasher tokenHasherMock;
-
-        Issue() {
-            tokenHasherMock = mock(TokenHasher.class);
-            when(tokenHasherMock.hash(anyString())).thenReturn("Hashedtoken123");
-        }
-
         @Test
         void shouldIssueRefreshToken() {
             // Given
@@ -36,10 +25,10 @@ public class RefreshTokenTests {
             IpAddress ipAddress = IpAddress.of("192.168.1.1");
 
             // When
-            RefreshToken refreshToken = RefreshToken.issue(staffAccountId, ipAddress, tokenHasherMock);
+            RefreshToken refreshToken = RefreshToken.issue(RefreshTokenHash.of("Hashedtoken123"), staffAccountId, ipAddress);
 
             // Then
-            assertThat(refreshToken.getTokenHash()).isEqualTo(RefreshTokenHash.fromHashed("Hashedtoken123"));
+            assertThat(refreshToken.getTokenHash()).isEqualTo(RefreshTokenHash.of("Hashedtoken123"));
             assertThat(refreshToken.getStaffAccountId()).isEqualTo(staffAccountId);
             assertThat(refreshToken.getIssuedFromIpAddress()).isEqualTo(ipAddress);
             assertThat(refreshToken.getExpiresAt()).isBeforeOrEqualTo(Instant.now().plus(Duration.ofDays(7)));
@@ -50,13 +39,30 @@ public class RefreshTokenTests {
         }
 
         @Test
-        void shouldThrowRefreshTokenException_whenStaffAccountIdIsMissing() {
+        void shouldThrowRefreshTokenException_whenTokenHashIsMissing() {
             // Given
+            StaffAccountId staffAccountId = StaffAccountId.generate();
             IpAddress ipAddress = IpAddress.of("192.168.1.1");
 
             // When & Then
             assertThatExceptionOfType(RefreshTokenException.class)
-                    .isThrownBy(() -> RefreshToken.issue(null, ipAddress, tokenHasherMock))
+                    .isThrownBy(() -> RefreshToken.issue(null, staffAccountId, ipAddress))
+                    .extracting("message", "domainErrorCode")
+                    .containsExactly(
+                            RefreshTokenExceptionInfo.tokenHashRequired().getMessage(),
+                            RefreshTokenExceptionInfo.tokenHashRequired().getDomainErrorCode()
+                    );
+        }
+
+        @Test
+        void shouldThrowRefreshTokenException_whenStaffAccountIdIsMissing() {
+            // Given
+            RefreshTokenHash tokenHash = RefreshTokenHash.of("hashed-token");
+            IpAddress ipAddress = IpAddress.of("192.168.1.1");
+
+            // When & Then
+            assertThatExceptionOfType(RefreshTokenException.class)
+                    .isThrownBy(() -> RefreshToken.issue(tokenHash, null, ipAddress))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(
                             RefreshTokenExceptionInfo.staffAccountIdRequired().getMessage(),
@@ -67,11 +73,12 @@ public class RefreshTokenTests {
         @Test
         void shouldThrowRefreshTokenException_whenIpAddressIsMissing() {
             // Given
+            RefreshTokenHash tokenHash = RefreshTokenHash.of("hashed-token");
             StaffAccountId staffAccountId = StaffAccountId.generate();
 
             // When & Then
             assertThatExceptionOfType(RefreshTokenException.class)
-                    .isThrownBy(() -> RefreshToken.issue(staffAccountId, null, tokenHasherMock))
+                    .isThrownBy(() -> RefreshToken.issue(tokenHash, staffAccountId, null))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(
                             RefreshTokenExceptionInfo.ipAddressRequired().getMessage(),

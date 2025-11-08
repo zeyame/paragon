@@ -26,6 +26,7 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
             case EmailException emailException -> handleEmailException(emailException);
             case PasswordException passwordException -> handlePasswordException(passwordException);
             case PlaintextPasswordException plaintextPasswordException -> handlePlaintextPasswordException(plaintextPasswordException);
+            case PlaintextRefreshTokenException plaintextRefreshTokenException -> handlePlaintextRefreshTokenException(plaintextRefreshTokenException);
             case OrderAccessDurationException orderAccessDurationException -> handleOrderAccessDurationException(orderAccessDurationException);
             case ModmailTranscriptAccessDurationException modmailTranscriptAccessDurationException -> handleModmailTranscriptAccessDurationException(modmailTranscriptAccessDurationException);
             case FailedLoginAttemptsException failedLoginAttemptsException -> handleFailedLoginAttemptsException(failedLoginAttemptsException);
@@ -155,6 +156,17 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
         return switch (domainErrorCode) {
             case 113001, 113002, 113003, 113004, 113005, 113006, 113007, 113008 -> // all plaintext password validation errors - user input
                     new AppException(exception, AppExceptionStatusCode.CLIENT_ERROR);
+
+            default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);
+        };
+    }
+
+    private AppException handlePlaintextRefreshTokenException(PlaintextRefreshTokenException exception) {
+        int domainErrorCode = exception.getDomainErrorCode();
+
+        return switch (domainErrorCode) {
+            case 114001 -> // missing value - internal error (generated token from system)
+                    new AppException(exception, AppExceptionStatusCode.SERVER_ERROR);
 
             default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);
         };

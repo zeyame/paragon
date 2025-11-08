@@ -13,11 +13,4 @@ public class RefreshTokenHashExceptionInfo extends DomainExceptionInfo {
                 114001
         );
     }
-
-    public static RefreshTokenHashExceptionInfo invalidFormat() {
-        return new RefreshTokenHashExceptionInfo(
-                "Plain refresh token must be of valid UUID format.",
-                114002
-        );
-    }
 }

@@ -216,6 +216,12 @@ public class AppExceptionHandlerTests {
                             AppExceptionStatusCode.CLIENT_ERROR
                     ),
 
+                    // PlaintextRefreshTokenException - internal error (SERVER_ERROR)
+                    arguments(
+                            new PlaintextRefreshTokenException(PlaintextRefreshTokenExceptionInfo.missingValue()),
+                            AppExceptionStatusCode.SERVER_ERROR
+                    ),
+
                     // OrderAccessDurationException - user input (CLIENT_ERROR)
                     arguments(
                             new OrderAccessDurationException(OrderAccessDurationExceptionInfo.mustBePositive()),

@@ -3,7 +3,6 @@ package com.paragon.domain.models.aggregates;
 import com.paragon.domain.events.DomainEvent;
 import com.paragon.domain.exceptions.aggregate.RefreshTokenException;
 import com.paragon.domain.exceptions.aggregate.RefreshTokenExceptionInfo;
-import com.paragon.domain.interfaces.TokenHasher;
 import com.paragon.domain.models.valueobjects.IpAddress;
 import com.paragon.domain.models.valueobjects.RefreshTokenHash;
 import com.paragon.domain.models.valueobjects.RefreshTokenId;
@@ -46,17 +45,18 @@ public class RefreshToken extends EventSourcedAggregate<DomainEvent, RefreshToke
         this.version = version;
     }
 
-    public static RefreshToken issue(StaffAccountId staffAccountId, IpAddress ipAddress, TokenHasher tokenHasher) {
-        assertValidTokenIssuance(staffAccountId, ipAddress);
-
-        RefreshTokenHash refreshTokenHash = RefreshTokenHash.generate(tokenHasher);
+    public static RefreshToken issue(RefreshTokenHash refreshTokenHash, StaffAccountId staffAccountId, IpAddress ipAddress) {
+        assertValidTokenIssuance(refreshTokenHash, staffAccountId, ipAddress);
         return new RefreshToken(
                 RefreshTokenId.generate(), refreshTokenHash, staffAccountId, ipAddress,
                 Instant.now().plus(EXPIRY_DURATION), false, null, null, Version.initial()
         );
     }
 
-    private static void assertValidTokenIssuance(StaffAccountId staffAccountId, IpAddress ipAddress) {
+    private static void assertValidTokenIssuance(RefreshTokenHash refreshTokenHash, StaffAccountId staffAccountId, IpAddress ipAddress) {
+        if (refreshTokenHash == null) {
+            throw new RefreshTokenException(RefreshTokenExceptionInfo.tokenHashRequired());
+        }
         if (staffAccountId == null) {
             throw new RefreshTokenException(RefreshTokenExceptionInfo.staffAccountIdRequired());
         }

@@ -2,9 +2,7 @@ package com.paragon.domain.models.valueobjects;
 
 import com.paragon.domain.exceptions.valueobject.PasswordException;
 import com.paragon.domain.exceptions.valueobject.PasswordExceptionInfo;
-import com.paragon.domain.interfaces.PasswordHasher;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -13,7 +11,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 public class PasswordTests {
     @Nested

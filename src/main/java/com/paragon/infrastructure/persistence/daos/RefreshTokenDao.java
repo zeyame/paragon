@@ -23,7 +23,7 @@ public record RefreshTokenDao(
     public RefreshToken toRefreshToken() {
         return RefreshToken.createFrom(
                 RefreshTokenId.of(id),
-                RefreshTokenHash.fromHashed(tokenHash),
+                RefreshTokenHash.of(tokenHash),
                 StaffAccountId.of(staffAccountId),
                 IpAddress.of(issuedFromIpAddress),
                 expiresAtUtc,

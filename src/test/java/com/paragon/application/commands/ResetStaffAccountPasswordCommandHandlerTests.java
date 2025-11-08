@@ -10,7 +10,7 @@ import com.paragon.application.common.interfaces.UnitOfWork;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.exceptions.DomainException;
-import com.paragon.domain.interfaces.PasswordHasher;
+import com.paragon.application.common.interfaces.PasswordHasher;
 import com.paragon.domain.interfaces.repos.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.Password;
@@ -23,7 +23,6 @@ import org.mockito.ArgumentCaptor;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

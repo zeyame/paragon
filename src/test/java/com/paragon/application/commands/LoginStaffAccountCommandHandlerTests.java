@@ -8,14 +8,16 @@ import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.interfaces.UnitOfWork;
 import com.paragon.application.events.EventBus;
-import com.paragon.domain.events.DomainEvent;
-import com.paragon.domain.events.staffaccountevents.StaffAccountLoggedInEvent;
 import com.paragon.domain.exceptions.DomainException;
-import com.paragon.domain.interfaces.PasswordHasher;
-import com.paragon.domain.interfaces.TokenHasher;
+import com.paragon.application.common.interfaces.PasswordHasher;
+import com.paragon.application.common.interfaces.TokenHasher;
 import com.paragon.domain.interfaces.repos.RefreshTokenWriteRepo;
 import com.paragon.domain.interfaces.repos.StaffAccountWriteRepo;
+import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.aggregates.StaffAccount;
+import com.paragon.domain.models.valueobjects.FailedLoginAttempts;
+import com.paragon.domain.models.valueobjects.IpAddress;
+import com.paragon.domain.models.valueobjects.RefreshTokenHash;
 import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
@@ -23,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -75,6 +76,8 @@ public class LoginStaffAccountCommandHandlerTests {
 
         when(passwordHasherMock.verify(anyString(), anyString()))
                 .thenReturn(true);
+        when(tokenHasherMock.hash(anyString()))
+                .thenReturn("hashed-token");
     }
 
     @Test
@@ -90,6 +93,7 @@ public class LoginStaffAccountCommandHandlerTests {
     void shouldLoginSuccessfully() {
         // Given
         ArgumentCaptor<StaffAccount> staffAccountArgumentCaptor = ArgumentCaptor.forClass(StaffAccount.class);
+        ArgumentCaptor<RefreshToken> refreshTokenArgumentCaptor = ArgumentCaptor.forClass(RefreshToken.class);
 
         // When
         sut.handle(command);
@@ -97,14 +101,22 @@ public class LoginStaffAccountCommandHandlerTests {
         // Then
         verify(uowMock, times(1)).commit();
 
+        // verify that staff account state was updated
         verify(staffAccountWriteRepoMock).update(staffAccountArgumentCaptor.capture());
         StaffAccount loggedInStaffAccount = staffAccountArgumentCaptor.getValue();
 
         assertThat(loggedInStaffAccount.getUsername()).isEqualTo(staffAccountToLogin.getUsername());
         assertThat(loggedInStaffAccount.getPassword()).isEqualTo(staffAccountToLogin.getPassword());
         assertThat(loggedInStaffAccount.getLastLoginAt()).isAfterOrEqualTo(staffAccountToLogin.getLastLoginAt());
+        assertThat(loggedInStaffAccount.getFailedLoginAttempts()).isEqualTo(FailedLoginAttempts.zero());
 
-        verify(uowMock, times(1)).commit();
+        // verify that refresh token was generated for staff account
+        verify(refreshTokenWriteRepoMock).create(refreshTokenArgumentCaptor.capture());
+        RefreshToken issuedToken = refreshTokenArgumentCaptor.getValue();
+
+        assertThat(issuedToken.getTokenHash()).isEqualTo(RefreshTokenHash.of("hashed-token"));
+        assertThat(issuedToken.getStaffAccountId()).isEqualTo(loggedInStaffAccount.getId());
+        assertThat(issuedToken.getIssuedFromIpAddress()).isEqualTo(IpAddress.of(command.ipAddress()));
     }
 
     @Test
@@ -122,6 +134,7 @@ public class LoginStaffAccountCommandHandlerTests {
         assertThat(commandResponse.id()).isEqualTo(loggedInStaffAccount.getId().getValue().toString());
         assertThat(commandResponse.username()).isEqualTo(loggedInStaffAccount.getUsername().getValue());
         assertThat(commandResponse.requiresPasswordReset()).isEqualTo(loggedInStaffAccount.requiresPasswordReset());
+        assertThat(commandResponse.plainRefreshToken()).isNotNull();
         assertThat(commandResponse.permissionCodes()).hasSize(loggedInStaffAccount.getPermissionCodes().size());
         assertThat(commandResponse.version()).isEqualTo(loggedInStaffAccount.getVersion().getValue());
     }
@@ -132,7 +145,7 @@ public class LoginStaffAccountCommandHandlerTests {
         ArgumentCaptor<StaffAccount> staffAccountArgumentCaptor = ArgumentCaptor.forClass(StaffAccount.class);
 
         // When
-        LoginStaffAccountCommandResponse commandResponse = sut.handle(command);
+        sut.handle(command);
 
         // Then
         verify(staffAccountWriteRepoMock, times(1)).update(staffAccountArgumentCaptor.capture());

@@ -7,21 +7,17 @@ import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.common.interfaces.UnitOfWork;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.exceptions.DomainException;
-import com.paragon.domain.interfaces.PasswordHasher;
-import com.paragon.domain.interfaces.TokenHasher;
+import com.paragon.application.common.interfaces.PasswordHasher;
+import com.paragon.application.common.interfaces.TokenHasher;
 import com.paragon.domain.interfaces.repos.RefreshTokenWriteRepo;
 import com.paragon.domain.interfaces.repos.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.aggregates.StaffAccount;
-import com.paragon.domain.models.valueobjects.IpAddress;
-import com.paragon.domain.models.valueobjects.LoginResult;
-import com.paragon.domain.models.valueobjects.PermissionCode;
-import com.paragon.domain.models.valueobjects.Username;
+import com.paragon.domain.models.valueobjects.*;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,18 +26,18 @@ import java.util.stream.Collectors;
 public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaffAccountCommand, LoginStaffAccountCommandResponse> {
     private final StaffAccountWriteRepo staffAccountWriteRepo;
     private final RefreshTokenWriteRepo refreshTokenWriteRepo;
-    private final UnitOfWork uow;
+    private final UnitOfWork unitOfWork;
     private final EventBus eventBus;
     private final AppExceptionHandler appExceptionHandler;
     private final PasswordHasher passwordHasher;
     private final TokenHasher tokenHasher;
 
     public LoginStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo, RefreshTokenWriteRepo refreshTokenWriteRepo,
-                                           UnitOfWork uow, EventBus eventBus, AppExceptionHandler appExceptionHandler,
+                                           UnitOfWork unitOfWork, EventBus eventBus, AppExceptionHandler appExceptionHandler,
                                            PasswordHasher passwordHasher, TokenHasher tokenHasher) {
         this.staffAccountWriteRepo = staffAccountWriteRepo;
         this.refreshTokenWriteRepo = refreshTokenWriteRepo;
-        this.uow = uow;
+        this.unitOfWork = unitOfWork;
         this.eventBus = eventBus;
         this.appExceptionHandler = appExceptionHandler;
         this.passwordHasher = passwordHasher;
@@ -50,26 +46,26 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
 
     @Override
     public LoginStaffAccountCommandResponse handle(LoginStaffAccountCommand command) {
-        uow.begin();
+        unitOfWork.begin();
         StaffAccount staffAccount = null;
         try {
-            Optional<StaffAccount> optionalStaffAccount = staffAccountWriteRepo.getByUsername(Username.of(command.username()));
-            if (optionalStaffAccount.isEmpty()) {
-                throw new AppException(AppExceptionInfo.invalidLoginCredentials());
-            }
-            staffAccount = optionalStaffAccount.get();
+            staffAccount = staffAccountWriteRepo.getByUsername(Username.of(command.username()))
+                    .orElseThrow(() -> new AppException(AppExceptionInfo.invalidLoginCredentials()));
 
             if (!isValidPassword(command.password(), staffAccount.getPassword().getValue())) {
                 staffAccount.registerFailedLoginAttempt();
                 staffAccountWriteRepo.update(staffAccount);
-                uow.commit();
+                unitOfWork.commit();
                 throw new AppException(AppExceptionInfo.invalidLoginCredentials());
             }
 
             staffAccount.login();
             staffAccountWriteRepo.update(staffAccount);
 
-            RefreshToken refreshToken = RefreshToken.issue(staffAccount.getId(), IpAddress.of(command.ipAddress()), tokenHasher);
+            PlaintextRefreshToken plaintextRefreshToken = PlaintextRefreshToken.generate();
+            String hashedToken = tokenHasher.hash(plaintextRefreshToken.getValue());
+
+            RefreshToken refreshToken = RefreshToken.issue(RefreshTokenHash.of(hashedToken), staffAccount.getId(), IpAddress.of(command.ipAddress()));
             refreshTokenWriteRepo.create(refreshToken);
 
             List<String> permissionCodes = staffAccount.getPermissionCodes()
@@ -77,7 +73,7 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
                     .map(PermissionCode::getValue)
                     .collect(Collectors.toList());
 
-            uow.commit();
+            unitOfWork.commit();
 
             log.info("Staff account '{}' (ID: {}) successfully logged in.",
                     staffAccount.getUsername().getValue(),
@@ -88,19 +84,19 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
                     staffAccount.getId().getValue().toString(),
                     staffAccount.getUsername().getValue(),
                     staffAccount.requiresPasswordReset(),
-                    refreshToken.getTokenHash().getPlainValue(),
+                    plaintextRefreshToken.getValue(),
                     permissionCodes,
                     staffAccount.getVersion().getValue()
             );
         } catch (DomainException ex) {
             log.error("Staff account login failed for username='{}': domain rule violation - {}",
                     command.username(), ex.getMessage(), ex);
-            uow.rollback();
+            unitOfWork.rollback();
             throw appExceptionHandler.handleDomainException(ex);
         } catch (InfraException ex) {
             log.error("Staff account login failed for username='{}': infrastructure related error occurred - {}",
                     command.username(), ex.getMessage(), ex);
-            uow.rollback();
+            unitOfWork.rollback();
             throw appExceptionHandler.handleInfraException(ex);
         } finally {
             if (staffAccount != null) {
@@ -109,7 +105,7 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
         }
     }
 
-    private boolean isValidPassword(String plaintextPassword, String hashedPassword) {
-        return passwordHasher.verify(plaintextPassword, hashedPassword);
+    private boolean isValidPassword(String enteredPassword, String storedPassword) {
+        return passwordHasher.verify(enteredPassword, storedPassword);
     }
 }

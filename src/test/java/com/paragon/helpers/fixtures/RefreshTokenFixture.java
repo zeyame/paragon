@@ -70,7 +70,7 @@ public class RefreshTokenFixture {
     public RefreshToken build() {
         return RefreshToken.createFrom(
                 RefreshTokenId.from(id),
-                RefreshTokenHash.fromHashed(tokenHash),
+                RefreshTokenHash.of(tokenHash),
                 StaffAccountId.from(staffAccountId),
                 IpAddress.of(issuedFromIpAddress),
                 expiresAt,

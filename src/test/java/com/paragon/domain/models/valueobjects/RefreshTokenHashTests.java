@@ -2,156 +2,50 @@ package com.paragon.domain.models.valueobjects;
 
 import com.paragon.domain.exceptions.valueobject.RefreshTokenHashException;
 import com.paragon.domain.exceptions.valueobject.RefreshTokenHashExceptionInfo;
-import com.paragon.domain.interfaces.TokenHasher;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 public class RefreshTokenHashTests {
     @Nested
-    class Generate {
+    class Of {
         @Test
-        void shouldGenerateRefreshTokenHash() {
-            // Given
-            TokenHasher tokenHasher = mock(TokenHasher.class);
-            when(tokenHasher.hash(any(String.class))).thenReturn("hashed-uuid-value");
-
-            // When
-            RefreshTokenHash refreshTokenHash = RefreshTokenHash.generate(tokenHasher);
-
-            // Then
-            assertThat(refreshTokenHash.getValue()).isEqualTo("hashed-uuid-value");
-            assertThat(refreshTokenHash.getPlainValue()).isNotNull();
-            assertThat(refreshTokenHash.getPlainValue()).matches("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
-            verify(tokenHasher, times(1)).hash(refreshTokenHash.getPlainValue());
-        }
-    }
-
-    @Nested
-    class FromPlainToken {
-        @Test
-        void givenValidPlainToken_whenFromPlainTokenIsCalled_thenHashesAndReturnsRefreshTokenHash() {
-            // Given
-            String plainToken = UUID.randomUUID().toString();
-            String expectedHash = "hashed-token-value";
-            TokenHasher tokenHasher = mock(TokenHasher.class);
-            when(tokenHasher.hash(plainToken)).thenReturn(expectedHash);
-
-            // When
-            RefreshTokenHash refreshTokenHash = RefreshTokenHash.fromPlainToken(plainToken, tokenHasher);
-
-            // Then
-            assertThat(refreshTokenHash.getValue()).isEqualTo(expectedHash);
-            verify(tokenHasher, times(1)).hash(plainToken);
-        }
-
-        @ParameterizedTest
-        @MethodSource("missingTokens")
-        void givenNullOrEmptyPlainToken_whenFromPlainTokenIsCalled_thenThrowsRefreshTokenHashException(String invalidToken) {
-            // Given
-            TokenHasher tokenHasher = mock(TokenHasher.class);
-            String expectedErrorMessage = RefreshTokenHashExceptionInfo.missingValue().getMessage();
-            int expectedErrorCode = RefreshTokenHashExceptionInfo.missingValue().getDomainErrorCode();
-
-            // When & Then
-            assertThatExceptionOfType(RefreshTokenHashException.class)
-                    .isThrownBy(() -> RefreshTokenHash.fromPlainToken(invalidToken, tokenHasher))
-                    .extracting("message", "domainErrorCode")
-                    .containsExactly(expectedErrorMessage, expectedErrorCode);
-
-            verifyNoInteractions(tokenHasher);
-        }
-
-        @Test
-        void givenInvalidUuidFormat_whenFromPlainTokenIsCalled_thenThrowsRefreshTokenHashException() {
-            // Given
-            String invalidToken = "not-a-valid-uuid";
-            TokenHasher tokenHasher = mock(TokenHasher.class);
-            String expectedErrorMessage = RefreshTokenHashExceptionInfo.invalidFormat().getMessage();
-            int expectedErrorCode = RefreshTokenHashExceptionInfo.invalidFormat().getDomainErrorCode();
-
-            // When & Then
-            assertThatExceptionOfType(RefreshTokenHashException.class)
-                    .isThrownBy(() -> RefreshTokenHash.fromPlainToken(invalidToken, tokenHasher))
-                    .extracting("message", "domainErrorCode")
-                    .containsExactly(expectedErrorMessage, expectedErrorCode);
-
-            verifyNoInteractions(tokenHasher);
-        }
-
-        private static Stream<Arguments> missingTokens() {
-            return Stream.of(
-                    Arguments.of((String) null),
-                    Arguments.of("")
-            );
-        }
-    }
-
-    @Nested
-    class FromHashed {
-        @Test
-        void givenValidHashedValue_whenFromHashedIsCalled_thenReturnsRefreshTokenHash() {
+        void shouldReturnRefreshTokenHash() {
             // Given
             String hashedValue = "already-hashed-token-value";
 
             // When
-            RefreshTokenHash refreshTokenHash = RefreshTokenHash.fromHashed(hashedValue);
+            RefreshTokenHash refreshTokenHash = RefreshTokenHash.of(hashedValue);
 
             // Then
             assertThat(refreshTokenHash.getValue()).isEqualTo(hashedValue);
         }
 
         @ParameterizedTest
-        @MethodSource("invalidHashedValues")
-        void givenInvalidHashedValue_whenFromHashedIsCalled_thenThrowsRefreshTokenHashException(String invalidHashedValue) {
+        @MethodSource("invalidHashValues")
+        void shouldThrowRefreshTokenHashException(String invalidHashedValue) {
             // Given
             String expectedErrorMessage = RefreshTokenHashExceptionInfo.missingValue().getMessage();
             int expectedErrorCode = RefreshTokenHashExceptionInfo.missingValue().getDomainErrorCode();
 
             // When & Then
             assertThatExceptionOfType(RefreshTokenHashException.class)
-                    .isThrownBy(() -> RefreshTokenHash.fromHashed(invalidHashedValue))
+                    .isThrownBy(() -> RefreshTokenHash.of(invalidHashedValue))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(expectedErrorMessage, expectedErrorCode);
         }
 
-        private static Stream<Arguments> invalidHashedValues() {
+        private static Stream<Arguments> invalidHashValues() {
             return Stream.of(
                     Arguments.of((String) null),
                     Arguments.of("")
             );
-        }
-    }
-
-    @Nested
-    class Equality {
-        @Test
-        void givenSameHashedValue_whenCompared_thenAreEqual() {
-            // Given
-            String hashedValue = "same-hash-value";
-            RefreshTokenHash hash1 = RefreshTokenHash.fromHashed(hashedValue);
-            RefreshTokenHash hash2 = RefreshTokenHash.fromHashed(hashedValue);
-
-            // When & Then
-            assertThat(hash1).isEqualTo(hash2);
-        }
-
-        @Test
-        void givenDifferentHashedValues_whenCompared_thenAreNotEqual() {
-            // Given
-            RefreshTokenHash hash1 = RefreshTokenHash.fromHashed("hash-value-1");
-            RefreshTokenHash hash2 = RefreshTokenHash.fromHashed("hash-value-2");
-
-            // When & Then
-            assertThat(hash1).isNotEqualTo(hash2);
         }
     }
 }

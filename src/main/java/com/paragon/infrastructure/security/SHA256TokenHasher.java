@@ -1,6 +1,6 @@
 package com.paragon.infrastructure.security;
 
-import com.paragon.domain.interfaces.TokenHasher;
+import com.paragon.application.common.interfaces.TokenHasher;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Component;
 
