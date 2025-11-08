@@ -55,7 +55,7 @@ public class GetAllStaffAccountsQueryHandlerTests {
                         Instant.now()
                 )
         );
-        when(staffAccountReadRepoMock.findAllSummaries()).thenReturn(readModels);
+        when(staffAccountReadRepoMock.findAll()).thenReturn(readModels);
 
         // When
         GetAllStaffAccountsQueryResponse response = sut.handle(query);
@@ -84,7 +84,7 @@ public class GetAllStaffAccountsQueryHandlerTests {
                 10,
                 expectedTimestamp
         );
-        when(staffAccountReadRepoMock.findAllSummaries()).thenReturn(List.of(readModel));
+        when(staffAccountReadRepoMock.findAll()).thenReturn(List.of(readModel));
 
         // When
         GetAllStaffAccountsQueryResponse response = sut.handle(query);
@@ -104,19 +104,19 @@ public class GetAllStaffAccountsQueryHandlerTests {
     @Test
     void givenValidQuery_shouldCallRepoToFindAllSummaries() {
         // Given
-        when(staffAccountReadRepoMock.findAllSummaries()).thenReturn(List.of());
+        when(staffAccountReadRepoMock.findAll()).thenReturn(List.of());
 
         // When
         sut.handle(query);
 
         // Then
-        verify(staffAccountReadRepoMock, times(1)).findAllSummaries();
+        verify(staffAccountReadRepoMock, times(1)).findAll();
     }
 
     @Test
     void givenValidQuery_shouldReturnEmptyListWhenNoStaffAccountsExist() {
         // Given
-        when(staffAccountReadRepoMock.findAllSummaries()).thenReturn(List.of());
+        when(staffAccountReadRepoMock.findAll()).thenReturn(List.of());
 
         // When
         GetAllStaffAccountsQueryResponse response = sut.handle(query);
@@ -130,7 +130,7 @@ public class GetAllStaffAccountsQueryHandlerTests {
     void whenInfraExceptionIsThrown_shouldCatchAndTranslateToAppException() {
         // Given
         InfraException infraException = mock(InfraException.class);
-        when(staffAccountReadRepoMock.findAllSummaries())
+        when(staffAccountReadRepoMock.findAll())
                 .thenThrow(infraException);
 
         when(appExceptionHandlerMock.handleInfraException(any(InfraException.class)))
@@ -157,7 +157,7 @@ public class GetAllStaffAccountsQueryHandlerTests {
         // When & Then
         assertThatThrownBy(() -> sut.handle(invalidQuery))
                 .isInstanceOf(AppException.class);
-        verify(staffAccountReadRepoMock, never()).findAllSummaries();
+        verify(staffAccountReadRepoMock, never()).findAll();
     }
 
     @Test
@@ -174,6 +174,6 @@ public class GetAllStaffAccountsQueryHandlerTests {
         // When & Then
         assertThatThrownBy(() -> sut.handle(invalidQuery))
                 .isInstanceOf(AppException.class);
-        verify(staffAccountReadRepoMock, never()).findAllSummaries();
+        verify(staffAccountReadRepoMock, never()).findAll();
     }
 }

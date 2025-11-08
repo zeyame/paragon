@@ -9,5 +9,5 @@ import java.util.List;
 public interface StaffAccountReadRepo {
     boolean exists(StaffAccountId staffAccountId);
     boolean hasPermission(StaffAccountId staffAccountId, PermissionCode permissionCode);
-    List<StaffAccountSummaryReadModel> findAllSummaries();
+    List<StaffAccountSummaryReadModel> findAll();
 }

@@ -29,7 +29,7 @@ public class GetAllStaffAccountsQueryHandler implements QueryHandler<GetAllStaff
     public GetAllStaffAccountsQueryResponse handle(GetAllStaffAccountsQuery query) {
         try {
             validateQuery(query);
-            List<StaffAccountSummaryReadModel> staffAccountSummaryReadModels = staffAccountReadRepo.findAllSummaries();
+            List<StaffAccountSummaryReadModel> staffAccountSummaryReadModels = staffAccountReadRepo.findAll();
             List<StaffAccountSummary> staffAccountSummaries = staffAccountSummaryReadModels
                     .stream()
                     .map(StaffAccountSummary::fromReadModel)

@@ -121,12 +121,12 @@ public class StaffAccountReadRepoTests {
     }
 
     @Nested
-    class FindAllSummaries extends IntegrationTestBase {
+    class FindAll extends IntegrationTestBase {
         private final StaffAccountReadRepo sut;
         private final TestJdbcHelper testJdbcHelper;
 
         @Autowired
-        public FindAllSummaries(WriteJdbcHelper writeJdbcHelper, StaffAccountReadRepo staffAccountReadRepo) {
+        public FindAll(WriteJdbcHelper writeJdbcHelper, StaffAccountReadRepo staffAccountReadRepo) {
             sut = staffAccountReadRepo;
             testJdbcHelper = new TestJdbcHelper(writeJdbcHelper);
         }
@@ -148,7 +148,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(staffAccount2);
 
             // When
-            List<StaffAccountSummaryReadModel> summaries = sut.findAllSummaries();
+            List<StaffAccountSummaryReadModel> summaries = sut.findAll();
 
             // Then
             assertThat(summaries).isNotNull();
@@ -197,7 +197,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(staffAccount2);
 
             // When
-            List<StaffAccountSummaryReadModel> summaries = sut.findAllSummaries();
+            List<StaffAccountSummaryReadModel> summaries = sut.findAll();
 
             // Then
             assertThat(summaries).isNotNull();
@@ -209,7 +209,7 @@ public class StaffAccountReadRepoTests {
         @Test
         void shouldReturnOnlyAdminAccount_whenNoOtherAccountsExist() {
             // When
-            List<StaffAccountSummaryReadModel> summaries = sut.findAllSummaries();
+            List<StaffAccountSummaryReadModel> summaries = sut.findAll();
 
             // Then
             assertThat(summaries).isNotNull();

@@ -192,7 +192,7 @@ public class StaffAccountReadRepoTests {
                     .thenReturn(List.of());
 
             // When
-            sut.findAllSummaries();
+            sut.findAll();
 
             // Then
             verify(readJdbcHelperMock, times(1)).query(sqlStatementCaptor.capture(), any());
@@ -226,7 +226,7 @@ public class StaffAccountReadRepoTests {
                     .thenReturn(expectedSummaries);
 
             // When
-            var actualSummaries = sut.findAllSummaries();
+            var actualSummaries = sut.findAll();
 
             // Then
             assertThat(actualSummaries).isNotNull();
@@ -243,7 +243,7 @@ public class StaffAccountReadRepoTests {
                     .thenReturn(List.of());
 
             // When
-            var result = sut.findAllSummaries();
+            var result = sut.findAll();
 
             // Then
             assertThat(result).isNotNull();
@@ -257,7 +257,7 @@ public class StaffAccountReadRepoTests {
                     .thenThrow(InfraException.class);
 
             // When & Then
-            assertThatThrownBy(() -> sut.findAllSummaries())
+            assertThatThrownBy(() -> sut.findAll())
                     .isInstanceOf(InfraException.class);
         }
     }
