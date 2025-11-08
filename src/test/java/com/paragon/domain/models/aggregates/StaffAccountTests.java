@@ -116,23 +116,7 @@ public class StaffAccountTests {
             assertThat(queuedEvents.getFirst()).isInstanceOf(StaffAccountRegisteredEvent.class);
 
             StaffAccountRegisteredEvent event = (StaffAccountRegisteredEvent) queuedEvents.getFirst();
-            assertThat(event.getStaffAccountId()).isEqualTo(staffAccount.getId());
-            assertThat(event.getUsername()).isEqualTo(staffAccount.getUsername());
-            assertThat(event.getEmail()).isEqualTo(staffAccount.getEmail());
-            assertThat(event.getPassword()).isEqualTo(staffAccount.getPassword());
-            assertThat(event.getPasswordIssuedAt()).isEqualTo(staffAccount.getPasswordIssuedAt());
-            assertThat(event.getOrderAccessDuration()).isEqualTo(staffAccount.getOrderAccessDuration());
-            assertThat(event.getModmailTranscriptAccessDuration()).isEqualTo(staffAccount.getModmailTranscriptAccessDuration());
-            assertThat(event.getStaffAccountStatus()).isEqualTo(staffAccount.getStatus());
-            assertThat(event.getFailedLoginAttempts()).isEqualTo(staffAccount.getFailedLoginAttempts());
-            assertThat(event.getLockedUntil()).isEqualTo(staffAccount.getLockedUntil());
-            assertThat(event.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
-            assertThat(event.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
-            assertThat(event.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
-            assertThat(event.getStaffAccountEnabledBy()).isEqualTo(staffAccount.getEnabledBy());
-            assertThat(event.getStaffAccountPasswordResetBy()).isEqualTo(staffAccount.getPasswordResetBy());
-            assertThat(event.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
-            assertThat(event.getStaffAccountVersion()).isEqualTo(staffAccount.getVersion());
+            assertThatEventDataIsCorrect(event, staffAccount);
         }
 
         @Test
@@ -273,22 +257,7 @@ public class StaffAccountTests {
             assertThat(enqueuedEvents.getFirst()).isInstanceOf(StaffAccountLockedEvent.class);
 
             StaffAccountLockedEvent event = (StaffAccountLockedEvent) enqueuedEvents.getFirst();
-            assertThat(event.getStaffAccountId()).isEqualTo(staffAccount.getId());
-            assertThat(event.getUsername()).isEqualTo(staffAccount.getUsername());
-            assertThat(event.getEmail()).isEqualTo(staffAccount.getEmail());
-            assertThat(event.getPassword()).isEqualTo(staffAccount.getPassword());
-            assertThat(event.getPasswordIssuedAt()).isEqualTo(staffAccount.getPasswordIssuedAt());
-            assertThat(event.getOrderAccessDuration()).isEqualTo(staffAccount.getOrderAccessDuration());
-            assertThat(event.getModmailTranscriptAccessDuration()).isEqualTo(staffAccount.getModmailTranscriptAccessDuration());
-            assertThat(event.getStaffAccountStatus()).isEqualTo(staffAccount.getStatus());
-            assertThat(event.getFailedLoginAttempts()).isEqualTo(staffAccount.getFailedLoginAttempts());
-            assertThat(event.getLockedUntil()).isEqualTo(staffAccount.getLockedUntil());
-            assertThat(event.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
-            assertThat(event.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
-            assertThat(event.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
-            assertThat(event.getStaffAccountEnabledBy()).isEqualTo(staffAccount.getEnabledBy());
-            assertThat(event.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
-            assertThat(event.getStaffAccountVersion().getValue()).isEqualTo(2);
+            assertThatEventDataIsCorrect(event, staffAccount);
         }
     }
 
@@ -323,22 +292,7 @@ public class StaffAccountTests {
             assertThat(queuedEvents.getFirst()).isInstanceOf(StaffAccountLoggedInEvent.class);
 
             StaffAccountLoggedInEvent loggedInEvent = (StaffAccountLoggedInEvent) queuedEvents.getFirst();
-            assertThat(loggedInEvent.getStaffAccountId()).isEqualTo(staffAccount.getId());
-            assertThat(loggedInEvent.getUsername()).isEqualTo(staffAccount.getUsername());
-            assertThat(loggedInEvent.getEmail()).isEqualTo(staffAccount.getEmail());
-            assertThat(loggedInEvent.getPassword()).isEqualTo(staffAccount.getPassword());
-            assertThat(loggedInEvent.getPasswordIssuedAt()).isEqualTo(staffAccount.getPasswordIssuedAt());
-            assertThat(loggedInEvent.getOrderAccessDuration()).isEqualTo(staffAccount.getOrderAccessDuration());
-            assertThat(loggedInEvent.getModmailTranscriptAccessDuration()).isEqualTo(staffAccount.getModmailTranscriptAccessDuration());
-            assertThat(loggedInEvent.getStaffAccountStatus()).isEqualTo(staffAccount.getStatus());
-            assertThat(loggedInEvent.getFailedLoginAttempts()).isEqualTo(staffAccount.getFailedLoginAttempts());
-            assertThat(loggedInEvent.getLockedUntil()).isEqualTo(staffAccount.getLockedUntil());
-            assertThat(loggedInEvent.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
-            assertThat(loggedInEvent.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
-            assertThat(loggedInEvent.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
-            assertThat(loggedInEvent.getStaffAccountEnabledBy()).isEqualTo(staffAccount.getEnabledBy());
-            assertThat(loggedInEvent.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
-            assertThat(loggedInEvent.getStaffAccountVersion()).isEqualTo(staffAccount.getVersion());
+            assertThatEventDataIsCorrect(loggedInEvent, staffAccount);
         }
 
         @Test
@@ -423,22 +377,7 @@ public class StaffAccountTests {
             assertThat(enqueuedEvents).isNotEmpty();
 
             StaffAccountDisabledEvent disabledEvent = (StaffAccountDisabledEvent) enqueuedEvents.getFirst();
-            assertThat(disabledEvent.getStaffAccountId()).isEqualTo(staffAccount.getId());
-            assertThat(disabledEvent.getUsername()).isEqualTo(staffAccount.getUsername());
-            assertThat(disabledEvent.getEmail()).isEqualTo(staffAccount.getEmail());
-            assertThat(disabledEvent.getPassword()).isEqualTo(staffAccount.getPassword());
-            assertThat(disabledEvent.getPasswordIssuedAt()).isEqualTo(staffAccount.getPasswordIssuedAt());
-            assertThat(disabledEvent.getOrderAccessDuration()).isEqualTo(staffAccount.getOrderAccessDuration());
-            assertThat(disabledEvent.getModmailTranscriptAccessDuration()).isEqualTo(staffAccount.getModmailTranscriptAccessDuration());
-            assertThat(disabledEvent.getStaffAccountStatus()).isEqualTo(staffAccount.getStatus());
-            assertThat(disabledEvent.getFailedLoginAttempts()).isEqualTo(staffAccount.getFailedLoginAttempts());
-            assertThat(disabledEvent.getLockedUntil()).isEqualTo(staffAccount.getLockedUntil());
-            assertThat(disabledEvent.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
-            assertThat(disabledEvent.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
-            assertThat(disabledEvent.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
-            assertThat(disabledEvent.getStaffAccountEnabledBy()).isEqualTo(staffAccount.getEnabledBy());
-            assertThat(disabledEvent.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
-            assertThat(disabledEvent.getStaffAccountVersion()).isEqualTo(staffAccount.getVersion());
+            assertThatEventDataIsCorrect(disabledEvent, staffAccount);
         }
 
         @Test
@@ -498,22 +437,7 @@ public class StaffAccountTests {
             assertThat(enqueuedEvents).isNotEmpty();
 
             StaffAccountPasswordResetEvent passwordResetEvent = (StaffAccountPasswordResetEvent) enqueuedEvents.getFirst();
-            assertThat(passwordResetEvent.getStaffAccountId()).isEqualTo(staffAccount.getId());
-            assertThat(passwordResetEvent.getUsername()).isEqualTo(staffAccount.getUsername());
-            assertThat(passwordResetEvent.getEmail()).isEqualTo(staffAccount.getEmail());
-            assertThat(passwordResetEvent.getPassword()).isEqualTo(staffAccount.getPassword());
-            assertThat(passwordResetEvent.getPasswordIssuedAt()).isEqualTo(staffAccount.getPasswordIssuedAt());
-            assertThat(passwordResetEvent.getOrderAccessDuration()).isEqualTo(staffAccount.getOrderAccessDuration());
-            assertThat(passwordResetEvent.getModmailTranscriptAccessDuration()).isEqualTo(staffAccount.getModmailTranscriptAccessDuration());
-            assertThat(passwordResetEvent.getStaffAccountStatus()).isEqualTo(staffAccount.getStatus());
-            assertThat(passwordResetEvent.getFailedLoginAttempts()).isEqualTo(staffAccount.getFailedLoginAttempts());
-            assertThat(passwordResetEvent.getLockedUntil()).isEqualTo(staffAccount.getLockedUntil());
-            assertThat(passwordResetEvent.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
-            assertThat(passwordResetEvent.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
-            assertThat(passwordResetEvent.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
-            assertThat(passwordResetEvent.getStaffAccountEnabledBy()).isEqualTo(staffAccount.getEnabledBy());
-            assertThat(passwordResetEvent.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
-            assertThat(passwordResetEvent.getStaffAccountVersion()).isEqualTo(staffAccount.getVersion());
+            assertThatEventDataIsCorrect(passwordResetEvent, staffAccount);
         }
 
         @Test
@@ -530,5 +454,25 @@ public class StaffAccountTests {
                     .extracting("message", "domainErrorCode")
                     .containsExactly(StaffAccountExceptionInfo.accountAlreadyDisabled().getMessage(), StaffAccountExceptionInfo.accountAlreadyDisabled().getDomainErrorCode());
         }
+    }
+
+    private static void assertThatEventDataIsCorrect(StaffAccountEventBase event, StaffAccount staffAccount) {
+        assertThat(event.getStaffAccountId()).isEqualTo(staffAccount.getId());
+        assertThat(event.getUsername()).isEqualTo(staffAccount.getUsername());
+        assertThat(event.getEmail()).isEqualTo(staffAccount.getEmail());
+        assertThat(event.getPassword()).isEqualTo(staffAccount.getPassword());
+        assertThat(event.getPasswordIssuedAt()).isEqualTo(staffAccount.getPasswordIssuedAt());
+        assertThat(event.getOrderAccessDuration()).isEqualTo(staffAccount.getOrderAccessDuration());
+        assertThat(event.getModmailTranscriptAccessDuration()).isEqualTo(staffAccount.getModmailTranscriptAccessDuration());
+        assertThat(event.getStaffAccountStatus()).isEqualTo(staffAccount.getStatus());
+        assertThat(event.getFailedLoginAttempts()).isEqualTo(staffAccount.getFailedLoginAttempts());
+        assertThat(event.getLockedUntil()).isEqualTo(staffAccount.getLockedUntil());
+        assertThat(event.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
+        assertThat(event.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
+        assertThat(event.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
+        assertThat(event.getStaffAccountEnabledBy()).isEqualTo(staffAccount.getEnabledBy());
+        assertThat(event.getStaffAccountPasswordResetBy()).isEqualTo(staffAccount.getPasswordResetBy());
+        assertThat(event.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
+        assertThat(event.getStaffAccountVersion()).isEqualTo(staffAccount.getVersion());
     }
 }
