@@ -76,7 +76,7 @@ public class StaffAccountController {
     @PreAuthorize("hasAuthority('MANAGE_ACCOUNTS')")
     public CompletableFuture<ResponseEntity<ResponseDto<EnableStaffAccountResponseDto>>> enable(@PathVariable("id") String staffAccountIdToBeEnabled) {
         String requestingStaffAccountId = httpContextHelper.getAuthenticatedStaffId();
-        log.info("Received request to enable staff account ID: {} from staff account ID: {}.",
+        log.info("Received request to enable staff account with ID: {} from staff account with ID: {}.",
                 staffAccountIdToBeEnabled, requestingStaffAccountId);
 
         return CompletableFuture.supplyAsync(() -> {

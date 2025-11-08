@@ -95,7 +95,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         }
     }
 
-    public LoginResult login() {
+    public void login() {
         throwIfAccountIsDisabled(StaffAccountExceptionInfo.loginFailedAccountDisabled());
         throwIfAccountIsLocked();
 
@@ -103,8 +103,6 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         lastLoginAt = Instant.now();
         increaseVersion();
         enqueue(new StaffAccountLoggedInEvent(this));
-
-        return LoginResult.ofSuccess();
     }
 
     public void disable(StaffAccountId disabledBy) {
