@@ -112,7 +112,6 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         status = StaffAccountStatus.DISABLED;
         this.disabledBy = disabledBy;
         this.enabledBy = null;
-        failedLoginAttempts = failedLoginAttempts.reset();
         increaseVersion();
         enqueue(new StaffAccountDisabledEvent(this));
     }

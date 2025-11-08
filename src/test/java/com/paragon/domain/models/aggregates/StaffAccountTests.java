@@ -359,7 +359,6 @@ public class StaffAccountTests {
             assertThat(staffAccount.getStatus()).isEqualTo(StaffAccountStatus.DISABLED);
             assertThat(staffAccount.getDisabledBy()).isEqualTo(disabledBy);
             assertThat(staffAccount.getEnabledBy()).isNull();
-            assertThat(staffAccount.getFailedLoginAttempts()).isEqualTo(FailedLoginAttempts.zero());
             assertThat(staffAccount.getVersion()).isEqualTo(Version.of(2));
         }
 
