@@ -116,6 +116,16 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         enqueue(new StaffAccountDisabledEvent(this));
     }
 
+    public void enable(StaffAccountId enabledBy) {
+        throwIfAccountIsEnabled();
+        status = isPasswordTemporary ? StaffAccountStatus.PENDING_PASSWORD_CHANGE : StaffAccountStatus.ACTIVE;
+        this.enabledBy = enabledBy;
+        disabledBy = null;
+        failedLoginAttempts = failedLoginAttempts.reset();
+        increaseVersion();
+        enqueue(new StaffAccountEnabledEvent(this));
+    }
+
     public void resetPassword(Password password, StaffAccountId resetBy) {
         throwIfAccountIsDisabled(StaffAccountExceptionInfo.accountAlreadyDisabled());
         this.password = password;
@@ -177,6 +187,12 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     private void throwIfAccountIsDisabled(StaffAccountExceptionInfo exceptionInfo) {
         if (status == StaffAccountStatus.DISABLED) {
             throw new StaffAccountException(exceptionInfo);
+        }
+    }
+
+    private void throwIfAccountIsEnabled() {
+        if (status != StaffAccountStatus.DISABLED) {
+            throw new StaffAccountException(StaffAccountExceptionInfo.accountAlreadyEnabled());
         }
     }
 

@@ -76,4 +76,11 @@ public class StaffAccountExceptionInfo extends DomainExceptionInfo {
                 10010
         );
     }
+
+    public static StaffAccountExceptionInfo accountAlreadyEnabled() {
+        return new StaffAccountExceptionInfo(
+                "Staff account is already enabled",
+                10011
+        );
+    }
 }

@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.UUID;
 
 public class StaffAccountTests {
     @Nested
@@ -452,6 +453,56 @@ public class StaffAccountTests {
                     .isThrownBy(() -> staffAccount.resetPassword(Password.of("hashed-password"), resetBy))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(StaffAccountExceptionInfo.accountAlreadyDisabled().getMessage(), StaffAccountExceptionInfo.accountAlreadyDisabled().getDomainErrorCode());
+        }
+    }
+
+    @Nested
+    class Enable {
+        @ParameterizedTest
+        @ValueSource(booleans = {false, true})
+        void shouldEnableStaffAccountAndRevertToCorrectStatus(boolean isPasswordTemporary) {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withStatus(StaffAccountStatus.DISABLED)
+                    .withDisabledBy(UUID.randomUUID().toString())
+                    .withFailedLoginAttempts(3)
+                    .withPasswordTemporary(isPasswordTemporary)
+                    .withVersion(3)
+                    .build();
+            StaffAccountId enabledBy = StaffAccountId.generate();
+
+            // When
+            staffAccount.enable(enabledBy);
+
+            // Then
+            assertThat(staffAccount.getStatus()).isEqualTo(isPasswordTemporary ? StaffAccountStatus.PENDING_PASSWORD_CHANGE : StaffAccountStatus.ACTIVE);
+            assertThat(staffAccount.getDisabledBy()).isNull();
+            assertThat(staffAccount.getEnabledBy()).isEqualTo(enabledBy);
+            assertThat(staffAccount.getFailedLoginAttempts()).isEqualTo(FailedLoginAttempts.zero());
+            assertThat(staffAccount.getVersion()).isEqualTo(Version.of(4));
+        }
+
+        @Test
+        void shouldEnqueueStaffAccountPasswordResetEvent() {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withStatus(StaffAccountStatus.DISABLED)
+                    .withDisabledBy(UUID.randomUUID().toString())
+                    .withFailedLoginAttempts(3)
+                    .withPasswordTemporary(true)
+                    .withVersion(3)
+                    .build();
+            StaffAccountId enabledBy = StaffAccountId.generate();
+
+            // When
+            staffAccount.enable(enabledBy);
+
+            //Then
+            List<DomainEvent> enqueuedEvents = staffAccount.dequeueUncommittedEvents();
+            assertThat(enqueuedEvents).isNotEmpty();
+
+            StaffAccountEnabledEvent enabledEvent = (StaffAccountEnabledEvent) enqueuedEvents.getFirst();
+            assertThatEventDataIsCorrect(enabledEvent, staffAccount);
         }
     }
 
