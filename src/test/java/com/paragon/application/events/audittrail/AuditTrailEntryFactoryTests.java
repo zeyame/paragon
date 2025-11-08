@@ -126,4 +126,27 @@ public class AuditTrailEntryFactoryTests {
         assertThat(result.getTargetId().getValue()).isEqualTo(accountId);
         assertThat(result.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
     }
+
+    @Test
+    void shouldCreateAuditTrailEntryForStaffAccountEnabledEvent() {
+        // Given
+        String enabledById = UUID.randomUUID().toString();
+        String accountId = UUID.randomUUID().toString();
+
+        StaffAccount account = new StaffAccountFixture()
+                .withId(accountId)
+                .withEnabledBy(enabledById)
+                .build();
+
+        StaffAccountEnabledEvent event = new StaffAccountEnabledEvent(account);
+
+        // When
+        AuditTrailEntry auditTrailEntry = AuditTrailEntryFactory.fromStaffAccountEvent(event);
+
+        // Then
+        assertThat(auditTrailEntry.getActorId().getValue().toString()).isEqualTo(enabledById);
+        assertThat(auditTrailEntry.getActionType()).isEqualTo(AuditEntryActionType.ENABLE_ACCOUNT);
+        assertThat(auditTrailEntry.getTargetId().getValue()).isEqualTo(accountId);
+        assertThat(auditTrailEntry.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
+    }
 }

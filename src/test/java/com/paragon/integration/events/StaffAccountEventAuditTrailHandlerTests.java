@@ -148,4 +148,28 @@ public class StaffAccountEventAuditTrailHandlerTests extends IntegrationTestBase
         assertThat(passwordResetEntry.getTargetId()).isEqualTo(AuditEntryTargetId.of(passwordResetEvent.getStaffAccountId().getValue().toString()));
         assertThat(passwordResetEntry.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
     }
+
+    @Test
+    void shouldPersistAuditTrailEntryForStaffAccountEnabledEvent() {
+        // Given
+        StaffAccount staffAccount = new StaffAccountFixture()
+                .withEnabledBy(adminId)
+                .build();
+        StaffAccountEnabledEvent enabledEvent = new StaffAccountEnabledEvent(staffAccount);
+
+        // When
+        eventBus.publishAll(List.of(enabledEvent));
+
+        // Then
+        List<AuditTrailEntry> auditTrailEntries = jdbcHelper.getAuditTrailEntriesByActorAndAction(
+                enabledEvent.getStaffAccountEnabledBy(), AuditEntryActionType.ENABLE_ACCOUNT
+        );
+        assertThat(auditTrailEntries).hasSize(1);
+
+        AuditTrailEntry auditTrailEntry = auditTrailEntries.getFirst();
+        assertThat(auditTrailEntry.getActorId()).isEqualTo(enabledEvent.getStaffAccountEnabledBy());
+        assertThat(auditTrailEntry.getActionType()).isEqualTo(AuditEntryActionType.ENABLE_ACCOUNT);
+        assertThat(auditTrailEntry.getTargetId()).isEqualTo(AuditEntryTargetId.of(enabledEvent.getStaffAccountId().getValue().toString()));
+        assertThat(auditTrailEntry.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
+    }
 }

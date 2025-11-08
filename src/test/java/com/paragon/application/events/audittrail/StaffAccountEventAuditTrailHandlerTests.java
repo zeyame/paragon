@@ -86,6 +86,10 @@ public class StaffAccountEventAuditTrailHandlerTests {
                 arguments(new StaffAccountPasswordResetEvent(new StaffAccountFixture()
                         .withPasswordResetBy(UUID.randomUUID().toString())
                         .build()
+                )),
+                arguments(new StaffAccountEnabledEvent(new StaffAccountFixture()
+                        .withEnabledBy(UUID.randomUUID().toString())
+                        .build()
                 ))
         );
     }
