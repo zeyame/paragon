@@ -66,7 +66,7 @@ public class StaffAccountController {
         }, taskExecutor);
     }
 
-    @PostMapping("/disable/{id}")
+    @PutMapping("/disable/{id}")
     @PreAuthorize("hasAuthority('MANAGE_ACCOUNTS')")
     public CompletableFuture<ResponseEntity<ResponseDto<DisableStaffAccountResponseDto>>> disable(@PathVariable("id") String staffAccountIdToBeDisabled) {
         String requestingStaffAccountId = httpContextHelper.getAuthenticatedStaffId();
@@ -81,7 +81,7 @@ public class StaffAccountController {
         }, taskExecutor);
     }
 
-    @PostMapping("/reset-password/{id}")
+    @PutMapping("/reset-password/{id}")
     @PreAuthorize("hasAuthority('RESET_ACCOUNT_PASSWORD')")
     public CompletableFuture<ResponseEntity<ResponseDto<ResetStaffAccountPasswordResponseDto>>> resetPassword(@PathVariable("id") String staffAccountIdToReset) {
         String requestingStaffAccountId = httpContextHelper.getAuthenticatedStaffId();

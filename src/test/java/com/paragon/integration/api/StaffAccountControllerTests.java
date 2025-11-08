@@ -38,9 +38,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 public class StaffAccountControllerTests {
     @Nested
@@ -365,14 +363,14 @@ public class StaffAccountControllerTests {
 
         private MvcResult sendRequest(String staffAccountId, String actorId, List<PermissionCode> permissions) throws Exception {
             return mockMvc.perform(
-                    post("/v1/staff-accounts/disable/" + staffAccountId)
+                    put("/v1/staff-accounts/disable/" + staffAccountId)
                             .header("Authorization", "Bearer " + TestJwtHelper.generateToken(actorId, permissions))
             ).andReturn();
         }
 
         private MvcResult sendAsyncRequest(String staffAccountId, String actorId, List<PermissionCode> permissions) throws Exception {
             MvcResult mvcResult = mockMvc.perform(
-                    post("/v1/staff-accounts/disable/" + staffAccountId)
+                    put("/v1/staff-accounts/disable/" + staffAccountId)
                             .header("Authorization", "Bearer " + TestJwtHelper.generateToken(actorId, permissions))
             ).andReturn();
 
@@ -561,14 +559,14 @@ public class StaffAccountControllerTests {
 
         private MvcResult sendRequest(String staffAccountId, String actorId, List<PermissionCode> permissions) throws Exception {
             return mockMvc.perform(
-                    post("/v1/staff-accounts/reset-password/" + staffAccountId)
+                    put("/v1/staff-accounts/reset-password/" + staffAccountId)
                             .header("Authorization", "Bearer " + TestJwtHelper.generateToken(actorId, permissions))
             ).andReturn();
         }
 
         private MvcResult sendAsyncRequest(String staffAccountId, String actorId, List<PermissionCode> permissions) throws Exception {
             MvcResult mvcResult = mockMvc.perform(
-                    post("/v1/staff-accounts/reset-password/" + staffAccountId)
+                    put("/v1/staff-accounts/reset-password/" + staffAccountId)
                             .header("Authorization", "Bearer " + TestJwtHelper.generateToken(actorId, permissions))
             ).andReturn();
 
