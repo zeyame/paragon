@@ -142,4 +142,38 @@ public class GetAllStaffAccountsQueryHandlerTests {
 
         verify(appExceptionHandlerMock, times(1)).handleInfraException(infraException);
     }
+
+    @Test
+    void shouldThrowAppException_whenEnabledAndDisabledFiltersAreProvided() {
+        // Given
+        GetAllStaffAccountsQuery invalidQuery = new GetAllStaffAccountsQuery(
+                null,
+                UUID.randomUUID().toString(),
+                UUID.randomUUID().toString(),
+                null,
+                null
+        );
+
+        // When & Then
+        assertThatThrownBy(() -> sut.handle(invalidQuery))
+                .isInstanceOf(AppException.class);
+        verify(staffAccountReadRepoMock, never()).findAllSummaries();
+    }
+
+    @Test
+    void shouldThrowAppException_whenCreatedBeforeIsBeforeCreatedAfter() {
+        // Given
+        GetAllStaffAccountsQuery invalidQuery = new GetAllStaffAccountsQuery(
+                null,
+                null,
+                null,
+                "2024-01-01T00:00:00Z",
+                "2024-02-01T00:00:00Z"
+        );
+
+        // When & Then
+        assertThatThrownBy(() -> sut.handle(invalidQuery))
+                .isInstanceOf(AppException.class);
+        verify(staffAccountReadRepoMock, never()).findAllSummaries();
+    }
 }

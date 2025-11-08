@@ -37,4 +37,20 @@ public class AppExceptionInfo {
                 AppExceptionStatusCode.AUTHENTICATION_FAILED
         );
     }
+
+    public static AppExceptionInfo invalidStaffAccountCreatedDateRange(String createdBefore, String createdAfter) {
+        return new AppExceptionInfo(
+                String.format("createdBefore ('%s') must be greater than or equal to createdAfter ('%s').", createdBefore, createdAfter),
+                105,
+                AppExceptionStatusCode.CLIENT_ERROR
+        );
+    }
+
+    public static AppExceptionInfo mutuallyExclusiveStaffAccountFilters() {
+        return new AppExceptionInfo(
+                "enabledBy and disabledBy filters cannot be used together.",
+                106,
+                AppExceptionStatusCode.CLIENT_ERROR
+        );
+    }
 }
