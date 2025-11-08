@@ -31,7 +31,7 @@ public class GetAllStaffAccountsQueryHandlerTests {
 
         sut = new GetAllStaffAccountsQueryHandler(staffAccountReadRepoMock, appExceptionHandlerMock);
 
-        query = new GetAllStaffAccountsQuery();
+        query = new GetAllStaffAccountsQuery(null, null, null, null, null);
     }
 
     @Test

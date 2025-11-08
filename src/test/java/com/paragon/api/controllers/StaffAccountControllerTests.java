@@ -28,6 +28,9 @@ import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQu
 import com.paragon.application.queries.getallstaffaccounts.StaffAccountSummary;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpStatus;
@@ -37,6 +40,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -490,30 +494,42 @@ public class StaffAccountControllerTests {
         @Test
         void getAllStaffAccounts_returnsOk() {
             // When
-            CompletableFuture<ResponseEntity<ResponseDto<GetAllStaffAccountsResponseDto>>> futureDto = sut.getAll();
+            CompletableFuture<ResponseEntity<ResponseDto<GetAllStaffAccountsResponseDto>>> futureDto = sut.getAll(null, null, null, null, null);
 
             // Then
             ResponseEntity<ResponseDto<GetAllStaffAccountsResponseDto>> completedResponse = futureDto.join();
             assertThat(completedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
 
-        @Test
-        void callsHandler_withCorrectQuery() {
+        @ParameterizedTest
+        @MethodSource("provideQueryFilters")
+        void callsHandler_withCorrectQuery(String status, String enabledBy, String disabledBy, String createdBefore, String createdAfter) {
             // Given
             ArgumentCaptor<GetAllStaffAccountsQuery> queryCaptor = ArgumentCaptor.forClass(GetAllStaffAccountsQuery.class);
+            GetAllStaffAccountsQuery expectedQuery = new GetAllStaffAccountsQuery(status, enabledBy, disabledBy, createdBefore, createdAfter);
 
             // When
-            sut.getAll();
+            sut.getAll(status, enabledBy, disabledBy, createdBefore, createdAfter);
 
             // Then
             verify(getAllStaffAccountsQueryHandlerMock, times(1)).handle(queryCaptor.capture());
-            assertThat(queryCaptor.getValue()).isInstanceOf(GetAllStaffAccountsQuery.class);
+            assertThat(queryCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedQuery);
+        }
+
+        private static Stream<Arguments> provideQueryFilters() {
+            return Stream.of(
+                    Arguments.of(null, null, null, null, null),
+                    Arguments.of("ACTIVE", null, null, null, null),
+                    Arguments.of("DISABLED", UUID.randomUUID().toString(), null, null, null),
+                    Arguments.of("ACTIVE", UUID.randomUUID().toString(), UUID.randomUUID().toString(), "2025-01-01T00:00:00Z", "2024-01-01T00:00:00Z"),
+                    Arguments.of(null, null, UUID.randomUUID().toString(), "2023-12-31T23:59:59Z", null)
+            );
         }
 
         @Test
         void mapsQueryResponse_toCorrectResponseDto() {
             // When
-            CompletableFuture<ResponseEntity<ResponseDto<GetAllStaffAccountsResponseDto>>> futureDto = sut.getAll();
+            CompletableFuture<ResponseEntity<ResponseDto<GetAllStaffAccountsResponseDto>>> futureDto = sut.getAll(null, null, null, null, null);
 
             // Then
             ResponseDto<GetAllStaffAccountsResponseDto> responseDto = futureDto.join().getBody();
@@ -541,7 +557,7 @@ public class StaffAccountControllerTests {
                     .thenThrow(AppException.class);
 
             // When & Then
-            assertThatThrownBy(() -> sut.getAll().join())
+            assertThatThrownBy(() -> sut.getAll(null, null, null, null, null).join())
                     .hasCauseInstanceOf(AppException.class);
         }
     }

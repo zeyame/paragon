@@ -119,12 +119,19 @@ public class StaffAccountController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('VIEW_ACCOUNTS_LIST')")
-    public CompletableFuture<ResponseEntity<ResponseDto<GetAllStaffAccountsResponseDto>>> getAll() {
+    public CompletableFuture<ResponseEntity<ResponseDto<GetAllStaffAccountsResponseDto>>> getAll(
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "enabledBy", required = false) String enabledBy,
+            @RequestParam(value = "disabledBy", required = false) String disabledBy,
+            @RequestParam(value = "createdBefore", required = false) String createdBefore,
+            @RequestParam(value = "createdAfter", required = false) String createdAfter
+    ) {
         String requestingStaffAccountId = httpContextHelper.getAuthenticatedStaffId();
         log.info("Received request to get all staff accounts from a staff account with ID: {}.", requestingStaffAccountId);
 
         return CompletableFuture.supplyAsync(() -> {
-            var queryResponse = getAllStaffAccountsQueryHandler.handle(new GetAllStaffAccountsQuery());
+            var query = new GetAllStaffAccountsQuery(status, enabledBy, disabledBy, createdBefore, createdAfter);
+            var queryResponse = getAllStaffAccountsQueryHandler.handle(query);
             var responseDto = new ResponseDto<>(StaffAccountMapper.toGetAllResponseDto(queryResponse), null);
             return ResponseEntity.ok(responseDto);
         }, taskExecutor);
