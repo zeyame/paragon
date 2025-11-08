@@ -1,0 +1,86 @@
+package com.paragon.api.mappers;
+
+import com.paragon.api.dtos.staffaccount.disable.DisableStaffAccountResponseDto;
+import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
+import com.paragon.api.dtos.staffaccount.getall.StaffAccountSummaryResponseDto;
+import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
+import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
+import com.paragon.api.dtos.staffaccount.resetpassword.ResetStaffAccountPasswordResponseDto;
+import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommand;
+import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommandResponse;
+import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommand;
+import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandResponse;
+import com.paragon.application.commands.resetstaffaccountpassword.ResetStaffAccountPasswordCommand;
+import com.paragon.application.commands.resetstaffaccountpassword.ResetStaffAccountPasswordCommandResponse;
+import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryResponse;
+import com.paragon.application.queries.getallstaffaccounts.StaffAccountSummary;
+
+public class StaffAccountMapper {
+    public static RegisterStaffAccountCommand toRegisterCommand(RegisterStaffAccountRequestDto requestDto, String requestingStaffAccountId) {
+        return new RegisterStaffAccountCommand(
+                requestDto.username(),
+                requestDto.email(),
+                requestDto.orderAccessDuration(),
+                requestDto.modmailTranscriptAccessDuration(),
+                requestDto.permissionCodes(),
+                requestingStaffAccountId
+        );
+    }
+
+    public static RegisterStaffAccountResponseDto toRegisterResponseDto(RegisterStaffAccountCommandResponse commandResponse) {
+        return new RegisterStaffAccountResponseDto(
+                commandResponse.id(),
+                commandResponse.username(),
+                commandResponse.tempPassword(),
+                commandResponse.status(),
+                commandResponse.version()
+        );
+    }
+
+    public static DisableStaffAccountCommand toDisableCommand(String staffAccountIdToBeDisabled, String requestingStaffAccountId) {
+        return new DisableStaffAccountCommand(staffAccountIdToBeDisabled, requestingStaffAccountId);
+    }
+
+    public static DisableStaffAccountResponseDto toDisableResponseDto(DisableStaffAccountCommandResponse commandResponse) {
+        return new DisableStaffAccountResponseDto(
+                commandResponse.id(),
+                commandResponse.status(),
+                commandResponse.disabledBy(),
+                commandResponse.version()
+        );
+    }
+
+    public static ResetStaffAccountPasswordCommand toResetPasswordCommand(String staffAccountIdToReset, String requestingStaffAccountId) {
+        return new ResetStaffAccountPasswordCommand(staffAccountIdToReset, requestingStaffAccountId);
+    }
+
+    public static ResetStaffAccountPasswordResponseDto toResetPasswordResponseDto(ResetStaffAccountPasswordCommandResponse commandResponse) {
+        return new ResetStaffAccountPasswordResponseDto(
+                commandResponse.id(),
+                commandResponse.temporaryPassword(),
+                commandResponse.status(),
+                commandResponse.passwordIssuedAt(),
+                commandResponse.version()
+        );
+    }
+
+    public static GetAllStaffAccountsResponseDto toGetAllResponseDto(GetAllStaffAccountsQueryResponse queryResponse) {
+        return new GetAllStaffAccountsResponseDto(
+                queryResponse.staffAccountSummaries()
+                        .stream()
+                        .map(StaffAccountMapper::toStaffAccountSummaryResponseDto)
+                        .toList()
+        );
+    }
+
+    private static StaffAccountSummaryResponseDto toStaffAccountSummaryResponseDto(StaffAccountSummary staffAccountSummary) {
+        return new StaffAccountSummaryResponseDto(
+                staffAccountSummary.id(),
+                staffAccountSummary.username(),
+                staffAccountSummary.status(),
+                staffAccountSummary.orderAccessDuration(),
+                staffAccountSummary.modmailTranscriptAccessDuration(),
+                staffAccountSummary.createdAtUtc()
+        );
+    }
+}

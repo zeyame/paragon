@@ -3,10 +3,10 @@ package com.paragon.api.controllers;
 import com.paragon.api.dtos.ResponseDto;
 import com.paragon.api.dtos.staffaccount.disable.DisableStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
-import com.paragon.api.dtos.staffaccount.getall.StaffAccountSummaryResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.resetpassword.ResetStaffAccountPasswordResponseDto;
+import com.paragon.api.mappers.StaffAccountMapper;
 import com.paragon.api.security.HttpContextHelper;
 import com.paragon.application.commands.CommandHandler;
 import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommand;
@@ -18,7 +18,6 @@ import com.paragon.application.commands.resetstaffaccountpassword.ResetStaffAcco
 import com.paragon.application.queries.QueryHandler;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQuery;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryResponse;
-import com.paragon.application.queries.getallstaffaccounts.StaffAccountSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.task.TaskExecutor;
@@ -60,9 +59,9 @@ public class StaffAccountController {
         log.info("Received request to register a new staff account from a staff account with ID: {}.", requestingStaffAccountId);
 
         return CompletableFuture.supplyAsync(() -> {
-            var command = createRegisterStaffAccountCommand(requestDto, requestingStaffAccountId);
+            var command = StaffAccountMapper.toRegisterCommand(requestDto, requestingStaffAccountId);
             var commandResponse = registerStaffAccountCommandHandler.handle(command);
-            var responseDto = new ResponseDto<>(createRegisterStaffAccountResponseDto(commandResponse), null);
+            var responseDto = new ResponseDto<>(StaffAccountMapper.toRegisterResponseDto(commandResponse), null);
             return ResponseEntity.ok(responseDto);
         }, taskExecutor);
     }
@@ -75,9 +74,9 @@ public class StaffAccountController {
                 staffAccountIdToBeDisabled, requestingStaffAccountId);
 
         return CompletableFuture.supplyAsync(() -> {
-            var command = createDisableStaffAccountCommand(staffAccountIdToBeDisabled, requestingStaffAccountId);
+            var command = StaffAccountMapper.toDisableCommand(staffAccountIdToBeDisabled, requestingStaffAccountId);
             var commandResponse = disableStaffAccountCommandHandler.handle(command);
-            var responseDto = new ResponseDto<>(createDisableStaffAccountResponseDto(commandResponse), null);
+            var responseDto = new ResponseDto<>(StaffAccountMapper.toDisableResponseDto(commandResponse), null);
             return ResponseEntity.ok(responseDto);
         }, taskExecutor);
     }
@@ -90,9 +89,9 @@ public class StaffAccountController {
                 staffAccountIdToReset, requestingStaffAccountId);
 
         return CompletableFuture.supplyAsync(() -> {
-            var command = createResetStaffAccountPasswordCommand(staffAccountIdToReset, requestingStaffAccountId);
+            var command = StaffAccountMapper.toResetPasswordCommand(staffAccountIdToReset, requestingStaffAccountId);
             var commandResponse = resetStaffAccountPasswordCommandHandler.handle(command);
-            var responseDto = new ResponseDto<>(createResetStaffAccountPasswordResponseDto(commandResponse), null);
+            var responseDto = new ResponseDto<>(StaffAccountMapper.toResetPasswordResponseDto(commandResponse), null);
             return ResponseEntity.ok(responseDto);
         }, taskExecutor);
     }
@@ -105,77 +104,9 @@ public class StaffAccountController {
 
         return CompletableFuture.supplyAsync(() -> {
             var queryResponse = getAllStaffAccountsQueryHandler.handle(new GetAllStaffAccountsQuery());
-            var responseDto = new ResponseDto<>(createGetAllStaffAccountsResponseDto(queryResponse), null);
+            var responseDto = new ResponseDto<>(StaffAccountMapper.toGetAllResponseDto(queryResponse), null);
             return ResponseEntity.ok(responseDto);
         }, taskExecutor);
-    }
-
-    private RegisterStaffAccountCommand createRegisterStaffAccountCommand(RegisterStaffAccountRequestDto requestDto, String requestingStaffAccountId) {
-        return new RegisterStaffAccountCommand(
-                requestDto.username(),
-                requestDto.email(),
-                requestDto.orderAccessDuration(),
-                requestDto.modmailTranscriptAccessDuration(),
-                requestDto.permissionCodes(),
-                requestingStaffAccountId
-        );
-    }
-
-    private RegisterStaffAccountResponseDto createRegisterStaffAccountResponseDto(RegisterStaffAccountCommandResponse commandResponse) {
-        return new RegisterStaffAccountResponseDto(
-                commandResponse.id(),
-                commandResponse.username(),
-                commandResponse.tempPassword(),
-                commandResponse.status(),
-                commandResponse.version()
-        );
-    }
-
-    private DisableStaffAccountCommand createDisableStaffAccountCommand(String staffAccountIdToBeDisabled, String requestingStaffAccountId) {
-        return new DisableStaffAccountCommand(staffAccountIdToBeDisabled, requestingStaffAccountId);
-    }
-
-    private DisableStaffAccountResponseDto createDisableStaffAccountResponseDto(DisableStaffAccountCommandResponse commandResponse) {
-        return new DisableStaffAccountResponseDto(
-                commandResponse.id(),
-                commandResponse.status(),
-                commandResponse.disabledBy(),
-                commandResponse.version()
-        );
-    }
-
-    private ResetStaffAccountPasswordCommand createResetStaffAccountPasswordCommand(String staffAccountIdToReset, String requestingStaffAccountId) {
-        return new ResetStaffAccountPasswordCommand(staffAccountIdToReset, requestingStaffAccountId);
-    }
-
-    private ResetStaffAccountPasswordResponseDto createResetStaffAccountPasswordResponseDto(ResetStaffAccountPasswordCommandResponse commandResponse) {
-        return new ResetStaffAccountPasswordResponseDto(
-                commandResponse.id(),
-                commandResponse.temporaryPassword(),
-                commandResponse.status(),
-                commandResponse.passwordIssuedAt(),
-                commandResponse.version()
-        );
-    }
-
-    private GetAllStaffAccountsResponseDto createGetAllStaffAccountsResponseDto(GetAllStaffAccountsQueryResponse queryResponse) {
-        return new GetAllStaffAccountsResponseDto(
-                queryResponse.staffAccountSummaries()
-                        .stream()
-                        .map(this::toStaffAccountSummaryResponseDto)
-                        .toList()
-        );
-    }
-
-    private StaffAccountSummaryResponseDto toStaffAccountSummaryResponseDto(StaffAccountSummary staffAccountSummary) {
-        return new StaffAccountSummaryResponseDto(
-                staffAccountSummary.id(),
-                staffAccountSummary.username(),
-                staffAccountSummary.status(),
-                staffAccountSummary.orderAccessDuration(),
-                staffAccountSummary.modmailTranscriptAccessDuration(),
-                staffAccountSummary.createdAtUtc()
-        );
     }
 
 }

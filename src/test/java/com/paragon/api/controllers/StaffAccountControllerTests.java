@@ -1,6 +1,5 @@
-package com.paragon.api;
+package com.paragon.api.controllers;
 
-import com.paragon.api.controllers.StaffAccountController;
 import com.paragon.api.dtos.ResponseDto;
 import com.paragon.api.dtos.staffaccount.disable.DisableStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
@@ -8,6 +7,7 @@ import com.paragon.api.dtos.staffaccount.getall.StaffAccountSummaryResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.resetpassword.ResetStaffAccountPasswordResponseDto;
+import com.paragon.api.mappers.StaffAccountMapper;
 import com.paragon.api.security.HttpContextHelper;
 import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommand;
 import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommandHandler;
