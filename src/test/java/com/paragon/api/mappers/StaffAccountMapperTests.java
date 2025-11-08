@@ -1,6 +1,7 @@
 package com.paragon.api.mappers;
 
 import com.paragon.api.dtos.staffaccount.disable.DisableStaffAccountResponseDto;
+import com.paragon.api.dtos.staffaccount.enable.EnableStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.StaffAccountSummaryResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
@@ -8,6 +9,8 @@ import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDt
 import com.paragon.api.dtos.staffaccount.resetpassword.ResetStaffAccountPasswordResponseDto;
 import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommand;
 import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommandResponse;
+import com.paragon.application.commands.enablestaffaccount.EnableStaffAccountCommand;
+import com.paragon.application.commands.enablestaffaccount.EnableStaffAccountCommandResponse;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommand;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandResponse;
 import com.paragon.application.commands.resetstaffaccountpassword.ResetStaffAccountPasswordCommand;
@@ -114,6 +117,40 @@ public class StaffAccountMapperTests {
             assertThat(responseDto.id()).isEqualTo(commandResponse.id());
             assertThat(responseDto.status()).isEqualTo(commandResponse.status());
             assertThat(responseDto.disabledBy()).isEqualTo(commandResponse.disabledBy());
+            assertThat(responseDto.version()).isEqualTo(commandResponse.version());
+        }
+    }
+
+    @Nested
+    class ToEnableCommand {
+        @Test
+        void shouldMapAllFieldsCorrectly() {
+            String staffAccountIdToBeEnabled = UUID.randomUUID().toString();
+            String requestingStaffAccountId = UUID.randomUUID().toString();
+
+            EnableStaffAccountCommand command = sut.toEnableCommand(staffAccountIdToBeEnabled, requestingStaffAccountId);
+
+            assertThat(command.staffAccountIdToBeEnabled()).isEqualTo(staffAccountIdToBeEnabled);
+            assertThat(command.requestingStaffAccountId()).isEqualTo(requestingStaffAccountId);
+        }
+    }
+
+    @Nested
+    class ToEnableResponseDto {
+        @Test
+        void shouldMapAllFieldsCorrectly() {
+            EnableStaffAccountCommandResponse commandResponse = new EnableStaffAccountCommandResponse(
+                    "staff-id-321",
+                    "ACTIVE",
+                    "admin-id-999",
+                    5
+            );
+
+            EnableStaffAccountResponseDto responseDto = sut.toEnableResponseDto(commandResponse);
+
+            assertThat(responseDto.id()).isEqualTo(commandResponse.id());
+            assertThat(responseDto.status()).isEqualTo(commandResponse.status());
+            assertThat(responseDto.enabledBy()).isEqualTo(commandResponse.enabledBy());
             assertThat(responseDto.version()).isEqualTo(commandResponse.version());
         }
     }

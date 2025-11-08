@@ -2,6 +2,7 @@ package com.paragon.api.controllers;
 
 import com.paragon.api.dtos.ResponseDto;
 import com.paragon.api.dtos.staffaccount.disable.DisableStaffAccountResponseDto;
+import com.paragon.api.dtos.staffaccount.enable.EnableStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
@@ -11,6 +12,8 @@ import com.paragon.api.security.HttpContextHelper;
 import com.paragon.application.commands.CommandHandler;
 import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommand;
 import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommandResponse;
+import com.paragon.application.commands.enablestaffaccount.EnableStaffAccountCommand;
+import com.paragon.application.commands.enablestaffaccount.EnableStaffAccountCommandResponse;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommand;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandResponse;
 import com.paragon.application.commands.resetstaffaccountpassword.ResetStaffAccountPasswordCommand;
@@ -32,6 +35,7 @@ import java.util.concurrent.CompletableFuture;
 public class StaffAccountController {
     private final CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> registerStaffAccountCommandHandler;
     private final CommandHandler<DisableStaffAccountCommand, DisableStaffAccountCommandResponse> disableStaffAccountCommandHandler;
+    private final CommandHandler<EnableStaffAccountCommand, EnableStaffAccountCommandResponse> enableStaffAccountCommandHandler;
     private final CommandHandler<ResetStaffAccountPasswordCommand, ResetStaffAccountPasswordCommandResponse> resetStaffAccountPasswordCommandHandler;
     private final QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> getAllStaffAccountsQueryHandler;
     private final HttpContextHelper httpContextHelper;
@@ -41,11 +45,13 @@ public class StaffAccountController {
     public StaffAccountController(
             CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> registerStaffAccountCommandHandler,
             CommandHandler<DisableStaffAccountCommand, DisableStaffAccountCommandResponse> disableStaffAccountCommandHandler,
+            CommandHandler<EnableStaffAccountCommand, EnableStaffAccountCommandResponse> enableStaffAccountCommandHandler,
             CommandHandler<ResetStaffAccountPasswordCommand, ResetStaffAccountPasswordCommandResponse> resetStaffAccountPasswordCommandHandler,
             QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> getAllStaffAccountsQueryHandler,
             HttpContextHelper httpContextHelper, TaskExecutor taskExecutor) {
         this.registerStaffAccountCommandHandler = registerStaffAccountCommandHandler;
         this.disableStaffAccountCommandHandler = disableStaffAccountCommandHandler;
+        this.enableStaffAccountCommandHandler = enableStaffAccountCommandHandler;
         this.resetStaffAccountPasswordCommandHandler = resetStaffAccountPasswordCommandHandler;
         this.getAllStaffAccountsQueryHandler = getAllStaffAccountsQueryHandler;
         this.httpContextHelper = httpContextHelper;
@@ -62,6 +68,21 @@ public class StaffAccountController {
             var command = StaffAccountMapper.toRegisterCommand(requestDto, requestingStaffAccountId);
             var commandResponse = registerStaffAccountCommandHandler.handle(command);
             var responseDto = new ResponseDto<>(StaffAccountMapper.toRegisterResponseDto(commandResponse), null);
+            return ResponseEntity.ok(responseDto);
+        }, taskExecutor);
+    }
+
+    @PutMapping("/enable/{id}")
+    @PreAuthorize("hasAuthority('MANAGE_ACCOUNTS')")
+    public CompletableFuture<ResponseEntity<ResponseDto<EnableStaffAccountResponseDto>>> enable(@PathVariable("id") String staffAccountIdToBeEnabled) {
+        String requestingStaffAccountId = httpContextHelper.getAuthenticatedStaffId();
+        log.info("Received request to enable staff account ID: {} from staff account ID: {}.",
+                staffAccountIdToBeEnabled, requestingStaffAccountId);
+
+        return CompletableFuture.supplyAsync(() -> {
+            var command = StaffAccountMapper.toEnableCommand(staffAccountIdToBeEnabled, requestingStaffAccountId);
+            var commandResponse = enableStaffAccountCommandHandler.handle(command);
+            var responseDto = new ResponseDto<>(StaffAccountMapper.toEnableResponseDto(commandResponse), null);
             return ResponseEntity.ok(responseDto);
         }, taskExecutor);
     }

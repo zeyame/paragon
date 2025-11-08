@@ -2,16 +2,19 @@ package com.paragon.api.controllers;
 
 import com.paragon.api.dtos.ResponseDto;
 import com.paragon.api.dtos.staffaccount.disable.DisableStaffAccountResponseDto;
+import com.paragon.api.dtos.staffaccount.enable.EnableStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.StaffAccountSummaryResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.resetpassword.ResetStaffAccountPasswordResponseDto;
-import com.paragon.api.mappers.StaffAccountMapper;
 import com.paragon.api.security.HttpContextHelper;
 import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommand;
 import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommandHandler;
 import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommandResponse;
+import com.paragon.application.commands.enablestaffaccount.EnableStaffAccountCommand;
+import com.paragon.application.commands.enablestaffaccount.EnableStaffAccountCommandHandler;
+import com.paragon.application.commands.enablestaffaccount.EnableStaffAccountCommandResponse;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommand;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandHandler;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandResponse;
@@ -45,6 +48,7 @@ public class StaffAccountControllerTests {
         private final StaffAccountController sut;
         private final RegisterStaffAccountCommandHandler registerStaffAccountCommandHandlerMock;
         private final DisableStaffAccountCommandHandler disableStaffAccountCommandHandlerMock;
+        private final EnableStaffAccountCommandHandler enableStaffAccountCommandHandlerMock;
         private final ResetStaffAccountPasswordCommandHandler resetStaffAccountPasswordCommandHandlerMock;
         private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
         private final HttpContextHelper httpContextHelperMock;
@@ -54,6 +58,7 @@ public class StaffAccountControllerTests {
         public Register() {
             registerStaffAccountCommandHandlerMock = mock(RegisterStaffAccountCommandHandler.class);
             disableStaffAccountCommandHandlerMock = mock(DisableStaffAccountCommandHandler.class);
+            enableStaffAccountCommandHandlerMock = mock(EnableStaffAccountCommandHandler.class);
             resetStaffAccountPasswordCommandHandlerMock = mock(ResetStaffAccountPasswordCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
             httpContextHelperMock = mock(HttpContextHelper.class);
@@ -65,6 +70,7 @@ public class StaffAccountControllerTests {
             sut = new StaffAccountController(
                     registerStaffAccountCommandHandlerMock,
                     disableStaffAccountCommandHandlerMock,
+                    enableStaffAccountCommandHandlerMock,
                     resetStaffAccountPasswordCommandHandlerMock,
                     getAllStaffAccountsQueryHandlerMock,
                     httpContextHelperMock,
@@ -163,10 +169,101 @@ public class StaffAccountControllerTests {
     }
 
     @Nested
+    class Enable {
+        private final StaffAccountController sut;
+        private final RegisterStaffAccountCommandHandler registerStaffAccountCommandHandlerMock;
+        private final DisableStaffAccountCommandHandler disableStaffAccountCommandHandlerMock;
+        private final EnableStaffAccountCommandHandler enableStaffAccountCommandHandlerMock;
+        private final ResetStaffAccountPasswordCommandHandler resetStaffAccountPasswordCommandHandlerMock;
+        private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
+        private final HttpContextHelper httpContextHelperMock;
+        private final String staffIdToBeEnabled;
+        private final String requestingStaffId;
+        private final EnableStaffAccountCommandResponse commandResponse;
+
+        public Enable() {
+            registerStaffAccountCommandHandlerMock = mock(RegisterStaffAccountCommandHandler.class);
+            disableStaffAccountCommandHandlerMock = mock(DisableStaffAccountCommandHandler.class);
+            enableStaffAccountCommandHandlerMock = mock(EnableStaffAccountCommandHandler.class);
+            resetStaffAccountPasswordCommandHandlerMock = mock(ResetStaffAccountPasswordCommandHandler.class);
+            getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
+            httpContextHelperMock = mock(HttpContextHelper.class);
+            TaskExecutor taskExecutor = Runnable::run;
+
+            sut = new StaffAccountController(
+                    registerStaffAccountCommandHandlerMock,
+                    disableStaffAccountCommandHandlerMock,
+                    enableStaffAccountCommandHandlerMock,
+                    resetStaffAccountPasswordCommandHandlerMock,
+                    getAllStaffAccountsQueryHandlerMock,
+                    httpContextHelperMock,
+                    taskExecutor
+            );
+
+            staffIdToBeEnabled = UUID.randomUUID().toString();
+            requestingStaffId = UUID.randomUUID().toString();
+            commandResponse = new EnableStaffAccountCommandResponse(
+                    staffIdToBeEnabled,
+                    "ACTIVE",
+                    requestingStaffId,
+                    3
+            );
+
+            when(httpContextHelperMock.getAuthenticatedStaffId()).thenReturn(requestingStaffId);
+            when(enableStaffAccountCommandHandlerMock.handle(any(EnableStaffAccountCommand.class)))
+                    .thenReturn(commandResponse);
+        }
+
+        @Test
+        void shouldReturnExpectedResponseDto() {
+            // When
+            CompletableFuture<ResponseEntity<ResponseDto<EnableStaffAccountResponseDto>>> futureDto = sut.enable(staffIdToBeEnabled);
+
+            // Then
+            ResponseDto<EnableStaffAccountResponseDto> responseDto = futureDto.join().getBody();
+            assertThat(responseDto.result()).isNotNull();
+            assertThat(responseDto.errorDto()).isNull();
+
+            EnableStaffAccountResponseDto result = responseDto.result();
+            assertThat(result.id()).isEqualTo(commandResponse.id());
+            assertThat(result.status()).isEqualTo(commandResponse.status());
+            assertThat(result.enabledBy()).isEqualTo(commandResponse.enabledBy());
+            assertThat(result.version()).isEqualTo(commandResponse.version());
+        }
+
+        @Test
+        void shouldPassCorrectCommandToHandler() {
+            // Given
+            ArgumentCaptor<EnableStaffAccountCommand> captor = ArgumentCaptor.forClass(EnableStaffAccountCommand.class);
+
+            // When
+            sut.enable(staffIdToBeEnabled);
+
+            // Then
+            verify(enableStaffAccountCommandHandlerMock, times(1)).handle(captor.capture());
+            EnableStaffAccountCommand command = captor.getValue();
+            assertThat(command.staffAccountIdToBeEnabled()).isEqualTo(staffIdToBeEnabled);
+            assertThat(command.requestingStaffAccountId()).isEqualTo(requestingStaffId);
+        }
+
+        @Test
+        void shouldPropagateAppException_whenHandlerThrows() {
+            // Given
+            when(enableStaffAccountCommandHandlerMock.handle(any(EnableStaffAccountCommand.class)))
+                    .thenThrow(AppException.class);
+
+            // When & Then
+            assertThatThrownBy(() -> sut.enable(staffIdToBeEnabled).join())
+                    .hasCauseInstanceOf(AppException.class);
+        }
+    }
+
+    @Nested
     class Disable {
         private final StaffAccountController sut;
         private final RegisterStaffAccountCommandHandler registerStaffAccountCommandHandlerMock;
         private final DisableStaffAccountCommandHandler disableStaffAccountCommandHandlerMock;
+        private final EnableStaffAccountCommandHandler enableStaffAccountCommandHandlerMock;
         private final ResetStaffAccountPasswordCommandHandler resetStaffAccountPasswordCommandHandlerMock;
         private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
         private final HttpContextHelper httpContextHelperMock;
@@ -177,6 +274,7 @@ public class StaffAccountControllerTests {
         public Disable() {
             registerStaffAccountCommandHandlerMock = mock(RegisterStaffAccountCommandHandler.class);
             disableStaffAccountCommandHandlerMock = mock(DisableStaffAccountCommandHandler.class);
+            enableStaffAccountCommandHandlerMock = mock(EnableStaffAccountCommandHandler.class);
             resetStaffAccountPasswordCommandHandlerMock = mock(ResetStaffAccountPasswordCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
             httpContextHelperMock = mock(HttpContextHelper.class);
@@ -185,6 +283,7 @@ public class StaffAccountControllerTests {
             sut = new StaffAccountController(
                     registerStaffAccountCommandHandlerMock,
                     disableStaffAccountCommandHandlerMock,
+                    enableStaffAccountCommandHandlerMock,
                     resetStaffAccountPasswordCommandHandlerMock,
                     getAllStaffAccountsQueryHandlerMock,
                     httpContextHelperMock,
@@ -257,6 +356,7 @@ public class StaffAccountControllerTests {
         private final StaffAccountController sut;
         private final RegisterStaffAccountCommandHandler registerStaffAccountCommandHandlerMock;
         private final DisableStaffAccountCommandHandler disableStaffAccountCommandHandlerMock;
+        private final EnableStaffAccountCommandHandler enableStaffAccountCommandHandlerMock;
         private final ResetStaffAccountPasswordCommandHandler resetStaffAccountPasswordCommandHandlerMock;
         private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
         private final HttpContextHelper httpContextHelperMock;
@@ -267,6 +367,7 @@ public class StaffAccountControllerTests {
         public ResetPassword() {
             registerStaffAccountCommandHandlerMock = mock(RegisterStaffAccountCommandHandler.class);
             disableStaffAccountCommandHandlerMock = mock(DisableStaffAccountCommandHandler.class);
+            enableStaffAccountCommandHandlerMock = mock(EnableStaffAccountCommandHandler.class);
             resetStaffAccountPasswordCommandHandlerMock = mock(ResetStaffAccountPasswordCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
             httpContextHelperMock = mock(HttpContextHelper.class);
@@ -275,6 +376,7 @@ public class StaffAccountControllerTests {
             sut = new StaffAccountController(
                     registerStaffAccountCommandHandlerMock,
                     disableStaffAccountCommandHandlerMock,
+                    enableStaffAccountCommandHandlerMock,
                     resetStaffAccountPasswordCommandHandlerMock,
                     getAllStaffAccountsQueryHandlerMock,
                     httpContextHelperMock,
@@ -346,6 +448,7 @@ public class StaffAccountControllerTests {
         private final StaffAccountController sut;
         private final RegisterStaffAccountCommandHandler registerStaffAccountCommandHandlerMock;
         private final DisableStaffAccountCommandHandler disableStaffAccountCommandHandlerMock;
+        private final EnableStaffAccountCommandHandler enableStaffAccountCommandHandlerMock;
         private final ResetStaffAccountPasswordCommandHandler resetStaffAccountPasswordCommandHandlerMock;
         private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
         private final HttpContextHelper httpContextHelperMock;
@@ -354,6 +457,7 @@ public class StaffAccountControllerTests {
         public GetAll() {
             registerStaffAccountCommandHandlerMock = mock(RegisterStaffAccountCommandHandler.class);
             disableStaffAccountCommandHandlerMock = mock(DisableStaffAccountCommandHandler.class);
+            enableStaffAccountCommandHandlerMock = mock(EnableStaffAccountCommandHandler.class);
             resetStaffAccountPasswordCommandHandlerMock = mock(ResetStaffAccountPasswordCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
             httpContextHelperMock = mock(HttpContextHelper.class);
@@ -362,6 +466,7 @@ public class StaffAccountControllerTests {
             sut = new StaffAccountController(
                     registerStaffAccountCommandHandlerMock,
                     disableStaffAccountCommandHandlerMock,
+                    enableStaffAccountCommandHandlerMock,
                     resetStaffAccountPasswordCommandHandlerMock,
                     getAllStaffAccountsQueryHandlerMock,
                     httpContextHelperMock,

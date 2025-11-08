@@ -1,6 +1,7 @@
 package com.paragon.api.mappers;
 
 import com.paragon.api.dtos.staffaccount.disable.DisableStaffAccountResponseDto;
+import com.paragon.api.dtos.staffaccount.enable.EnableStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.StaffAccountSummaryResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
@@ -8,6 +9,8 @@ import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDt
 import com.paragon.api.dtos.staffaccount.resetpassword.ResetStaffAccountPasswordResponseDto;
 import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommand;
 import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommandResponse;
+import com.paragon.application.commands.enablestaffaccount.EnableStaffAccountCommand;
+import com.paragon.application.commands.enablestaffaccount.EnableStaffAccountCommandResponse;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommand;
 import com.paragon.application.commands.registerstaffaccount.RegisterStaffAccountCommandResponse;
 import com.paragon.application.commands.resetstaffaccountpassword.ResetStaffAccountPasswordCommand;
@@ -46,6 +49,19 @@ public class StaffAccountMapper {
                 commandResponse.id(),
                 commandResponse.status(),
                 commandResponse.disabledBy(),
+                commandResponse.version()
+        );
+    }
+
+    public static EnableStaffAccountCommand toEnableCommand(String staffAccountIdToBeEnabled, String requestingStaffAccountId) {
+        return new EnableStaffAccountCommand(staffAccountIdToBeEnabled, requestingStaffAccountId);
+    }
+
+    public static EnableStaffAccountResponseDto toEnableResponseDto(EnableStaffAccountCommandResponse commandResponse) {
+        return new EnableStaffAccountResponseDto(
+                commandResponse.id(),
+                commandResponse.status(),
+                commandResponse.enabledBy(),
                 commandResponse.version()
         );
     }
