@@ -33,12 +33,12 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
             (id, username, email, password, is_password_temporary, password_issued_at_utc,
              order_access_duration, modmail_transcript_access_duration,
              status, failed_login_attempts, locked_until_utc, last_login_at_utc, created_by,
-             disabled_by, password_reset_by, version, created_at_utc, updated_at_utc)
+             disabled_by, enabled_by, password_reset_by, version, created_at_utc, updated_at_utc)
             VALUES
             (:id, :username, :email, :password, :isPasswordTemporary, :passwordIssuedAtUtc,
              :orderAccessDuration, :modmailTranscriptAccessDuration,
              :status, :failedLoginAttempts, :lockedUntilUtc, :lastLoginAtUtc, :createdBy,
-             :disabledBy, :passwordResetBy, :version, :createdAtUtc, :updatedAtUtc)
+             :disabledBy, :enabledBy, :passwordResetBy, :version, :createdAtUtc, :updatedAtUtc)
         """;
 
         SqlParamsBuilder insertStaffAccountParams = new SqlParamsBuilder()
@@ -56,6 +56,7 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
                 .add("lastLoginAtUtc", staffAccount.getLastLoginAt())
                 .add("createdBy", staffAccount.getCreatedBy().getValue())
                 .add("disabledBy", staffAccount.getDisabledBy() != null ? staffAccount.getDisabledBy().getValue() : null)
+                .add("enabledBy", staffAccount.getEnabledBy() != null ? staffAccount.getEnabledBy().getValue() : null)
                 .add("passwordResetBy", staffAccount.getPasswordResetBy() != null ? staffAccount.getPasswordResetBy().getValue() : null)
                 .add("version", staffAccount.getVersion().getValue())
                 .add("createdAtUtc", Instant.now())
@@ -134,7 +135,7 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
                         password_issued_at_utc = :passwordIssuedAtUtc, order_access_duration = :orderAccessDuration,
                         modmail_transcript_access_duration = :modmailTranscriptAccessDuration, status = :status,
                         failed_login_attempts = :failedLoginAttempts, locked_until_utc = :lockedUntilUtc,
-                        last_login_at_utc = :lastLoginAtUtc, disabled_by = :disabledBy, password_reset_by = :passwordResetBy,
+                        last_login_at_utc = :lastLoginAtUtc, disabled_by = :disabledBy, enabled_by = :enabledBy, password_reset_by = :passwordResetBy,
                         version = :version, updated_at_utc = :updatedAtUtc
                     WHERE id = :id AND version = :currentVersion
                 """;
@@ -152,6 +153,7 @@ public class StaffAccountWriteRepoImpl implements StaffAccountWriteRepo {
                 .add("lockedUntilUtc", staffAccount.getLockedUntil())
                 .add("lastLoginAtUtc", staffAccount.getLastLoginAt())
                 .add("disabledBy", staffAccount.getDisabledBy() != null ? staffAccount.getDisabledBy().getValue() : null)
+                .add("enabledBy", staffAccount.getEnabledBy() != null ? staffAccount.getEnabledBy().getValue() : null)
                 .add("passwordResetBy", staffAccount.getPasswordResetBy() != null ? staffAccount.getPasswordResetBy().getValue() : null)
                 .add("version", staffAccount.getVersion().getValue())
                 .add("updatedAtUtc", Instant.now())

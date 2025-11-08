@@ -12,6 +12,8 @@ INSERT INTO staff_accounts (
     last_login_at_utc,
     created_by,
     disabled_by,
+    enabled_by,
+    password_reset_by,
     version,
     created_at_utc,
     updated_at_utc
@@ -29,6 +31,8 @@ VALUES (
     NULL,
     NULL,
     '00000000-0000-0000-0000-000000000001',
+    NULL,
+    NULL,
     NULL,
     1,
     NOW(),

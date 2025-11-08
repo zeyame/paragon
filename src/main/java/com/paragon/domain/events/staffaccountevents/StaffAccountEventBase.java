@@ -25,6 +25,7 @@ public abstract class StaffAccountEventBase extends DomainEvent {
     private final Instant lastLoginAt;
     private final StaffAccountId staffAccountCreatedBy;
     private final StaffAccountId staffAccountDisabledBy;
+    private final StaffAccountId staffAccountEnabledBy;
     private final StaffAccountId staffAccountPasswordResetBy;
     private final List<PermissionCode> permissionCodes;
     private final Version staffAccountVersion;
@@ -45,6 +46,7 @@ public abstract class StaffAccountEventBase extends DomainEvent {
         this.lastLoginAt = staffAccount.getLastLoginAt();
         this.staffAccountCreatedBy = staffAccount.getCreatedBy();
         this.staffAccountDisabledBy = staffAccount.getDisabledBy();
+        this.staffAccountEnabledBy = staffAccount.getEnabledBy();
         this.staffAccountPasswordResetBy = staffAccount.getPasswordResetBy();
         this.permissionCodes = staffAccount.getPermissionCodes();
         this.staffAccountVersion = staffAccount.getVersion();

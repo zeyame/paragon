@@ -61,6 +61,7 @@ public class StaffAccountTests {
             assertThat(staffAccount.getLastLoginAt()).isNull();
             assertThat(staffAccount.getCreatedBy()).isEqualTo(createdBy);
             assertThat(staffAccount.getDisabledBy()).isNull();
+            assertThat(staffAccount.getEnabledBy()).isNull();
             assertThat(staffAccount.getPasswordResetBy()).isNull();
             assertThat(staffAccount.getPermissionCodes()).isEqualTo(permissionCodes);
             assertThat(staffAccount.getVersion().getValue()).isEqualTo(1);
@@ -86,6 +87,7 @@ public class StaffAccountTests {
             assertThat(staffAccount.getLastLoginAt()).isNull();
             assertThat(staffAccount.getCreatedBy()).isEqualTo(createdBy);
             assertThat(staffAccount.getDisabledBy()).isNull();
+            assertThat(staffAccount.getEnabledBy()).isNull();
             assertThat(staffAccount.getPasswordResetBy()).isNull();
             assertThat(staffAccount.getPermissionCodes()).isEqualTo(permissionCodes);
             assertThat(staffAccount.getVersion().getValue()).isEqualTo(1);
@@ -127,6 +129,7 @@ public class StaffAccountTests {
             assertThat(event.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
             assertThat(event.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
             assertThat(event.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
+            assertThat(event.getStaffAccountEnabledBy()).isEqualTo(staffAccount.getEnabledBy());
             assertThat(event.getStaffAccountPasswordResetBy()).isEqualTo(staffAccount.getPasswordResetBy());
             assertThat(event.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
             assertThat(event.getStaffAccountVersion()).isEqualTo(staffAccount.getVersion());
@@ -283,6 +286,7 @@ public class StaffAccountTests {
             assertThat(event.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
             assertThat(event.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
             assertThat(event.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
+            assertThat(event.getStaffAccountEnabledBy()).isEqualTo(staffAccount.getEnabledBy());
             assertThat(event.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
             assertThat(event.getStaffAccountVersion().getValue()).isEqualTo(2);
         }
@@ -332,6 +336,7 @@ public class StaffAccountTests {
             assertThat(loggedInEvent.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
             assertThat(loggedInEvent.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
             assertThat(loggedInEvent.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
+            assertThat(loggedInEvent.getStaffAccountEnabledBy()).isEqualTo(staffAccount.getEnabledBy());
             assertThat(loggedInEvent.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
             assertThat(loggedInEvent.getStaffAccountVersion()).isEqualTo(staffAccount.getVersion());
         }
@@ -399,6 +404,7 @@ public class StaffAccountTests {
             // Then
             assertThat(staffAccount.getStatus()).isEqualTo(StaffAccountStatus.DISABLED);
             assertThat(staffAccount.getDisabledBy()).isEqualTo(disabledBy);
+            assertThat(staffAccount.getEnabledBy()).isNull();
             assertThat(staffAccount.getFailedLoginAttempts()).isEqualTo(FailedLoginAttempts.zero());
             assertThat(staffAccount.getVersion()).isEqualTo(Version.of(2));
         }
@@ -430,6 +436,7 @@ public class StaffAccountTests {
             assertThat(disabledEvent.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
             assertThat(disabledEvent.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
             assertThat(disabledEvent.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
+            assertThat(disabledEvent.getStaffAccountEnabledBy()).isEqualTo(staffAccount.getEnabledBy());
             assertThat(disabledEvent.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
             assertThat(disabledEvent.getStaffAccountVersion()).isEqualTo(staffAccount.getVersion());
         }
@@ -504,6 +511,7 @@ public class StaffAccountTests {
             assertThat(passwordResetEvent.getLastLoginAt()).isEqualTo(staffAccount.getLastLoginAt());
             assertThat(passwordResetEvent.getStaffAccountCreatedBy()).isEqualTo(staffAccount.getCreatedBy());
             assertThat(passwordResetEvent.getStaffAccountDisabledBy()).isEqualTo(staffAccount.getDisabledBy());
+            assertThat(passwordResetEvent.getStaffAccountEnabledBy()).isEqualTo(staffAccount.getEnabledBy());
             assertThat(passwordResetEvent.getPermissionCodes()).isEqualTo(staffAccount.getPermissionCodes());
             assertThat(passwordResetEvent.getStaffAccountVersion()).isEqualTo(staffAccount.getVersion());
         }

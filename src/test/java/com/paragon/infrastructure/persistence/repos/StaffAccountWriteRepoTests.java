@@ -292,6 +292,7 @@ public class StaffAccountWriteRepoTests {
             assertThat(params.get("status")).isEqualTo(account.getStatus().toString());
             assertThat(params.get("failedLoginAttempts")).isEqualTo(account.getFailedLoginAttempts().getValue());
             assertThat(params.get("disabledBy")).isEqualTo(account.getDisabledBy() != null ? account.getDisabledBy().getValue() : null);
+            assertThat(params.get("enabledBy")).isEqualTo(account.getEnabledBy() != null ? account.getEnabledBy().getValue() : null);
             assertThat(params.get("version")).isEqualTo(account.getVersion().getValue());
             assertThat(params.get("currentVersion")).isEqualTo(account.getVersion().getValue() - 1);
         }
@@ -323,6 +324,7 @@ public class StaffAccountWriteRepoTests {
             assertThat(sql).contains("locked_until_utc = :lockedUntilUtc");
             assertThat(sql).contains("last_login_at_utc = :lastLoginAtUtc");
             assertThat(sql).contains("disabled_by = :disabledBy");
+            assertThat(sql).contains("enabled_by = :enabledBy");
             assertThat(sql).contains("version = :version");
             assertThat(sql).contains("updated_at_utc = :updatedAtUtc");
 
@@ -370,6 +372,7 @@ public class StaffAccountWriteRepoTests {
                 null,
                 Instant.parse("2024-01-03T12:00:00Z"),
                 UUID.randomUUID(),
+                null,
                 null,
                 null,
                 1,
