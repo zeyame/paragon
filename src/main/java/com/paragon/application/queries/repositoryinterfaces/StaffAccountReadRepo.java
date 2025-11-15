@@ -1,5 +1,6 @@
 package com.paragon.application.queries.repositoryinterfaces;
 
+import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.domain.models.valueobjects.Username;
@@ -13,7 +14,7 @@ public interface StaffAccountReadRepo {
     boolean exists(StaffAccountId staffAccountId);
     boolean hasPermission(StaffAccountId staffAccountId, PermissionCode permissionCode);
     List<StaffAccountSummaryReadModel> findAll();
-    List<StaffAccountSummaryReadModel> findAll(String status,
+    List<StaffAccountSummaryReadModel> findAll(StaffAccountStatus status,
                                                StaffAccountId enabledBy,
                                                StaffAccountId disabledBy,
                                                Instant createdBefore,

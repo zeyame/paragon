@@ -5,6 +5,7 @@ import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.queries.QueryHandler;
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo;
+import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
@@ -40,7 +41,7 @@ public class GetAllStaffAccountsQueryHandler implements QueryHandler<GetAllStaff
             StaffAccountId disabledById = resolveStaffAccountId(query.disabledBy());
 
             List<StaffAccountSummaryReadModel> staffAccountSummaryReadModels = staffAccountReadRepo.findAll(
-                    query.status(),
+                    query.status() != null ? StaffAccountStatus.valueOf(query.status()) : null,
                     enabledById,
                     disabledById,
                     createdBefore,

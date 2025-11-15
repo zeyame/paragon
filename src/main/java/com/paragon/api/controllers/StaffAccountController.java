@@ -117,6 +117,7 @@ public class StaffAccountController {
         }, taskExecutor);
     }
 
+    // TODO: Add a registered by filter
     @GetMapping
     @PreAuthorize("hasAuthority('VIEW_ACCOUNTS_LIST')")
     public CompletableFuture<ResponseEntity<ResponseDto<GetAllStaffAccountsResponseDto>>> getAll(

@@ -7,6 +7,7 @@ import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQu
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryHandler;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryResponse;
 import com.paragon.application.queries.getallstaffaccounts.StaffAccountSummary;
+import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo;
 import com.paragon.domain.models.valueobjects.Username;
@@ -148,7 +149,7 @@ public class GetAllStaffAccountsQueryHandlerTests {
             String disabledBy,
             String createdBefore,
             String createdAfter,
-            String expectedStatus,
+            StaffAccountStatus expectedStatus,
             StaffAccountId expectedEnabledById,
             StaffAccountId expectedDisabledById,
             Instant expectedCreatedBefore,
@@ -193,7 +194,7 @@ public class GetAllStaffAccountsQueryHandlerTests {
         when(staffAccountReadRepoMock.findAll(any(), any(), any(), any(), any()))
                 .thenReturn(List.of());
 
-        ArgumentCaptor<String> statusCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<StaffAccountStatus> statusCaptor = ArgumentCaptor.forClass(StaffAccountStatus.class);
         ArgumentCaptor<StaffAccountId> enabledByCaptor = ArgumentCaptor.forClass(StaffAccountId.class);
         ArgumentCaptor<StaffAccountId> disabledByCaptor = ArgumentCaptor.forClass(StaffAccountId.class);
         ArgumentCaptor<Instant> createdBeforeCaptor = ArgumentCaptor.forClass(Instant.class);
@@ -292,17 +293,17 @@ public class GetAllStaffAccountsQueryHandlerTests {
                 Arguments.of(null, null, null, null, null, null, null, null, null, null),
 
                 // Each filter independently
-                Arguments.of("ACTIVE", null, null, null, null, "ACTIVE", null, null, null, null),
+                Arguments.of("ACTIVE", null, null, null, null, StaffAccountStatus.ACTIVE, null, null, null, null),
                 Arguments.of(null, "admin_user", null, null, null, null, enabledById, null, null, null),
                 Arguments.of(null, null, "admin_user", null, null, null, null, disabledById, null, null),
                 Arguments.of(null, null, null, "2024-12-31T23:59:59Z", null, null, null, null, beforeInstant, null),
                 Arguments.of(null, null, null, null, "2024-01-01T00:00:00Z", null, null, null, null, afterInstant),
 
                 // Representative multi-filter combinations
-                Arguments.of("ACTIVE", "admin_user", null, null, null, "ACTIVE", enabledById, null, null, null),
+                Arguments.of("ACTIVE", "admin_user", null, null, null, StaffAccountStatus.ACTIVE, enabledById, null, null, null),
                 Arguments.of(null, null, null, "2024-12-31T23:59:59Z", "2024-01-01T00:00:00Z", null, null, null, beforeInstant, afterInstant),
-                Arguments.of("ACTIVE", null, null, "2024-12-31T23:59:59Z", "2024-01-01T00:00:00Z", "ACTIVE", null, null, beforeInstant, afterInstant),
-                Arguments.of("DISABLED", null, "admin_user", "2024-12-31T23:59:59Z", "2024-01-01T00:00:00Z", "DISABLED", null, disabledById, beforeInstant, afterInstant)
+                Arguments.of("ACTIVE", null, null, "2024-12-31T23:59:59Z", "2024-01-01T00:00:00Z", StaffAccountStatus.ACTIVE, null, null, beforeInstant, afterInstant),
+                Arguments.of("DISABLED", null, "admin_user", "2024-12-31T23:59:59Z", "2024-01-01T00:00:00Z", StaffAccountStatus.DISABLED, null, disabledById, beforeInstant, afterInstant)
         );
     }
 }

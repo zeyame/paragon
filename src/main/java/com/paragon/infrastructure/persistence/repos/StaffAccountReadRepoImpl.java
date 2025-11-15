@@ -1,6 +1,7 @@
 package com.paragon.infrastructure.persistence.repos;
 
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo;
+import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.domain.models.valueobjects.Username;
@@ -58,7 +59,7 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
     }
 
     @Override
-    public List<StaffAccountSummaryReadModel> findAll(String status, StaffAccountId enabledBy, StaffAccountId disabledBy, Instant createdBefore, Instant createdAfter) {
+    public List<StaffAccountSummaryReadModel> findAll(StaffAccountStatus status, StaffAccountId enabledBy, StaffAccountId disabledBy, Instant createdBefore, Instant createdAfter) {
         // TODO: Implement actual filtering in future slice. For now, fallback to existing behavior.
         return findAll();
     }
