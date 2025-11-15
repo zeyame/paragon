@@ -1,16 +1,20 @@
 package com.paragon.infrastructure.persistence.repos;
 
+import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo;
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
+import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.infrastructure.persistence.daos.StaffAccountIdDao;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.helpers.ReadJdbcHelper;
+import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,7 +27,7 @@ public class StaffAccountReadRepoTests {
     @Nested
     class Exists {
         private final ReadJdbcHelper readJdbcHelperMock;
-        private final StaffAccountReadRepoImpl sut;
+        private final StaffAccountReadRepo sut;
 
         public Exists() {
             this.readJdbcHelperMock = mock(ReadJdbcHelper.class);
@@ -96,7 +100,7 @@ public class StaffAccountReadRepoTests {
     @Nested
     class HasPermission {
         private final ReadJdbcHelper readJdbcHelperMock;
-        private final StaffAccountReadRepoImpl sut;
+        private final StaffAccountReadRepo sut;
 
         public HasPermission() {
             this.readJdbcHelperMock = mock(ReadJdbcHelper.class);
@@ -176,7 +180,7 @@ public class StaffAccountReadRepoTests {
     @Nested
     class FindAllSummaries {
         private final ReadJdbcHelper readJdbcHelperMock;
-        private final StaffAccountReadRepoImpl sut;
+        private final StaffAccountReadRepo sut;
 
         public FindAllSummaries() {
             this.readJdbcHelperMock = mock(ReadJdbcHelper.class);
@@ -210,7 +214,7 @@ public class StaffAccountReadRepoTests {
                     "active",
                     10,
                     5,
-                    java.time.Instant.now()
+                    Instant.now()
             );
             StaffAccountSummaryReadModel summary2 = new StaffAccountSummaryReadModel(
                     UUID.randomUUID(),
@@ -218,7 +222,7 @@ public class StaffAccountReadRepoTests {
                     "pending_password_change",
                     14,
                     7,
-                    java.time.Instant.now()
+                    Instant.now()
             );
             List<StaffAccountSummaryReadModel> expectedSummaries = List.of(summary1, summary2);
 
@@ -260,5 +264,92 @@ public class StaffAccountReadRepoTests {
             assertThatThrownBy(() -> sut.findAll())
                     .isInstanceOf(InfraException.class);
         }
+    }
+
+    @Nested
+    class FindByUsername {
+        private final ReadJdbcHelper readJdbcHelperMock;
+        private final StaffAccountReadRepo sut;
+
+        public FindByUsername() {
+            this.readJdbcHelperMock = mock(ReadJdbcHelper.class);
+            this.sut = new StaffAccountReadRepoImpl(readJdbcHelperMock);
+        }
+
+        @Test
+        void callsJdbcHelperWithExpectedSqlAndParams() {
+            // Given
+            Username username = Username.of("john_doe");
+            String expectedSql = """
+                SELECT id, username, status, order_access_duration, modmail_transcript_access_duration, created_at_utc
+                FROM staff_accounts
+                WHERE username = :username
+                """;
+            SqlParamsBuilder expectedParams = new SqlParamsBuilder()
+                    .add("username", username.getValue());
+
+            // When
+            sut.findByUsername(username);
+
+            // Then
+            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
+            verify(readJdbcHelperMock, times(1))
+                    .queryFirstOrDefault(sqlStatementCaptor.capture(), eq(StaffAccountSummaryReadModel.class));
+
+            SqlStatement capturedSqlStatement = sqlStatementCaptor.getValue();
+            assertThat(capturedSqlStatement.sql()).isEqualTo(expectedSql);
+            assertThat(capturedSqlStatement.params().build().get("username")).isEqualTo(expectedParams.build().get("username"));
+        }
+
+        @Test
+        void returnsExpectedSummaryModel_whenStaffAccountExists() {
+            // Given
+            Username username = Username.of("john_doe");
+            StaffAccountSummaryReadModel expectedStaffAccountSummary = new StaffAccountSummaryReadModel(
+                    UUID.randomUUID(),
+                    "john_doe",
+                    "active",
+                    10,
+                    5,
+                    Instant.now()
+            );
+
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountSummaryReadModel.class)))
+                    .thenReturn(Optional.of(expectedStaffAccountSummary));
+
+            // When
+            Optional<StaffAccountSummaryReadModel> optionalStaffAccountSummary = sut.findByUsername(username);
+
+            // Then
+            assertThat(optionalStaffAccountSummary).isPresent();
+            assertThat(optionalStaffAccountSummary.get()).isEqualTo(expectedStaffAccountSummary);
+        }
+
+        @Test
+        void returnsEmptyOptional_whenStaffAccountDoesNotExist() {
+            // Given
+            Username username = Username.of("john_doe");
+
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountSummaryReadModel.class)))
+                    .thenReturn(Optional.empty());
+
+            // When
+            Optional<StaffAccountSummaryReadModel> optionalStaffAccountSummary = sut.findByUsername(username);
+
+            // Then
+            assertThat(optionalStaffAccountSummary).isEmpty();
+        }
+
+        @Test
+        void shouldPropagateInfraException_whenJdbcHelperThrows() {
+            // Given
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountSummaryReadModel.class)))
+                    .thenThrow(InfraException.class);
+
+            // When & Then
+            assertThatThrownBy(() -> sut.findByUsername(Username.of("john_doe")))
+                    .isInstanceOf(InfraException.class);
+        }
+
     }
 }

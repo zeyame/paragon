@@ -4,6 +4,7 @@ import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
+import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.helpers.TestJdbcHelper;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -216,6 +218,41 @@ public class StaffAccountReadRepoTests {
             assertThat(summaries.size()).isEqualTo(1);
             assertThat(summaries.getFirst().id()).isEqualTo(UUID.fromString(adminId));
             assertThat(summaries.getFirst().username()).isEqualTo("admin");
+        }
+    }
+
+    @Nested
+    class FindByUsername extends IntegrationTestBase {
+        private final StaffAccountReadRepo sut;
+        private final TestJdbcHelper testJdbcHelper;
+
+        @Autowired
+        public FindByUsername(WriteJdbcHelper writeJdbcHelper, StaffAccountReadRepo staffAccountReadRepo) {
+            sut = staffAccountReadRepo;
+            testJdbcHelper = new TestJdbcHelper(writeJdbcHelper);
+        }
+
+        @Test
+        void shouldReturnStaffAccountSummary_whenStaffAccountExists() {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withUsername("john_doe")
+                    .withEmail("john_doe@example.com")
+                    .withCreatedBy(adminId)
+                    .build();
+            testJdbcHelper.insertStaffAccount(staffAccount);
+
+            // When
+            Optional<StaffAccountSummaryReadModel> optionalStaffAccountSummary = sut.findByUsername(Username.of("john_doe"));
+
+            // Then
+            assertThat(optionalStaffAccountSummary).isPresent();
+            StaffAccountSummaryReadModel retrievedSummary = optionalStaffAccountSummary.get();
+            assertThat(retrievedSummary.id()).isEqualTo(staffAccount.getId().getValue());
+            assertThat(retrievedSummary.username()).isEqualTo(staffAccount.getUsername().getValue());
+            assertThat(retrievedSummary.status()).isEqualTo(staffAccount.getStatus().toString());
+            assertThat(retrievedSummary.orderAccessDuration()).isEqualTo(staffAccount.getOrderAccessDuration().getValueInDays());
+            assertThat(retrievedSummary.modmailTranscriptAccessDuration()).isEqualTo(staffAccount.getModmailTranscriptAccessDuration().getValueInDays());
         }
     }
 

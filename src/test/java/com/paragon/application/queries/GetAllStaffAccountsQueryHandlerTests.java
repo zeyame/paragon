@@ -1,42 +1,50 @@
 package com.paragon.application.queries;
 
 import com.paragon.application.common.exceptions.AppException;
+import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQuery;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryHandler;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryResponse;
 import com.paragon.application.queries.getallstaffaccounts.StaffAccountSummary;
+import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo;
+import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import org.mockito.ArgumentCaptor;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 public class GetAllStaffAccountsQueryHandlerTests {
     private final GetAllStaffAccountsQueryHandler sut;
     private final StaffAccountReadRepo staffAccountReadRepoMock;
     private final AppExceptionHandler appExceptionHandlerMock;
-    private final GetAllStaffAccountsQuery query;
 
     public GetAllStaffAccountsQueryHandlerTests() {
         staffAccountReadRepoMock = mock(StaffAccountReadRepo.class);
         appExceptionHandlerMock = mock(AppExceptionHandler.class);
 
         sut = new GetAllStaffAccountsQueryHandler(staffAccountReadRepoMock, appExceptionHandlerMock);
-
-        query = new GetAllStaffAccountsQuery(null, null, null, null, null);
-    }
+}
 
     @Test
-    void givenValidQuery_shouldReturnAllStaffAccountSummaries() {
+    void givenQueryWithNoFilters_shouldReturnAllStaffAccountSummaries() {
         // Given
+        GetAllStaffAccountsQuery query = new GetAllStaffAccountsQuery(null, null, null, null, null);
+
         List<StaffAccountSummaryReadModel> readModels = List.of(
                 new StaffAccountSummaryReadModel(
                         UUID.randomUUID(),
@@ -55,7 +63,7 @@ public class GetAllStaffAccountsQueryHandlerTests {
                         Instant.now()
                 )
         );
-        when(staffAccountReadRepoMock.findAll()).thenReturn(readModels);
+        when(staffAccountReadRepoMock.findAll(any(), any(), any(), any(), any())).thenReturn(readModels);
 
         // When
         GetAllStaffAccountsQueryResponse response = sut.handle(query);
@@ -74,6 +82,8 @@ public class GetAllStaffAccountsQueryHandlerTests {
     @Test
     void givenValidQuery_shouldCorrectlyMapReadModelsToSummaries() {
         // Given
+        GetAllStaffAccountsQuery query = new GetAllStaffAccountsQuery("ACTIVE", null, null, null, null);
+
         UUID expectedId = UUID.randomUUID();
         Instant expectedTimestamp = Instant.now();
         StaffAccountSummaryReadModel readModel = new StaffAccountSummaryReadModel(
@@ -84,7 +94,7 @@ public class GetAllStaffAccountsQueryHandlerTests {
                 10,
                 expectedTimestamp
         );
-        when(staffAccountReadRepoMock.findAll()).thenReturn(List.of(readModel));
+        when(staffAccountReadRepoMock.findAll(any(), any(), any(), any(), any())).thenReturn(List.of(readModel));
 
         // When
         GetAllStaffAccountsQueryResponse response = sut.handle(query);
@@ -92,7 +102,7 @@ public class GetAllStaffAccountsQueryHandlerTests {
         // Then
         assertThat(response.staffAccountSummaries().size()).isEqualTo(1);
 
-        StaffAccountSummary summary = response.staffAccountSummaries().get(0);
+        StaffAccountSummary summary = response.staffAccountSummaries().getFirst();
         assertThat(summary.id()).isEqualTo(expectedId);
         assertThat(summary.username()).isEqualTo("test_user");
         assertThat(summary.status()).isEqualTo("active");
@@ -102,45 +112,110 @@ public class GetAllStaffAccountsQueryHandlerTests {
     }
 
     @Test
-    void givenValidQuery_shouldCallRepoToFindAllSummaries() {
+    void givenValidQuery_shouldCallRepoOnceToFindAllSummaries() {
         // Given
-        when(staffAccountReadRepoMock.findAll()).thenReturn(List.of());
+        GetAllStaffAccountsQuery query = new GetAllStaffAccountsQuery("ACTIVE", null, null, null, null);
+
+        when(staffAccountReadRepoMock.findAll(any(), any(), any(), any(), any())).thenReturn(List.of());
 
         // When
         sut.handle(query);
 
         // Then
-        verify(staffAccountReadRepoMock, times(1)).findAll();
+        verify(staffAccountReadRepoMock, times(1)).findAll(any(), any(), any(), any(), any());
     }
 
     @Test
     void givenValidQuery_shouldReturnEmptyListWhenNoStaffAccountsExist() {
         // Given
-        when(staffAccountReadRepoMock.findAll()).thenReturn(List.of());
+        GetAllStaffAccountsQuery query = new GetAllStaffAccountsQuery("ACTIVE", null, null, null, null);
+
+        when(staffAccountReadRepoMock.findAll(any(), any(), any(), any(), any())).thenReturn(List.of());
 
         // When
         GetAllStaffAccountsQueryResponse response = sut.handle(query);
 
         // Then
         assertThat(response).isNotNull();
-        assertThat(response.staffAccountSummaries().size()).isEqualTo(0);
+        assertThat(response.staffAccountSummaries()).isEmpty();
     }
 
-    @Test
-    void whenInfraExceptionIsThrown_shouldCatchAndTranslateToAppException() {
+    @ParameterizedTest
+    @MethodSource("provideValidFilterCombinations")
+    void shouldPassFiltersCorrectlyToRepository(
+            String status,
+            String enabledBy,
+            String disabledBy,
+            String createdBefore,
+            String createdAfter,
+            String expectedStatus,
+            StaffAccountId expectedEnabledById,
+            StaffAccountId expectedDisabledById,
+            Instant expectedCreatedBefore,
+            Instant expectedCreatedAfter
+    ) {
         // Given
-        InfraException infraException = mock(InfraException.class);
-        when(staffAccountReadRepoMock.findAll())
-                .thenThrow(infraException);
+        GetAllStaffAccountsQuery query = new GetAllStaffAccountsQuery(
+                status,
+                enabledBy,
+                disabledBy,
+                createdBefore,
+                createdAfter
+        );
 
-        when(appExceptionHandlerMock.handleInfraException(any(InfraException.class)))
-                .thenReturn(mock(AppException.class));
+        // Mock username lookups if needed
+        if (enabledBy != null) {
+            StaffAccountSummaryReadModel enabledByModel = new StaffAccountSummaryReadModel(
+                    expectedEnabledById.getValue(),
+                    enabledBy,
+                    "active",
+                    10,
+                    10,
+                    Instant.now()
+            );
+            when(staffAccountReadRepoMock.findByUsername(Username.of(enabledBy)))
+                    .thenReturn(Optional.of(enabledByModel));
+        }
 
-        // When & Then
-        assertThatThrownBy(() -> sut.handle(query))
-                .isInstanceOf(AppException.class);
+        if (disabledBy != null) {
+            StaffAccountSummaryReadModel disabledByModel = new StaffAccountSummaryReadModel(
+                    expectedDisabledById.getValue(),
+                    disabledBy,
+                    "active",
+                    10,
+                    10,
+                    Instant.now()
+            );
+            when(staffAccountReadRepoMock.findByUsername(Username.of(disabledBy)))
+                    .thenReturn(Optional.of(disabledByModel));
+        }
 
-        verify(appExceptionHandlerMock, times(1)).handleInfraException(infraException);
+        when(staffAccountReadRepoMock.findAll(any(), any(), any(), any(), any()))
+                .thenReturn(List.of());
+
+        ArgumentCaptor<String> statusCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<StaffAccountId> enabledByCaptor = ArgumentCaptor.forClass(StaffAccountId.class);
+        ArgumentCaptor<StaffAccountId> disabledByCaptor = ArgumentCaptor.forClass(StaffAccountId.class);
+        ArgumentCaptor<Instant> createdBeforeCaptor = ArgumentCaptor.forClass(Instant.class);
+        ArgumentCaptor<Instant> createdAfterCaptor = ArgumentCaptor.forClass(Instant.class);
+
+        // When
+        sut.handle(query);
+
+        // Then
+        verify(staffAccountReadRepoMock, times(1)).findAll(
+                statusCaptor.capture(),
+                enabledByCaptor.capture(),
+                disabledByCaptor.capture(),
+                createdBeforeCaptor.capture(),
+                createdAfterCaptor.capture()
+        );
+
+        assertThat(statusCaptor.getValue()).isEqualTo(expectedStatus);
+        assertThat(enabledByCaptor.getValue()).isEqualTo(expectedEnabledById);
+        assertThat(disabledByCaptor.getValue()).isEqualTo(expectedDisabledById);
+        assertThat(createdBeforeCaptor.getValue()).isEqualTo(expectedCreatedBefore);
+        assertThat(createdAfterCaptor.getValue()).isEqualTo(expectedCreatedAfter);
     }
 
     @Test
@@ -155,13 +230,15 @@ public class GetAllStaffAccountsQueryHandlerTests {
         );
 
         // When & Then
-        assertThatThrownBy(() -> sut.handle(invalidQuery))
-                .isInstanceOf(AppException.class);
-        verify(staffAccountReadRepoMock, never()).findAll();
+        assertThatExceptionOfType(AppException.class)
+                .isThrownBy(() -> sut.handle(invalidQuery))
+                .extracting("message", "errorCode")
+                .containsExactly(AppExceptionInfo.mutuallyExclusiveStaffAccountFilters().getMessage(), AppExceptionInfo.mutuallyExclusiveStaffAccountFilters().getAppErrorCode());
+        verify(staffAccountReadRepoMock, never()).findAll(any(), any(), any(), any(), any());
     }
 
     @Test
-    void shouldThrowAppException_whenCreatedBeforeIsBeforeCreatedAfter() {
+    void shouldThrowAppException_whenCreatedBeforeIsPriorToCreatedAfter() {
         // Given
         GetAllStaffAccountsQuery invalidQuery = new GetAllStaffAccountsQuery(
                 null,
@@ -171,9 +248,61 @@ public class GetAllStaffAccountsQueryHandlerTests {
                 "2024-02-01T00:00:00Z"
         );
 
+        String expectedErrorMessage = AppExceptionInfo.invalidStaffAccountCreatedDateRange(
+                invalidQuery.createdBefore(),
+                invalidQuery.createdAfter()
+        ).getMessage();
+        int expectedErrorCode = AppExceptionInfo.invalidStaffAccountCreatedDateRange(
+                invalidQuery.createdBefore(),
+                invalidQuery.createdAfter()
+        ).getAppErrorCode();
+
         // When & Then
-        assertThatThrownBy(() -> sut.handle(invalidQuery))
+        assertThatExceptionOfType(AppException.class)
+                .isThrownBy(() -> sut.handle(invalidQuery))
+                .extracting("message", "errorCode")
+                .containsExactly(expectedErrorMessage, expectedErrorCode);
+        verify(staffAccountReadRepoMock, never()).findAll(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void whenInfraExceptionIsThrown_shouldCatchAndTranslateToAppException() {
+        // Given
+        GetAllStaffAccountsQuery query = new GetAllStaffAccountsQuery("ACTIVE", null, null, null, null);
+
+        when(staffAccountReadRepoMock.findAll(any(), any(), any(), any(), any()))
+                .thenThrow(mock(InfraException.class));
+
+        when(appExceptionHandlerMock.handleInfraException(any(InfraException.class)))
+                .thenReturn(mock(AppException.class));
+
+        // When & Then
+        assertThatThrownBy(() -> sut.handle(query))
                 .isInstanceOf(AppException.class);
-        verify(staffAccountReadRepoMock, never()).findAll();
+    }
+
+    private static Stream<Arguments> provideValidFilterCombinations() {
+        StaffAccountId enabledById = StaffAccountId.generate();
+        StaffAccountId disabledById = StaffAccountId.generate();
+        Instant beforeInstant = Instant.parse("2024-12-31T23:59:59Z");
+        Instant afterInstant = Instant.parse("2024-01-01T00:00:00Z");
+
+        return Stream.of(
+                // No filters
+                Arguments.of(null, null, null, null, null, null, null, null, null, null),
+
+                // Each filter independently
+                Arguments.of("ACTIVE", null, null, null, null, "ACTIVE", null, null, null, null),
+                Arguments.of(null, "admin_user", null, null, null, null, enabledById, null, null, null),
+                Arguments.of(null, null, "admin_user", null, null, null, null, disabledById, null, null),
+                Arguments.of(null, null, null, "2024-12-31T23:59:59Z", null, null, null, null, beforeInstant, null),
+                Arguments.of(null, null, null, null, "2024-01-01T00:00:00Z", null, null, null, null, afterInstant),
+
+                // Representative multi-filter combinations
+                Arguments.of("ACTIVE", "admin_user", null, null, null, "ACTIVE", enabledById, null, null, null),
+                Arguments.of(null, null, null, "2024-12-31T23:59:59Z", "2024-01-01T00:00:00Z", null, null, null, beforeInstant, afterInstant),
+                Arguments.of("ACTIVE", null, null, "2024-12-31T23:59:59Z", "2024-01-01T00:00:00Z", "ACTIVE", null, null, beforeInstant, afterInstant),
+                Arguments.of("DISABLED", null, "admin_user", "2024-12-31T23:59:59Z", "2024-01-01T00:00:00Z", "DISABLED", null, disabledById, beforeInstant, afterInstant)
+        );
     }
 }

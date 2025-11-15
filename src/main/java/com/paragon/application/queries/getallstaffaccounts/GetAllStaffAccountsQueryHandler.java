@@ -5,6 +5,8 @@ import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.queries.QueryHandler;
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo;
+import com.paragon.domain.models.valueobjects.StaffAccountId;
+import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
 import org.slf4j.Logger;
@@ -12,7 +14,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class GetAllStaffAccountsQueryHandler implements QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> {
@@ -28,8 +32,20 @@ public class GetAllStaffAccountsQueryHandler implements QueryHandler<GetAllStaff
     @Override
     public GetAllStaffAccountsQueryResponse handle(GetAllStaffAccountsQuery query) {
         try {
-            validateQuery(query);
-            List<StaffAccountSummaryReadModel> staffAccountSummaryReadModels = staffAccountReadRepo.findAll();
+            Instant createdBefore = parseInstant(query.createdBefore());
+            Instant createdAfter = parseInstant(query.createdAfter());
+            validateQuery(query, createdBefore, createdAfter);
+
+            StaffAccountId enabledById = resolveStaffAccountId(query.enabledBy());
+            StaffAccountId disabledById = resolveStaffAccountId(query.disabledBy());
+
+            List<StaffAccountSummaryReadModel> staffAccountSummaryReadModels = staffAccountReadRepo.findAll(
+                    query.status(),
+                    enabledById,
+                    disabledById,
+                    createdBefore,
+                    createdAfter
+            );
             List<StaffAccountSummary> staffAccountSummaries = staffAccountSummaryReadModels
                     .stream()
                     .map(StaffAccountSummary::fromReadModel)
@@ -41,17 +57,48 @@ public class GetAllStaffAccountsQueryHandler implements QueryHandler<GetAllStaff
         }
     }
 
-    private void validateQuery(GetAllStaffAccountsQuery query) {
-        if (query.enabledBy() != null && query.disabledBy() != null) {
+    private void validateQuery(GetAllStaffAccountsQuery query, Instant createdBefore, Instant createdAfter) {
+        if (query == null) {
+            return;
+        }
+        if (hasText(query.enabledBy()) && hasText(query.disabledBy())) {
             throw new AppException(AppExceptionInfo.mutuallyExclusiveStaffAccountFilters());
         }
 
-        if (query.createdBefore() != null && query.createdAfter() != null) {
-            Instant createdBefore = Instant.parse(query.createdBefore());
-            Instant createdAfter = Instant.parse(query.createdAfter());
-            if (createdBefore.isBefore(createdAfter)) {
-                throw new AppException(AppExceptionInfo.invalidStaffAccountCreatedDateRange(query.createdBefore(), query.createdAfter()));
-            }
+        if (createdBefore != null && createdAfter != null && createdBefore.isBefore(createdAfter)) {
+            throw new AppException(AppExceptionInfo.invalidStaffAccountCreatedDateRange(
+                    query.createdBefore(),
+                    query.createdAfter()
+            ));
         }
+    }
+
+    private StaffAccountId resolveStaffAccountId(String usernameValue) {
+        if (!hasText(usernameValue)) {
+            return null;
+        }
+
+        try {
+            Username username = Username.of(usernameValue);
+            Optional<StaffAccountSummaryReadModel> summary = staffAccountReadRepo.findByUsername(username);
+            return summary.map(model -> StaffAccountId.of(model.id())).orElse(null);
+        } catch (RuntimeException ex) {
+            return null;
+        }
+    }
+
+    private Instant parseInstant(String value) {
+        if (!hasText(value)) {
+            return null;
+        }
+        try {
+            return Instant.parse(value);
+        } catch (DateTimeParseException ex) {
+            return null;
+        }
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 }
