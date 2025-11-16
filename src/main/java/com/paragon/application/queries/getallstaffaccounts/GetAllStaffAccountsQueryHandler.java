@@ -62,15 +62,22 @@ public class GetAllStaffAccountsQueryHandler implements QueryHandler<GetAllStaff
         if (query == null) {
             return;
         }
-        if (hasText(query.enabledBy()) && hasText(query.disabledBy())) {
-            throw new AppException(AppExceptionInfo.mutuallyExclusiveStaffAccountFilters());
-        }
+        validateEnabledByAndDisabledBy(query.enabledBy(), query.disabledBy());
+        validateCreatedDateRange(createdBefore, createdAfter);
+    }
 
+    private static void validateCreatedDateRange(Instant createdBefore, Instant createdAfter) {
         if (createdBefore != null && createdAfter != null && createdBefore.isBefore(createdAfter)) {
             throw new AppException(AppExceptionInfo.invalidStaffAccountCreatedDateRange(
-                    query.createdBefore(),
-                    query.createdAfter()
+                    createdBefore.toString(),
+                    createdAfter.toString()
             ));
+        }
+    }
+
+    private void validateEnabledByAndDisabledBy(String enabledBy, String disabledBy) {
+        if (hasText(enabledBy) && hasText(disabledBy)) {
+            throw new AppException(AppExceptionInfo.mutuallyExclusiveStaffAccountFilters());
         }
     }
 

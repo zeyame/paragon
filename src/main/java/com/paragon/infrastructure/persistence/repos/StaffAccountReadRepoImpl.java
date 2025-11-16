@@ -60,8 +60,45 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
 
     @Override
     public List<StaffAccountSummaryReadModel> findAll(StaffAccountStatus status, StaffAccountId enabledBy, StaffAccountId disabledBy, Instant createdBefore, Instant createdAfter) {
-        // TODO: Implement actual filtering in future slice. For now, fallback to existing behavior.
-        return findAll();
+        StringBuilder sql = new StringBuilder("""
+                SELECT id, username, status, order_access_duration, modmail_transcript_access_duration, created_at_utc
+                FROM staff_accounts
+                WHERE 1=1
+                """);
+
+        SqlParamsBuilder params = new SqlParamsBuilder();
+
+        if (status != null) {
+            sql.append(" AND status = :status");
+            params.add("status", status.name());
+        }
+
+        if (enabledBy != null) {
+            sql.append(" AND enabled_by = :enabledBy");
+            params.add("enabledBy", enabledBy.getValue());
+        }
+
+        if (disabledBy != null) {
+            sql.append(" AND disabled_by = :disabledBy");
+            params.add("disabledBy", disabledBy.getValue());
+        }
+
+        if (createdBefore != null) {
+            sql.append(" AND created_at_utc < :createdBefore");
+            params.add("createdBefore", createdBefore);
+        }
+
+        if (createdAfter != null) {
+            sql.append(" AND created_at_utc > :createdAfter");
+            params.add("createdAfter", createdAfter);
+        }
+
+        sql.append(" ORDER BY created_at_utc DESC");
+
+        return readJdbcHelper.query(
+                new SqlStatement(sql.toString(), params),
+                StaffAccountSummaryReadModel.class
+        );
     }
 
     @Override
