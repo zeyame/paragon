@@ -13,7 +13,6 @@ import java.util.Optional;
 public interface StaffAccountReadRepo {
     boolean exists(StaffAccountId staffAccountId);
     boolean hasPermission(StaffAccountId staffAccountId, PermissionCode permissionCode);
-    List<StaffAccountSummaryReadModel> findAll();
     List<StaffAccountSummaryReadModel> findAll(StaffAccountStatus status,
                                                StaffAccountId enabledBy,
                                                StaffAccountId disabledBy,

@@ -50,15 +50,6 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
     }
 
     @Override
-    public List<StaffAccountSummaryReadModel> findAll() {
-        String sql = "SELECT id, username, status, order_access_duration, modmail_transcript_access_duration, created_at_utc FROM staff_accounts ORDER BY created_at_utc DESC";
-        return readJdbcHelper.query(
-                new SqlStatement(sql, new SqlParamsBuilder()),
-                StaffAccountSummaryReadModel.class
-        );
-    }
-
-    @Override
     public List<StaffAccountSummaryReadModel> findAll(StaffAccountStatus status, StaffAccountId enabledBy, StaffAccountId disabledBy, Instant createdBefore, Instant createdAfter) {
         StringBuilder sql = new StringBuilder("""
                 SELECT id, username, status, order_access_duration, modmail_transcript_access_duration, created_at_utc
