@@ -1,6 +1,7 @@
 package com.paragon.integration.persistence;
 
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo;
+import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -157,11 +159,418 @@ public class StaffAccountReadRepoTests {
         }
     }
 
-    private static void delay() {
-        try {
-            Thread.sleep(10);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+    @Nested
+    class FindAll extends IntegrationTestBase {
+        private final StaffAccountReadRepo sut;
+        private final TestJdbcHelper testJdbcHelper;
+
+        @Autowired
+        public FindAll(WriteJdbcHelper writeJdbcHelper, StaffAccountReadRepo staffAccountReadRepo) {
+            sut = staffAccountReadRepo;
+            testJdbcHelper = new TestJdbcHelper(writeJdbcHelper);
+        }
+
+        @Test
+        void shouldReturnStaffAccount_whenNoFiltersProvided() {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withUsername("test_user")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .build();
+            testJdbcHelper.insertStaffAccount(staffAccount);
+
+            // When
+            List<StaffAccountSummaryReadModel> results = sut.findAll(null, null, null, null, null);
+
+            // Then
+            assertThat(results).anyMatch(s -> s.id().equals(staffAccount.getId().getValue()));
+        }
+
+        @Test
+        void shouldReturnActiveStaffAccount_whenStatusFilterIsActive() {
+            // Given
+            StaffAccount activeStaffAccount = new StaffAccountFixture()
+                    .withUsername("active_user")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .build();
+            testJdbcHelper.insertStaffAccount(activeStaffAccount);
+
+            // When
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, null, null, null, null);
+
+            // Then
+            assertThat(results).anyMatch(s -> s.id().equals(activeStaffAccount.getId().getValue()));
+        }
+
+        @Test
+        void shouldReturnDisabledStaffAccount_whenStatusFilterIsDisabled() {
+            // Given
+            StaffAccount disabledStaffAccount = new StaffAccountFixture()
+                    .withUsername("disabled_user")
+                    .withStatus(StaffAccountStatus.DISABLED)
+                    .withCreatedBy(adminId)
+                    .withDisabledBy(adminId)
+                    .build();
+            testJdbcHelper.insertStaffAccount(disabledStaffAccount);
+
+            // When
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.DISABLED, null, null, null, null);
+
+            // Then
+            assertThat(results).anyMatch(s -> s.id().equals(disabledStaffAccount.getId().getValue()));
+        }
+
+        @Test
+        void shouldReturnStaffAccountEnabledBySpecificUser_whenEnabledByFilterProvided() {
+            // Given
+            StaffAccountId enablerAccountId = StaffAccountId.generate();
+            StaffAccount enablerAccount = new StaffAccountFixture()
+                    .withId(enablerAccountId.getValue().toString())
+                    .withUsername("enabler")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .build();
+            StaffAccount enabledStaffAccount = new StaffAccountFixture()
+                    .withUsername("enabled_user")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .withEnabledBy(enablerAccountId.getValue().toString())
+                    .build();
+            testJdbcHelper.insertStaffAccount(enablerAccount);
+            testJdbcHelper.insertStaffAccount(enabledStaffAccount);
+
+            // When
+            List<StaffAccountSummaryReadModel> results = sut.findAll(null, enablerAccountId, null, null, null);
+
+            // Then
+            assertThat(results).anyMatch(s -> s.id().equals(enabledStaffAccount.getId().getValue()));
+        }
+
+        @Test
+        void shouldReturnStaffAccountDisabledBySpecificUser_whenDisabledByFilterProvided() {
+            // Given
+            StaffAccountId disablerAccountId = StaffAccountId.generate();
+            StaffAccount disablerAccount = new StaffAccountFixture()
+                    .withId(disablerAccountId.getValue().toString())
+                    .withUsername("disabler")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .build();
+            StaffAccount disabledStaffAccount = new StaffAccountFixture()
+                    .withUsername("disabled_user")
+                    .withStatus(StaffAccountStatus.DISABLED)
+                    .withCreatedBy(adminId)
+                    .withDisabledBy(disablerAccountId.getValue().toString())
+                    .build();
+            testJdbcHelper.insertStaffAccount(disablerAccount);
+            testJdbcHelper.insertStaffAccount(disabledStaffAccount);
+
+            // When
+            List<StaffAccountSummaryReadModel> results = sut.findAll(null, null, disablerAccountId, null, null);
+
+            // Then
+            assertThat(results).anyMatch(s -> s.id().equals(disabledStaffAccount.getId().getValue()));
+        }
+
+        @Test
+        void shouldReturnStaffAccountCreatedBeforeSpecificTime_whenCreatedBeforeFilterProvided() {
+            // Given
+            Instant beforeTime = Instant.parse("2040-06-15T12:00:00Z");
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withUsername("test_user")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .build();
+            testJdbcHelper.insertStaffAccount(staffAccount);
+
+            // When
+            List<StaffAccountSummaryReadModel> results = sut.findAll(null, null, null, beforeTime, null);
+
+            // Then
+            assertThat(results).anyMatch(s -> s.id().equals(staffAccount.getId().getValue()));
+        }
+
+        @Test
+        void shouldReturnStaffAccountCreatedAfterSpecificTime_whenCreatedAfterFilterProvided() {
+            // Given
+            Instant afterTime = Instant.parse("2024-11-10T12:00:00Z");
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withUsername("test_user")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .build();
+            testJdbcHelper.insertStaffAccount(staffAccount);
+
+            // When
+            List<StaffAccountSummaryReadModel> results = sut.findAll(null, null, null, null, afterTime);
+
+            // Then
+            assertThat(results).anyMatch(s -> s.id().equals(staffAccount.getId().getValue()));
+        }
+
+        @Test
+        void shouldReturnActiveStaffAccountEnabledBySpecificUser_whenStatusAndEnabledByFiltersProvided() {
+            // Given
+            StaffAccountId enablerAccountId = StaffAccountId.generate();
+            StaffAccount enablerAccount = new StaffAccountFixture()
+                    .withId(enablerAccountId.getValue().toString())
+                    .withUsername("enabler")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .build();
+            StaffAccount enabledActiveStaffAccount = new StaffAccountFixture()
+                    .withUsername("enabled_active_user")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .withEnabledBy(enablerAccountId.getValue().toString())
+                    .build();
+            testJdbcHelper.insertStaffAccount(enablerAccount);
+            testJdbcHelper.insertStaffAccount(enabledActiveStaffAccount);
+
+            // When
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, enablerAccountId, null, null, null);
+
+            // Then
+            assertThat(results).anyMatch(s -> s.id().equals(enabledActiveStaffAccount.getId().getValue()));
+        }
+
+        @Test
+        void shouldReturnDisabledStaffAccountDisabledBySpecificUser_whenStatusAndDisabledByFiltersProvided() {
+            // Given
+            StaffAccountId disablerAccountId = StaffAccountId.generate();
+            StaffAccount disablerAccount = new StaffAccountFixture()
+                    .withId(disablerAccountId.getValue().toString())
+                    .withUsername("disabler")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .build();
+            StaffAccount disabledStaffAccount = new StaffAccountFixture()
+                    .withUsername("disabled_user")
+                    .withStatus(StaffAccountStatus.DISABLED)
+                    .withCreatedBy(adminId)
+                    .withDisabledBy(disablerAccountId.getValue().toString())
+                    .build();
+            testJdbcHelper.insertStaffAccount(disablerAccount);
+            testJdbcHelper.insertStaffAccount(disabledStaffAccount);
+
+            // When
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.DISABLED, null, disablerAccountId, null, null);
+
+            // Then
+            assertThat(results).anyMatch(s -> s.id().equals(disabledStaffAccount.getId().getValue()));
+        }
+
+        @Test
+        void shouldReturnActiveStaffAccountCreatedBeforeSpecificTime_whenStatusAndCreatedBeforeFiltersProvided() {
+            // Given
+            Instant beforeTime = Instant.parse("2040-06-15T12:00:00Z");
+            StaffAccount activeStaffAccount = new StaffAccountFixture()
+                    .withUsername("active_user")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .build();
+            testJdbcHelper.insertStaffAccount(activeStaffAccount);
+
+            // When
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, null, null, beforeTime, null);
+
+            // Then
+            assertThat(results).anyMatch(s -> s.id().equals(activeStaffAccount.getId().getValue()));
+        }
+
+        @Test
+        void shouldReturnActiveStaffAccountCreatedAfterSpecificTime_whenStatusAndCreatedAfterFiltersProvided() {
+            // Given
+            Instant afterTime = Instant.parse("2024-06-10T12:00:00Z");
+            StaffAccount activeStaffAccount = new StaffAccountFixture()
+                    .withUsername("active_user")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .build();
+            testJdbcHelper.insertStaffAccount(activeStaffAccount);
+
+            // When
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, null, null, null, afterTime);
+
+            // Then
+            assertThat(results).anyMatch(s -> s.id().equals(activeStaffAccount.getId().getValue()));
+        }
+
+        @Test
+        void shouldReturnStaffAccountEnabledBySpecificUserAndCreatedBeforeSpecificTime_whenEnabledByAndCreatedBeforeFiltersProvided() {
+            // Given
+            Instant beforeTime = Instant.parse("2040-06-15T12:00:00Z");
+            StaffAccountId enablerAccountId = StaffAccountId.generate();
+            StaffAccount enablerAccount = new StaffAccountFixture()
+                    .withId(enablerAccountId.getValue().toString())
+                    .withUsername("enabler")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .build();
+            StaffAccount enabledStaffAccount = new StaffAccountFixture()
+                    .withUsername("enabled_user")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .withEnabledBy(enablerAccountId.getValue().toString())
+                    .build();
+            testJdbcHelper.insertStaffAccount(enablerAccount);
+            testJdbcHelper.insertStaffAccount(enabledStaffAccount);
+
+            // When
+            List<StaffAccountSummaryReadModel> results = sut.findAll(null, enablerAccountId, null, beforeTime, null);
+
+            // Then
+            assertThat(results).anyMatch(s -> s.id().equals(enabledStaffAccount.getId().getValue()));
+        }
+
+        @Test
+        void shouldReturnStaffAccountDisabledBySpecificUserAndCreatedAfterSpecificTime_whenDisabledByAndCreatedAfterFiltersProvided() {
+            // Given
+            Instant afterTime = Instant.parse("2024-06-10T12:00:00Z");
+            StaffAccountId disablerAccountId = StaffAccountId.generate();
+            StaffAccount disablerAccount = new StaffAccountFixture()
+                    .withId(disablerAccountId.getValue().toString())
+                    .withUsername("disabler")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .build();
+            StaffAccount disabledStaffAccount = new StaffAccountFixture()
+                    .withUsername("disabled_user")
+                    .withStatus(StaffAccountStatus.DISABLED)
+                    .withCreatedBy(adminId)
+                    .withDisabledBy(disablerAccountId.getValue().toString())
+                    .build();
+            testJdbcHelper.insertStaffAccount(disablerAccount);
+            testJdbcHelper.insertStaffAccount(disabledStaffAccount);
+
+            // When
+            List<StaffAccountSummaryReadModel> results = sut.findAll(null, null, disablerAccountId, null, afterTime);
+
+            // Then
+            assertThat(results).anyMatch(s -> s.id().equals(disabledStaffAccount.getId().getValue()));
+        }
+
+        @Test
+        void shouldReturnStaffAccountInDateRange_whenCreatedBeforeAndCreatedAfterFiltersProvided() {
+            // Given
+            Instant afterTime = Instant.parse("2024-06-01T12:00:00Z");
+            Instant beforeTime = Instant.parse("2040-06-30T12:00:00Z");
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withUsername("test_user")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .build();
+            testJdbcHelper.insertStaffAccount(staffAccount);
+
+            // When
+            List<StaffAccountSummaryReadModel> results = sut.findAll(null, null, null, beforeTime, afterTime);
+
+            // Then
+            assertThat(results).anyMatch(s -> s.id().equals(staffAccount.getId().getValue()));
+        }
+
+        @Test
+        void shouldReturnActiveStaffAccountEnabledBySpecificUserAndCreatedBeforeSpecificTime_whenStatusEnabledByAndCreatedBeforeFiltersProvided() {
+            // Given
+            Instant beforeTime = Instant.parse("2040-06-15T12:00:00Z");
+            StaffAccountId enablerAccountId = StaffAccountId.generate();
+            StaffAccount enablerAccount = new StaffAccountFixture()
+                    .withId(enablerAccountId.getValue().toString())
+                    .withUsername("enabler")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .build();
+            StaffAccount enabledActiveStaffAccount = new StaffAccountFixture()
+                    .withUsername("enabled_active_user")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .withEnabledBy(enablerAccountId.getValue().toString())
+                    .build();
+            testJdbcHelper.insertStaffAccount(enablerAccount);
+            testJdbcHelper.insertStaffAccount(enabledActiveStaffAccount);
+
+            // When
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, enablerAccountId, null, beforeTime, null);
+
+            // Then
+            assertThat(results).anyMatch(s -> s.id().equals(enabledActiveStaffAccount.getId().getValue()));
+        }
+
+        @Test
+        void shouldReturnActiveStaffAccountInDateRange_whenStatusAndDateRangeFiltersProvided() {
+            // Given
+            Instant afterTime = Instant.parse("2024-06-01T12:00:00Z");
+            Instant beforeTime = Instant.parse("2040-06-30T12:00:00Z");
+            StaffAccount activeStaffAccount = new StaffAccountFixture()
+                    .withUsername("active_user")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .build();
+            testJdbcHelper.insertStaffAccount(activeStaffAccount);
+
+            // When
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, null, null, beforeTime, afterTime);
+
+            // Then
+            assertThat(results).anyMatch(s -> s.id().equals(activeStaffAccount.getId().getValue()));
+        }
+
+        @Test
+        void shouldReturnDisabledStaffAccountDisabledBySpecificUserInDateRange_whenStatusDisabledByAndDateRangeFiltersProvided() {
+            // Given
+            Instant afterTime = Instant.parse("2024-06-01T12:00:00Z");
+            Instant beforeTime = Instant.parse("2040-06-30T12:00:00Z");
+            StaffAccountId disablerAccountId = StaffAccountId.generate();
+            StaffAccount disablerAccount = new StaffAccountFixture()
+                    .withId(disablerAccountId.getValue().toString())
+                    .withUsername("disabler")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .build();
+            StaffAccount disabledStaffAccount = new StaffAccountFixture()
+                    .withUsername("disabled_user")
+                    .withStatus(StaffAccountStatus.DISABLED)
+                    .withCreatedBy(adminId)
+                    .withDisabledBy(disablerAccountId.getValue().toString())
+                    .build();
+            testJdbcHelper.insertStaffAccount(disablerAccount);
+            testJdbcHelper.insertStaffAccount(disabledStaffAccount);
+
+            // When
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.DISABLED, null, disablerAccountId, beforeTime, afterTime);
+
+            // Then
+            assertThat(results).anyMatch(s -> s.id().equals(disabledStaffAccount.getId().getValue()));
+        }
+
+        @Test
+        void shouldReturnActiveStaffAccountEnabledBySpecificUserInDateRange_whenAllFiltersProvided() {
+            // Given
+            Instant afterTime = Instant.parse("2024-06-01T12:00:00Z");
+            Instant beforeTime = Instant.parse("2040-06-30T12:00:00Z");
+            StaffAccountId enablerAccountId = StaffAccountId.generate();
+            StaffAccount enablerAccount = new StaffAccountFixture()
+                    .withId(enablerAccountId.getValue().toString())
+                    .withUsername("enabler")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .build();
+            StaffAccount enabledActiveStaffAccount = new StaffAccountFixture()
+                    .withUsername("enabled_active_user")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .withEnabledBy(enablerAccountId.getValue().toString())
+                    .build();
+            testJdbcHelper.insertStaffAccount(enablerAccount);
+            testJdbcHelper.insertStaffAccount(enabledActiveStaffAccount);
+
+            // When
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, enablerAccountId, null, beforeTime, afterTime);
+
+            // Then
+            assertThat(results).anyMatch(s -> s.id().equals(enabledActiveStaffAccount.getId().getValue()));
         }
     }
 }
