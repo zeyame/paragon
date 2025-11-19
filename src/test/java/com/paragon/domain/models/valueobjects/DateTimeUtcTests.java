@@ -91,4 +91,68 @@ public class DateTimeUtcTests {
             assertThat(dateTimeUtc.getValue()).isNotNull();
         }
     }
+
+    @Nested
+    class IsBefore {
+        @Test
+        void shouldReturnTrue_whenValueIsBeforeOther() {
+            DateTimeUtc earlier = DateTimeUtc.from("2024-01-01T00:00:00Z");
+            DateTimeUtc later = DateTimeUtc.from("2024-01-02T00:00:00Z");
+
+            assertThat(earlier.isBefore(later)).isTrue();
+        }
+
+        @Test
+        void shouldReturnFalse_whenValueIsNotBeforeOther() {
+            DateTimeUtc earlier = DateTimeUtc.from("2024-01-01T00:00:00Z");
+            DateTimeUtc later = DateTimeUtc.from("2024-01-02T00:00:00Z");
+
+            assertThat(later.isBefore(earlier)).isFalse();
+        }
+
+        @Test
+        void shouldThrowException_whenOtherIsNull() {
+            DateTimeUtc dateTimeUtc = DateTimeUtc.from("2024-01-01T00:00:00Z");
+
+            assertThatExceptionOfType(DateTimeUtcException.class)
+                    .isThrownBy(() -> dateTimeUtc.isBefore(null))
+                    .extracting("message", "domainErrorCode")
+                    .containsExactly(
+                            DateTimeUtcExceptionInfo.missingValue().getMessage(),
+                            DateTimeUtcExceptionInfo.missingValue().getDomainErrorCode()
+                    );
+        }
+    }
+
+    @Nested
+    class IsAfter {
+        @Test
+        void shouldReturnTrue_whenValueIsAfterOther() {
+            DateTimeUtc earlier = DateTimeUtc.from("2024-01-01T00:00:00Z");
+            DateTimeUtc later = DateTimeUtc.from("2024-01-02T00:00:00Z");
+
+            assertThat(later.isAfter(earlier)).isTrue();
+        }
+
+        @Test
+        void shouldReturnFalse_whenValueIsNotAfterOther() {
+            DateTimeUtc earlier = DateTimeUtc.from("2024-01-01T00:00:00Z");
+            DateTimeUtc later = DateTimeUtc.from("2024-01-02T00:00:00Z");
+
+            assertThat(earlier.isAfter(later)).isFalse();
+        }
+
+        @Test
+        void shouldThrowException_whenOtherIsNull() {
+            DateTimeUtc dateTimeUtc = DateTimeUtc.from("2024-01-01T00:00:00Z");
+
+            assertThatExceptionOfType(DateTimeUtcException.class)
+                    .isThrownBy(() -> dateTimeUtc.isAfter(null))
+                    .extracting("message", "domainErrorCode")
+                    .containsExactly(
+                            DateTimeUtcExceptionInfo.missingValue().getMessage(),
+                            DateTimeUtcExceptionInfo.missingValue().getDomainErrorCode()
+                    );
+        }
+    }
 }

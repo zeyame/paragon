@@ -50,8 +50,24 @@ public class DateTimeUtc extends ValueObject {
         return value;
     }
 
+    public boolean isAfter(DateTimeUtc other) {
+        assertOtherValuePresent(other);
+        return value.isAfter(other.value);
+    }
+
+    public boolean isBefore(DateTimeUtc other) {
+        assertOtherValuePresent(other);
+        return value.isBefore(other.value);
+    }
+
     @Override
     protected List<Object> getEqualityComponents() {
         return List.of(value);
+    }
+
+    private void assertOtherValuePresent(DateTimeUtc other) {
+        if (other == null) {
+            throw new DateTimeUtcException(DateTimeUtcExceptionInfo.missingValue());
+        }
     }
 }
