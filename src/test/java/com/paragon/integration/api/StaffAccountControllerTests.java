@@ -774,7 +774,7 @@ public class StaffAccountControllerTests {
     class GetAll extends IntegrationTestBase {
         private final TestJdbcHelper jdbcHelper;
         private final List<PermissionCode> adminPermissions;
-        
+
         @Autowired
         public GetAll(WriteJdbcHelper writeJdbcHelper) {
             jdbcHelper = new TestJdbcHelper(writeJdbcHelper);
@@ -824,6 +824,48 @@ public class StaffAccountControllerTests {
         }
 
         @Test
+        void shouldReturnFilteredStaffAccounts_whenQueryParametersProvided() throws Exception {
+            // Given
+            StaffAccount activeStaffAccount = new StaffAccountFixture()
+                    .withUsername("active_user")
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .withCreatedBy(adminId)
+                    .build();
+            StaffAccount disabledStaffAccount = new StaffAccountFixture()
+                    .withUsername("disabled_user")
+                    .withStatus(StaffAccountStatus.DISABLED)
+                    .withCreatedBy(adminId)
+                    .withDisabledBy(adminId)
+                    .build();
+            jdbcHelper.insertStaffAccount(activeStaffAccount);
+            jdbcHelper.insertStaffAccount(disabledStaffAccount);
+
+            // When
+            MvcResult result = sendAsyncRequestWithParams(
+                    adminId,
+                    adminPermissions,
+                    StaffAccountStatus.ACTIVE.toString(),
+                    null,
+                    null,
+                    null,
+                    null
+            );
+
+            // Then
+            MockHttpServletResponse response = result.getResponse();
+            assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+
+            String responseBody = response.getContentAsString();
+            ResponseDto<GetAllStaffAccountsResponseDto> responseDto = objectMapper.readValue(responseBody,
+                    objectMapper.getTypeFactory().constructParametricType(ResponseDto.class, GetAllStaffAccountsResponseDto.class));
+
+            GetAllStaffAccountsResponseDto resultBody = responseDto.result();
+            assertThat(resultBody).isNotNull();
+            assertThat(resultBody.staffAccountSummaryResponseDtos()).anyMatch(s ->
+                    s.id().equals(activeStaffAccount.getId().getValue()));
+        }
+
+        @Test
         void shouldReturnForbiddenWhenRequestingStaffAccountLacksPermission() throws Exception {
             // Given
             StaffAccount staffAccountLackingPermission = new StaffAccountFixture()
@@ -856,6 +898,76 @@ public class StaffAccountControllerTests {
             assertThat(errorDto.code()).isEqualTo(expected.getErrorCode());
         }
 
+        @Test
+        void shouldReturnBadRequest_whenMutuallyExclusiveFiltersProvided() throws Exception {
+            // Given
+            String enabledById = UUID.randomUUID().toString();
+            String disabledById = UUID.randomUUID().toString();
+
+            // When
+            MvcResult result = sendAsyncRequestWithParams(
+                    adminId,
+                    adminPermissions,
+                    null,
+                    enabledById,
+                    disabledById,
+                    null,
+                    null
+            );
+
+            // Then
+            MockHttpServletResponse response = result.getResponse();
+            assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+
+            String responseBody = response.getContentAsString();
+            ResponseDto<GetAllStaffAccountsResponseDto> responseDto = objectMapper.readValue(responseBody,
+                    objectMapper.getTypeFactory().constructParametricType(ResponseDto.class, GetAllStaffAccountsResponseDto.class));
+
+            assertThat(responseDto.result()).isNull();
+
+            ErrorDto errorDto = responseDto.errorDto();
+            assertThat(errorDto).isNotNull();
+
+            AppExceptionInfo expectedInfo = AppExceptionInfo.mutuallyExclusiveStaffAccountFilters();
+            assertThat(errorDto.message()).isEqualTo(expectedInfo.getMessage());
+            assertThat(errorDto.code()).isEqualTo(expectedInfo.getAppErrorCode());
+        }
+
+        @Test
+        void shouldReturnBadRequest_whenInvalidDateRangeProvided() throws Exception {
+            // Given
+            String createdBefore = "2024-01-01T00:00:00Z";
+            String createdAfter = "2024-12-31T23:59:59Z";
+
+            // When
+            MvcResult result = sendAsyncRequestWithParams(
+                    adminId,
+                    adminPermissions,
+                    null,
+                    null,
+                    null,
+                    createdBefore,
+                    createdAfter
+            );
+
+            // Then
+            MockHttpServletResponse response = result.getResponse();
+            assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+
+            String responseBody = response.getContentAsString();
+            ResponseDto<GetAllStaffAccountsResponseDto> responseDto = objectMapper.readValue(responseBody,
+                    objectMapper.getTypeFactory().constructParametricType(ResponseDto.class, GetAllStaffAccountsResponseDto.class));
+
+            assertThat(responseDto.result()).isNull();
+
+            ErrorDto errorDto = responseDto.errorDto();
+            assertThat(errorDto).isNotNull();
+
+            AppExceptionInfo expectedInfo = AppExceptionInfo.invalidStaffAccountCreatedDateRange(createdBefore, createdAfter);
+            assertThat(errorDto.message()).isEqualTo(expectedInfo.getMessage());
+            assertThat(errorDto.code()).isEqualTo(expectedInfo.getAppErrorCode());
+        }
+
         private MvcResult sendRequest(String actorId, List<PermissionCode> permissions) throws Exception {
             return mockMvc.perform(
                     get("/v1/staff-accounts")
@@ -869,6 +981,38 @@ public class StaffAccountControllerTests {
                             .header("Authorization", "Bearer " + TestJwtHelper.generateToken(actorId, permissions))
             ).andReturn();
 
+            return mockMvc.perform(asyncDispatch(mvcResult)).andReturn();
+        }
+
+        private MvcResult sendAsyncRequestWithParams(
+                String actorId,
+                List<PermissionCode> permissions,
+                String status,
+                String enabledBy,
+                String disabledBy,
+                String createdBefore,
+                String createdAfter
+        ) throws Exception {
+            var requestBuilder = get("/v1/staff-accounts")
+                    .header("Authorization", "Bearer " + TestJwtHelper.generateToken(actorId, permissions));
+
+            if (status != null) {
+                requestBuilder.param("status", status);
+            }
+            if (enabledBy != null) {
+                requestBuilder.param("enabledBy", enabledBy);
+            }
+            if (disabledBy != null) {
+                requestBuilder.param("disabledBy", disabledBy);
+            }
+            if (createdBefore != null) {
+                requestBuilder.param("createdBefore", createdBefore);
+            }
+            if (createdAfter != null) {
+                requestBuilder.param("createdAfter", createdAfter);
+            }
+
+            MvcResult mvcResult = mockMvc.perform(requestBuilder).andReturn();
             return mockMvc.perform(asyncDispatch(mvcResult)).andReturn();
         }
     }
