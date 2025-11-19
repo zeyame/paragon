@@ -2,6 +2,7 @@ package com.paragon.infrastructure.persistence.repos;
 
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo;
 import com.paragon.domain.enums.StaffAccountStatus;
+import com.paragon.domain.models.valueobjects.DateTimeUtc;
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.domain.models.valueobjects.Username;
@@ -13,7 +14,6 @@ import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
 import org.springframework.stereotype.Repository;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,7 +50,11 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
     }
 
     @Override
-    public List<StaffAccountSummaryReadModel> findAll(StaffAccountStatus status, Username enabledBy, Username disabledBy, Instant createdBefore, Instant createdAfter) {
+    public List<StaffAccountSummaryReadModel> findAll(StaffAccountStatus status,
+                                                      Username enabledBy,
+                                                      Username disabledBy,
+                                                      DateTimeUtc createdBefore,
+                                                      DateTimeUtc createdAfter) {
         StringBuilder sql = new StringBuilder("""
                 SELECT id, username, status, order_access_duration, modmail_transcript_access_duration, created_at_utc
                 FROM staff_accounts
@@ -76,12 +80,12 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
 
         if (createdBefore != null) {
             sql.append(" AND created_at_utc < :createdBefore");
-            params.add("createdBefore", createdBefore);
+            params.add("createdBefore", createdBefore.getValue());
         }
 
         if (createdAfter != null) {
             sql.append(" AND created_at_utc > :createdAfter");
-            params.add("createdAfter", createdAfter);
+            params.add("createdAfter", createdAfter.getValue());
         }
 
         sql.append(" ORDER BY created_at_utc DESC");

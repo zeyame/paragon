@@ -1,12 +1,12 @@
 package com.paragon.application.queries.repositoryinterfaces;
 
 import com.paragon.domain.enums.StaffAccountStatus;
+import com.paragon.domain.models.valueobjects.DateTimeUtc;
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,7 +16,7 @@ public interface StaffAccountReadRepo {
     List<StaffAccountSummaryReadModel> findAll(StaffAccountStatus status,
                                                Username enabledBy,
                                                Username disabledBy,
-                                               Instant createdBefore,
-                                               Instant createdAfter);
+                                               DateTimeUtc createdBefore,
+                                               DateTimeUtc createdAfter);
     Optional<StaffAccountSummaryReadModel> findByUsername(Username username);
 }

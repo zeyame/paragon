@@ -8,6 +8,7 @@ import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQu
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryResponse;
 import com.paragon.application.queries.getallstaffaccounts.StaffAccountSummary;
 import com.paragon.domain.enums.StaffAccountStatus;
+import com.paragon.domain.models.valueobjects.DateTimeUtc;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo;
 import com.paragon.domain.models.valueobjects.Username;
@@ -152,8 +153,8 @@ public class GetAllStaffAccountsQueryHandlerTests {
             StaffAccountStatus expectedStatus,
             Username expectedEnabledByUsername,
             Username expectedDisabledByUsername,
-            Instant expectedCreatedBefore,
-            Instant expectedCreatedAfter
+            DateTimeUtc expectedCreatedBefore,
+            DateTimeUtc expectedCreatedAfter
     ) {
         // Given
         GetAllStaffAccountsQuery query = new GetAllStaffAccountsQuery(
@@ -170,8 +171,8 @@ public class GetAllStaffAccountsQueryHandlerTests {
         ArgumentCaptor<StaffAccountStatus> statusCaptor = ArgumentCaptor.forClass(StaffAccountStatus.class);
         ArgumentCaptor<Username> enabledByCaptor = ArgumentCaptor.forClass(Username.class);
         ArgumentCaptor<Username> disabledByCaptor = ArgumentCaptor.forClass(Username.class);
-        ArgumentCaptor<Instant> createdBeforeCaptor = ArgumentCaptor.forClass(Instant.class);
-        ArgumentCaptor<Instant> createdAfterCaptor = ArgumentCaptor.forClass(Instant.class);
+        ArgumentCaptor<DateTimeUtc> createdBeforeCaptor = ArgumentCaptor.forClass(DateTimeUtc.class);
+        ArgumentCaptor<DateTimeUtc> createdAfterCaptor = ArgumentCaptor.forClass(DateTimeUtc.class);
 
         // When
         sut.handle(query);
@@ -258,8 +259,8 @@ public class GetAllStaffAccountsQueryHandlerTests {
     private static Stream<Arguments> provideValidFilterCombinations() {
         Username enabledByUsername = Username.of("admin_user");
         Username disabledByUsername = Username.of("admin_user");
-        Instant beforeInstant = Instant.parse("2024-12-31T23:59:59Z");
-        Instant afterInstant = Instant.parse("2024-01-01T00:00:00Z");
+        DateTimeUtc beforeDateTime = DateTimeUtc.from("2024-12-31T23:59:59Z");
+        DateTimeUtc afterDateTime = DateTimeUtc.from("2024-01-01T00:00:00Z");
 
         return Stream.of(
                 // No filters
@@ -269,14 +270,14 @@ public class GetAllStaffAccountsQueryHandlerTests {
                 Arguments.of("ACTIVE", null, null, null, null, StaffAccountStatus.ACTIVE, null, null, null, null),
                 Arguments.of(null, "admin_user", null, null, null, null, enabledByUsername, null, null, null),
                 Arguments.of(null, null, "admin_user", null, null, null, null, disabledByUsername, null, null),
-                Arguments.of(null, null, null, "2024-12-31T23:59:59Z", null, null, null, null, beforeInstant, null),
-                Arguments.of(null, null, null, null, "2024-01-01T00:00:00Z", null, null, null, null, afterInstant),
+                Arguments.of(null, null, null, "2024-12-31T23:59:59Z", null, null, null, null, beforeDateTime, null),
+                Arguments.of(null, null, null, null, "2024-01-01T00:00:00Z", null, null, null, null, afterDateTime),
 
                 // Representative multi-filter combinations
                 Arguments.of("ACTIVE", "admin_user", null, null, null, StaffAccountStatus.ACTIVE, enabledByUsername, null, null, null),
-                Arguments.of(null, null, null, "2024-12-31T23:59:59Z", "2024-01-01T00:00:00Z", null, null, null, beforeInstant, afterInstant),
-                Arguments.of("ACTIVE", null, null, "2024-12-31T23:59:59Z", "2024-01-01T00:00:00Z", StaffAccountStatus.ACTIVE, null, null, beforeInstant, afterInstant),
-                Arguments.of("DISABLED", null, "admin_user", "2024-12-31T23:59:59Z", "2024-01-01T00:00:00Z", StaffAccountStatus.DISABLED, null, disabledByUsername, beforeInstant, afterInstant)
+                Arguments.of(null, null, null, "2024-12-31T23:59:59Z", "2024-01-01T00:00:00Z", null, null, null, beforeDateTime, afterDateTime),
+                Arguments.of("ACTIVE", null, null, "2024-12-31T23:59:59Z", "2024-01-01T00:00:00Z", StaffAccountStatus.ACTIVE, null, null, beforeDateTime, afterDateTime),
+                Arguments.of("DISABLED", null, "admin_user", "2024-12-31T23:59:59Z", "2024-01-01T00:00:00Z", StaffAccountStatus.DISABLED, null, disabledByUsername, beforeDateTime, afterDateTime)
         );
     }
 }

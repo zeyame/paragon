@@ -2,6 +2,7 @@ package com.paragon.infrastructure.persistence.repos;
 
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo;
 import com.paragon.domain.enums.StaffAccountStatus;
+import com.paragon.domain.models.valueobjects.DateTimeUtc;
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.domain.models.valueobjects.Username;
@@ -285,8 +286,8 @@ public class StaffAccountReadRepoTests {
                 StaffAccountStatus status,
                 Username enabledBy,
                 Username disabledBy,
-                Instant createdBefore,
-                Instant createdAfter
+                DateTimeUtc createdBefore,
+                DateTimeUtc createdAfter
         ) {
             // Given
             when(readJdbcHelperMock.query(any(SqlStatement.class), eq(StaffAccountSummaryReadModel.class)))
@@ -328,12 +329,12 @@ public class StaffAccountReadRepoTests {
 
             if (createdBefore != null) {
                 assertThat(actualSql).contains("AND created_at_utc < :createdBefore");
-                assertThat(params.get("createdBefore")).isEqualTo(Timestamp.from(createdBefore));
+                assertThat(params.get("createdBefore")).isEqualTo(Timestamp.from(createdBefore.getValue()));
             }
 
             if (createdAfter != null) {
                 assertThat(actualSql).contains("AND created_at_utc > :createdAfter");
-                assertThat(params.get("createdAfter")).isEqualTo(Timestamp.from(createdAfter));
+                assertThat(params.get("createdAfter")).isEqualTo(Timestamp.from(createdAfter.getValue()));
             }
         }
 
@@ -370,7 +371,7 @@ public class StaffAccountReadRepoTests {
 
             // Then
             assertThat(result).hasSize(1);
-            assertThat(result.get(0)).isEqualTo(summary);
+            assertThat(result.getFirst()).isEqualTo(summary);
         }
 
         @Test
@@ -387,8 +388,8 @@ public class StaffAccountReadRepoTests {
         private static Stream<Arguments> provideFilterCombinations() {
             Username enabledByUsername = Username.of("enabler_user");
             Username disabledByUsername = Username.of("disabler_user");
-            Instant beforeInstant = Instant.parse("2024-12-31T23:59:59Z");
-            Instant afterInstant = Instant.parse("2024-01-01T00:00:00Z");
+            DateTimeUtc beforeInstant = DateTimeUtc.from("2024-12-31T23:59:59Z");
+            DateTimeUtc afterInstant = DateTimeUtc.from("2024-01-01T00:00:00Z");
 
             return Stream.of(
                     // No filters

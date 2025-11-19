@@ -3,6 +3,7 @@ package com.paragon.integration.persistence;
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo;
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.models.aggregates.StaffAccount;
+import com.paragon.domain.models.valueobjects.DateTimeUtc;
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.domain.models.valueobjects.Username;
@@ -278,6 +279,7 @@ public class StaffAccountReadRepoTests {
         void shouldReturnStaffAccountCreatedBeforeSpecificTime_whenCreatedBeforeFilterProvided() {
             // Given
             Instant beforeTime = Instant.parse("2040-06-15T12:00:00Z");
+            DateTimeUtc beforeDateTime = DateTimeUtc.of(beforeTime);
             StaffAccount staffAccount = new StaffAccountFixture()
                     .withUsername("test_user")
                     .withStatus(StaffAccountStatus.ACTIVE)
@@ -286,7 +288,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(staffAccount);
 
             // When
-            List<StaffAccountSummaryReadModel> results = sut.findAll(null, null, null, beforeTime, null);
+            List<StaffAccountSummaryReadModel> results = sut.findAll(null, null, null, beforeDateTime, null);
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(staffAccount.getId().getValue()));
@@ -296,6 +298,7 @@ public class StaffAccountReadRepoTests {
         void shouldReturnStaffAccountCreatedAfterSpecificTime_whenCreatedAfterFilterProvided() {
             // Given
             Instant afterTime = Instant.parse("2024-11-10T12:00:00Z");
+            DateTimeUtc afterDateTime = DateTimeUtc.of(afterTime);
             StaffAccount staffAccount = new StaffAccountFixture()
                     .withUsername("test_user")
                     .withStatus(StaffAccountStatus.ACTIVE)
@@ -304,7 +307,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(staffAccount);
 
             // When
-            List<StaffAccountSummaryReadModel> results = sut.findAll(null, null, null, null, afterTime);
+            List<StaffAccountSummaryReadModel> results = sut.findAll(null, null, null, null, afterDateTime);
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(staffAccount.getId().getValue()));
@@ -366,6 +369,7 @@ public class StaffAccountReadRepoTests {
         void shouldReturnActiveStaffAccountCreatedBeforeSpecificTime_whenStatusAndCreatedBeforeFiltersProvided() {
             // Given
             Instant beforeTime = Instant.parse("2040-06-15T12:00:00Z");
+            DateTimeUtc beforeDateTime = DateTimeUtc.of(beforeTime);
             StaffAccount activeStaffAccount = new StaffAccountFixture()
                     .withUsername("active_user")
                     .withStatus(StaffAccountStatus.ACTIVE)
@@ -374,7 +378,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(activeStaffAccount);
 
             // When
-            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, null, null, beforeTime, null);
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, null, null, beforeDateTime, null);
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(activeStaffAccount.getId().getValue()));
@@ -384,6 +388,7 @@ public class StaffAccountReadRepoTests {
         void shouldReturnActiveStaffAccountCreatedAfterSpecificTime_whenStatusAndCreatedAfterFiltersProvided() {
             // Given
             Instant afterTime = Instant.parse("2024-06-10T12:00:00Z");
+            DateTimeUtc afterDateTime = DateTimeUtc.of(afterTime);
             StaffAccount activeStaffAccount = new StaffAccountFixture()
                     .withUsername("active_user")
                     .withStatus(StaffAccountStatus.ACTIVE)
@@ -392,7 +397,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(activeStaffAccount);
 
             // When
-            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, null, null, null, afterTime);
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, null, null, null, afterDateTime);
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(activeStaffAccount.getId().getValue()));
@@ -402,6 +407,7 @@ public class StaffAccountReadRepoTests {
         void shouldReturnStaffAccountEnabledBySpecificUserAndCreatedBeforeSpecificTime_whenEnabledByAndCreatedBeforeFiltersProvided() {
             // Given
             Instant beforeTime = Instant.parse("2040-06-15T12:00:00Z");
+            DateTimeUtc beforeDateTime = DateTimeUtc.of(beforeTime);
             StaffAccountId enablerAccountId = StaffAccountId.generate();
             StaffAccount enablerAccount = new StaffAccountFixture()
                     .withId(enablerAccountId.getValue().toString())
@@ -419,7 +425,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(enabledStaffAccount);
 
             // When
-            List<StaffAccountSummaryReadModel> results = sut.findAll(null, Username.of("enabler"), null, beforeTime, null);
+            List<StaffAccountSummaryReadModel> results = sut.findAll(null, Username.of("enabler"), null, beforeDateTime, null);
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(enabledStaffAccount.getId().getValue()));
@@ -429,6 +435,7 @@ public class StaffAccountReadRepoTests {
         void shouldReturnStaffAccountDisabledBySpecificUserAndCreatedAfterSpecificTime_whenDisabledByAndCreatedAfterFiltersProvided() {
             // Given
             Instant afterTime = Instant.parse("2024-06-10T12:00:00Z");
+            DateTimeUtc afterDateTime = DateTimeUtc.of(afterTime);
             StaffAccountId disablerAccountId = StaffAccountId.generate();
             StaffAccount disablerAccount = new StaffAccountFixture()
                     .withId(disablerAccountId.getValue().toString())
@@ -446,7 +453,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(disabledStaffAccount);
 
             // When
-            List<StaffAccountSummaryReadModel> results = sut.findAll(null, null, Username.of("disabler"), null, afterTime);
+            List<StaffAccountSummaryReadModel> results = sut.findAll(null, null, Username.of("disabler"), null, afterDateTime);
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(disabledStaffAccount.getId().getValue()));
@@ -457,6 +464,8 @@ public class StaffAccountReadRepoTests {
             // Given
             Instant afterTime = Instant.parse("2024-06-01T12:00:00Z");
             Instant beforeTime = Instant.parse("2040-06-30T12:00:00Z");
+            DateTimeUtc afterDateTime = DateTimeUtc.of(afterTime);
+            DateTimeUtc beforeDateTime = DateTimeUtc.of(beforeTime);
             StaffAccount staffAccount = new StaffAccountFixture()
                     .withUsername("test_user")
                     .withStatus(StaffAccountStatus.ACTIVE)
@@ -465,7 +474,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(staffAccount);
 
             // When
-            List<StaffAccountSummaryReadModel> results = sut.findAll(null, null, null, beforeTime, afterTime);
+            List<StaffAccountSummaryReadModel> results = sut.findAll(null, null, null, beforeDateTime, afterDateTime);
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(staffAccount.getId().getValue()));
@@ -475,6 +484,7 @@ public class StaffAccountReadRepoTests {
         void shouldReturnActiveStaffAccountEnabledBySpecificUserAndCreatedBeforeSpecificTime_whenStatusEnabledByAndCreatedBeforeFiltersProvided() {
             // Given
             Instant beforeTime = Instant.parse("2040-06-15T12:00:00Z");
+            DateTimeUtc beforeDateTime = DateTimeUtc.of(beforeTime);
             StaffAccountId enablerAccountId = StaffAccountId.generate();
             StaffAccount enablerAccount = new StaffAccountFixture()
                     .withId(enablerAccountId.getValue().toString())
@@ -492,7 +502,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(enabledActiveStaffAccount);
 
             // When
-            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, Username.of("enabler"), null, beforeTime, null);
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, Username.of("enabler"), null, beforeDateTime, null);
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(enabledActiveStaffAccount.getId().getValue()));
@@ -503,6 +513,8 @@ public class StaffAccountReadRepoTests {
             // Given
             Instant afterTime = Instant.parse("2024-06-01T12:00:00Z");
             Instant beforeTime = Instant.parse("2040-06-30T12:00:00Z");
+            DateTimeUtc afterDateTime = DateTimeUtc.of(afterTime);
+            DateTimeUtc beforeDateTime = DateTimeUtc.of(beforeTime);
             StaffAccount activeStaffAccount = new StaffAccountFixture()
                     .withUsername("active_user")
                     .withStatus(StaffAccountStatus.ACTIVE)
@@ -511,7 +523,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(activeStaffAccount);
 
             // When
-            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, null, null, beforeTime, afterTime);
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, null, null, beforeDateTime, afterDateTime);
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(activeStaffAccount.getId().getValue()));
@@ -522,6 +534,8 @@ public class StaffAccountReadRepoTests {
             // Given
             Instant afterTime = Instant.parse("2024-06-01T12:00:00Z");
             Instant beforeTime = Instant.parse("2040-06-30T12:00:00Z");
+            DateTimeUtc afterDateTime = DateTimeUtc.of(afterTime);
+            DateTimeUtc beforeDateTime = DateTimeUtc.of(beforeTime);
             StaffAccountId disablerAccountId = StaffAccountId.generate();
             StaffAccount disablerAccount = new StaffAccountFixture()
                     .withId(disablerAccountId.getValue().toString())
@@ -539,7 +553,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(disabledStaffAccount);
 
             // When
-            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.DISABLED, null, Username.of("disabler"), beforeTime, afterTime);
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.DISABLED, null, Username.of("disabler"), beforeDateTime, afterDateTime);
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(disabledStaffAccount.getId().getValue()));
@@ -550,6 +564,8 @@ public class StaffAccountReadRepoTests {
             // Given
             Instant afterTime = Instant.parse("2024-06-01T12:00:00Z");
             Instant beforeTime = Instant.parse("2040-06-30T12:00:00Z");
+            DateTimeUtc afterDateTime = DateTimeUtc.of(afterTime);
+            DateTimeUtc beforeDateTime = DateTimeUtc.of(beforeTime);
             StaffAccountId enablerAccountId = StaffAccountId.generate();
             StaffAccount enablerAccount = new StaffAccountFixture()
                     .withId(enablerAccountId.getValue().toString())
@@ -567,7 +583,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(enabledActiveStaffAccount);
 
             // When
-            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, Username.of("enabler"), null, beforeTime, afterTime);
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, Username.of("enabler"), null, beforeDateTime, afterDateTime);
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(enabledActiveStaffAccount.getId().getValue()));
