@@ -29,6 +29,7 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
             case PlaintextRefreshTokenException plaintextRefreshTokenException -> handlePlaintextRefreshTokenException(plaintextRefreshTokenException);
             case OrderAccessDurationException orderAccessDurationException -> handleOrderAccessDurationException(orderAccessDurationException);
             case ModmailTranscriptAccessDurationException modmailTranscriptAccessDurationException -> handleModmailTranscriptAccessDurationException(modmailTranscriptAccessDurationException);
+            case DateTimeUtcException dateTimeUtcException -> handleDateTimeUtcException(dateTimeUtcException);
             case FailedLoginAttemptsException failedLoginAttemptsException -> handleFailedLoginAttemptsException(failedLoginAttemptsException);
             case PermissionIdException permissionIdException -> handlePermissionIdException(permissionIdException);
             case PermissionCodeException permissionCodeException -> handlePermissionCodeException(permissionCodeException);
@@ -188,6 +189,17 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
 
         return switch (domainErrorCode) {
             case 107001 -> // must be positive - user input (admin)
+                    new AppException(exception, AppExceptionStatusCode.CLIENT_ERROR);
+
+            default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);
+        };
+    }
+
+    private AppException handleDateTimeUtcException(DateTimeUtcException exception) {
+        int domainErrorCode = exception.getDomainErrorCode();
+
+        return switch (domainErrorCode) {
+            case 115001, 115002 -> // invalid or missing date filters - user input
                     new AppException(exception, AppExceptionStatusCode.CLIENT_ERROR);
 
             default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);

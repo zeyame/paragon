@@ -181,6 +181,16 @@ public class AppExceptionHandlerTests {
                             AppExceptionStatusCode.CLIENT_ERROR
                     ),
 
+                    // DateTimeUtcException - user input (CLIENT_ERROR)
+                    arguments(
+                            new DateTimeUtcException(DateTimeUtcExceptionInfo.missingValue()),
+                            AppExceptionStatusCode.CLIENT_ERROR
+                    ),
+                    arguments(
+                            new DateTimeUtcException(DateTimeUtcExceptionInfo.invalidFormat()),
+                            AppExceptionStatusCode.CLIENT_ERROR
+                    ),
+
                     // PasswordException - internal error (SERVER_ERROR)
                     arguments(
                             new PasswordException(PasswordExceptionInfo.missingValue()),
