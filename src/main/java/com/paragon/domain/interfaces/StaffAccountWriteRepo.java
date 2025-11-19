@@ -1,4 +1,4 @@
-package com.paragon.domain.interfaces.repos;
+package com.paragon.domain.interfaces;
 
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.StaffAccountId;

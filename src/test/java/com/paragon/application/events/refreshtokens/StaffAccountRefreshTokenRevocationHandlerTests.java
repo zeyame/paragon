@@ -1,7 +1,7 @@
 package com.paragon.application.events.refreshtokens;
 
 import com.paragon.domain.events.staffaccountevents.StaffAccountLockedEvent;
-import com.paragon.domain.interfaces.repos.RefreshTokenWriteRepo;
+import com.paragon.domain.interfaces.RefreshTokenWriteRepo;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.helpers.fixtures.RefreshTokenFixture;

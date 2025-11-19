@@ -2,7 +2,7 @@ package com.paragon.application.events.audittrail;
 
 import com.paragon.domain.events.staffaccountevents.*;
 import com.paragon.domain.exceptions.DomainException;
-import com.paragon.domain.interfaces.repos.AuditTrailWriteRepo;
+import com.paragon.domain.interfaces.AuditTrailWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.entities.AuditTrailEntry;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
