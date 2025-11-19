@@ -41,7 +41,7 @@ public class GetAllStaffAccountsQueryHandler implements QueryHandler<GetAllStaff
             StaffAccountId disabledById = resolveStaffAccountId(query.disabledBy());
 
             List<StaffAccountSummaryReadModel> staffAccountSummaryReadModels = staffAccountReadRepo.findAll(
-                    query.status() != null ? StaffAccountStatus.valueOf(query.status()) : null,
+                    StaffAccountStatus.fromString(query.status()),
                     enabledById,
                     disabledById,
                     createdBefore,
