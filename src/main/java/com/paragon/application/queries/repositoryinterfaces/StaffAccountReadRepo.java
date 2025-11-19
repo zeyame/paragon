@@ -14,8 +14,8 @@ public interface StaffAccountReadRepo {
     boolean exists(StaffAccountId staffAccountId);
     boolean hasPermission(StaffAccountId staffAccountId, PermissionCode permissionCode);
     List<StaffAccountSummaryReadModel> findAll(StaffAccountStatus status,
-                                               StaffAccountId enabledBy,
-                                               StaffAccountId disabledBy,
+                                               Username enabledBy,
+                                               Username disabledBy,
                                                Instant createdBefore,
                                                Instant createdAfter);
     Optional<StaffAccountSummaryReadModel> findByUsername(Username username);

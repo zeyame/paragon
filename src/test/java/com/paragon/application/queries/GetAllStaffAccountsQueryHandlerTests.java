@@ -150,8 +150,8 @@ public class GetAllStaffAccountsQueryHandlerTests {
             String createdBefore,
             String createdAfter,
             StaffAccountStatus expectedStatus,
-            StaffAccountId expectedEnabledById,
-            StaffAccountId expectedDisabledById,
+            Username expectedEnabledByUsername,
+            Username expectedDisabledByUsername,
             Instant expectedCreatedBefore,
             Instant expectedCreatedAfter
     ) {
@@ -164,39 +164,12 @@ public class GetAllStaffAccountsQueryHandlerTests {
                 createdAfter
         );
 
-        // Mock username lookups if needed
-        if (enabledBy != null) {
-            StaffAccountSummaryReadModel enabledByModel = new StaffAccountSummaryReadModel(
-                    expectedEnabledById.getValue(),
-                    enabledBy,
-                    "active",
-                    10,
-                    10,
-                    Instant.now()
-            );
-            when(staffAccountReadRepoMock.findByUsername(Username.of(enabledBy)))
-                    .thenReturn(Optional.of(enabledByModel));
-        }
-
-        if (disabledBy != null) {
-            StaffAccountSummaryReadModel disabledByModel = new StaffAccountSummaryReadModel(
-                    expectedDisabledById.getValue(),
-                    disabledBy,
-                    "active",
-                    10,
-                    10,
-                    Instant.now()
-            );
-            when(staffAccountReadRepoMock.findByUsername(Username.of(disabledBy)))
-                    .thenReturn(Optional.of(disabledByModel));
-        }
-
         when(staffAccountReadRepoMock.findAll(any(), any(), any(), any(), any()))
                 .thenReturn(List.of());
 
         ArgumentCaptor<StaffAccountStatus> statusCaptor = ArgumentCaptor.forClass(StaffAccountStatus.class);
-        ArgumentCaptor<StaffAccountId> enabledByCaptor = ArgumentCaptor.forClass(StaffAccountId.class);
-        ArgumentCaptor<StaffAccountId> disabledByCaptor = ArgumentCaptor.forClass(StaffAccountId.class);
+        ArgumentCaptor<Username> enabledByCaptor = ArgumentCaptor.forClass(Username.class);
+        ArgumentCaptor<Username> disabledByCaptor = ArgumentCaptor.forClass(Username.class);
         ArgumentCaptor<Instant> createdBeforeCaptor = ArgumentCaptor.forClass(Instant.class);
         ArgumentCaptor<Instant> createdAfterCaptor = ArgumentCaptor.forClass(Instant.class);
 
@@ -213,8 +186,8 @@ public class GetAllStaffAccountsQueryHandlerTests {
         );
 
         assertThat(statusCaptor.getValue()).isEqualTo(expectedStatus);
-        assertThat(enabledByCaptor.getValue()).isEqualTo(expectedEnabledById);
-        assertThat(disabledByCaptor.getValue()).isEqualTo(expectedDisabledById);
+        assertThat(enabledByCaptor.getValue()).isEqualTo(expectedEnabledByUsername);
+        assertThat(disabledByCaptor.getValue()).isEqualTo(expectedDisabledByUsername);
         assertThat(createdBeforeCaptor.getValue()).isEqualTo(expectedCreatedBefore);
         assertThat(createdAfterCaptor.getValue()).isEqualTo(expectedCreatedAfter);
     }
@@ -283,8 +256,8 @@ public class GetAllStaffAccountsQueryHandlerTests {
     }
 
     private static Stream<Arguments> provideValidFilterCombinations() {
-        StaffAccountId enabledById = StaffAccountId.generate();
-        StaffAccountId disabledById = StaffAccountId.generate();
+        Username enabledByUsername = Username.of("admin_user");
+        Username disabledByUsername = Username.of("admin_user");
         Instant beforeInstant = Instant.parse("2024-12-31T23:59:59Z");
         Instant afterInstant = Instant.parse("2024-01-01T00:00:00Z");
 
@@ -294,16 +267,16 @@ public class GetAllStaffAccountsQueryHandlerTests {
 
                 // Each filter independently
                 Arguments.of("ACTIVE", null, null, null, null, StaffAccountStatus.ACTIVE, null, null, null, null),
-                Arguments.of(null, "admin_user", null, null, null, null, enabledById, null, null, null),
-                Arguments.of(null, null, "admin_user", null, null, null, null, disabledById, null, null),
+                Arguments.of(null, "admin_user", null, null, null, null, enabledByUsername, null, null, null),
+                Arguments.of(null, null, "admin_user", null, null, null, null, disabledByUsername, null, null),
                 Arguments.of(null, null, null, "2024-12-31T23:59:59Z", null, null, null, null, beforeInstant, null),
                 Arguments.of(null, null, null, null, "2024-01-01T00:00:00Z", null, null, null, null, afterInstant),
 
                 // Representative multi-filter combinations
-                Arguments.of("ACTIVE", "admin_user", null, null, null, StaffAccountStatus.ACTIVE, enabledById, null, null, null),
+                Arguments.of("ACTIVE", "admin_user", null, null, null, StaffAccountStatus.ACTIVE, enabledByUsername, null, null, null),
                 Arguments.of(null, null, null, "2024-12-31T23:59:59Z", "2024-01-01T00:00:00Z", null, null, null, beforeInstant, afterInstant),
                 Arguments.of("ACTIVE", null, null, "2024-12-31T23:59:59Z", "2024-01-01T00:00:00Z", StaffAccountStatus.ACTIVE, null, null, beforeInstant, afterInstant),
-                Arguments.of("DISABLED", null, "admin_user", "2024-12-31T23:59:59Z", "2024-01-01T00:00:00Z", StaffAccountStatus.DISABLED, null, disabledById, beforeInstant, afterInstant)
+                Arguments.of("DISABLED", null, "admin_user", "2024-12-31T23:59:59Z", "2024-01-01T00:00:00Z", StaffAccountStatus.DISABLED, null, disabledByUsername, beforeInstant, afterInstant)
         );
     }
 }

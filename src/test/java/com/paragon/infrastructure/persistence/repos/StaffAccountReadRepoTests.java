@@ -283,8 +283,8 @@ public class StaffAccountReadRepoTests {
         @MethodSource("provideFilterCombinations")
         void shouldBuildCorrectSqlAndParams(
                 StaffAccountStatus status,
-                StaffAccountId enabledBy,
-                StaffAccountId disabledBy,
+                Username enabledBy,
+                Username disabledBy,
                 Instant createdBefore,
                 Instant createdAfter
         ) {
@@ -317,12 +317,12 @@ public class StaffAccountReadRepoTests {
             }
 
             if (enabledBy != null) {
-                assertThat(actualSql).contains("AND enabled_by = :enabledBy");
+                assertThat(actualSql).contains("AND EXISTS (SELECT 1 FROM staff_accounts enabler WHERE enabler.id = staff_accounts.enabled_by AND enabler.username = :enabledBy)");
                 assertThat(params.get("enabledBy")).isEqualTo(enabledBy.getValue());
             }
 
             if (disabledBy != null) {
-                assertThat(actualSql).contains("AND disabled_by = :disabledBy");
+                assertThat(actualSql).contains("AND EXISTS (SELECT 1 FROM staff_accounts disabler WHERE disabler.id = staff_accounts.disabled_by AND disabler.username = :disabledBy)");
                 assertThat(params.get("disabledBy")).isEqualTo(disabledBy.getValue());
             }
 
@@ -385,8 +385,8 @@ public class StaffAccountReadRepoTests {
         }
 
         private static Stream<Arguments> provideFilterCombinations() {
-            StaffAccountId enabledById = StaffAccountId.generate();
-            StaffAccountId disabledById = StaffAccountId.generate();
+            Username enabledByUsername = Username.of("enabler_user");
+            Username disabledByUsername = Username.of("disabler_user");
             Instant beforeInstant = Instant.parse("2024-12-31T23:59:59Z");
             Instant afterInstant = Instant.parse("2024-01-01T00:00:00Z");
 
@@ -399,10 +399,10 @@ public class StaffAccountReadRepoTests {
                     Arguments.of(StaffAccountStatus.DISABLED, null, null, null, null),
 
                     // Single filter: enabledBy
-                    Arguments.of(null, enabledById, null, null, null),
+                    Arguments.of(null, enabledByUsername, null, null, null),
 
                     // Single filter: disabledBy
-                    Arguments.of(null, null, disabledById, null, null),
+                    Arguments.of(null, null, disabledByUsername, null, null),
 
                     // Single filter: createdBefore
                     Arguments.of(null, null, null, beforeInstant, null),
@@ -411,10 +411,10 @@ public class StaffAccountReadRepoTests {
                     Arguments.of(null, null, null, null, afterInstant),
 
                     // Two filters: status + enabledBy
-                    Arguments.of(StaffAccountStatus.ACTIVE, enabledById, null, null, null),
+                    Arguments.of(StaffAccountStatus.ACTIVE, enabledByUsername, null, null, null),
 
                     // Two filters: status + disabledBy
-                    Arguments.of(StaffAccountStatus.DISABLED, null, disabledById, null, null),
+                    Arguments.of(StaffAccountStatus.DISABLED, null, disabledByUsername, null, null),
 
                     // Two filters: status + createdBefore
                     Arguments.of(StaffAccountStatus.ACTIVE, null, null, beforeInstant, null),
@@ -423,25 +423,25 @@ public class StaffAccountReadRepoTests {
                     Arguments.of(StaffAccountStatus.ACTIVE, null, null, null, afterInstant),
 
                     // Two filters: enabledBy + createdBefore
-                    Arguments.of(null, enabledById, null, beforeInstant, null),
+                    Arguments.of(null, enabledByUsername, null, beforeInstant, null),
 
                     // Two filters: disabledBy + createdAfter
-                    Arguments.of(null, null, disabledById, null, afterInstant),
+                    Arguments.of(null, null, disabledByUsername, null, afterInstant),
 
                     // Two filters: date range
                     Arguments.of(null, null, null, beforeInstant, afterInstant),
 
                     // Three filters: status + enabledBy + createdBefore
-                    Arguments.of(StaffAccountStatus.ACTIVE, enabledById, null, beforeInstant, null),
+                    Arguments.of(StaffAccountStatus.ACTIVE, enabledByUsername, null, beforeInstant, null),
 
                     // Three filters: status + date range
                     Arguments.of(StaffAccountStatus.ACTIVE, null, null, beforeInstant, afterInstant),
 
                     // Four filters: status + disabledBy + date range
-                    Arguments.of(StaffAccountStatus.DISABLED, null, disabledById, beforeInstant, afterInstant),
+                    Arguments.of(StaffAccountStatus.DISABLED, null, disabledByUsername, beforeInstant, afterInstant),
 
                     // All five filters (status, enabledBy, createdBefore, createdAfter - note: can't have both enabledBy and disabledBy)
-                    Arguments.of(StaffAccountStatus.ACTIVE, enabledById, null, beforeInstant, afterInstant)
+                    Arguments.of(StaffAccountStatus.ACTIVE, enabledByUsername, null, beforeInstant, afterInstant)
             );
         }
     }

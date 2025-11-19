@@ -6,7 +6,7 @@ import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.queries.QueryHandler;
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo;
 import com.paragon.domain.enums.StaffAccountStatus;
-import com.paragon.domain.models.valueobjects.StaffAccountId;
+import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
@@ -17,7 +17,6 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.Optional;
 
 @Component
 public class GetAllStaffAccountsQueryHandler implements QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> {
@@ -37,13 +36,13 @@ public class GetAllStaffAccountsQueryHandler implements QueryHandler<GetAllStaff
             Instant createdAfter = parseInstant(query.createdAfter());
             validateQuery(query, createdBefore, createdAfter);
 
-            StaffAccountId enabledById = resolveStaffAccountId(query.enabledBy());
-            StaffAccountId disabledById = resolveStaffAccountId(query.disabledBy());
+            Username enabledByUsername = parseUsername(query.enabledBy());
+            Username disabledByUsername = parseUsername(query.disabledBy());
 
             List<StaffAccountSummaryReadModel> staffAccountSummaryReadModels = staffAccountReadRepo.findAll(
                     StaffAccountStatus.fromString(query.status()),
-                    enabledById,
-                    disabledById,
+                    enabledByUsername,
+                    disabledByUsername,
                     createdBefore,
                     createdAfter
             );
@@ -52,7 +51,8 @@ public class GetAllStaffAccountsQueryHandler implements QueryHandler<GetAllStaff
                     .map(StaffAccountSummary::fromReadModel)
                     .toList();
             return new GetAllStaffAccountsQueryResponse(staffAccountSummaries);
-        } catch (InfraException ex) {
+        }
+        catch (InfraException ex) {
             log.error("GetAllStaffAccounts query failed: infrastructure error occurred - {}", ex.getMessage(), ex);
             throw appExceptionHandler.handleInfraException(ex);
         }
@@ -81,16 +81,13 @@ public class GetAllStaffAccountsQueryHandler implements QueryHandler<GetAllStaff
         }
     }
 
-    private StaffAccountId resolveStaffAccountId(String usernameValue) {
+    private Username parseUsername(String usernameValue) {
         if (!hasText(usernameValue)) {
             return null;
         }
-
         try {
-            Username username = Username.of(usernameValue);
-            Optional<StaffAccountSummaryReadModel> summary = staffAccountReadRepo.findByUsername(username);
-            return summary.map(model -> StaffAccountId.of(model.id())).orElse(null);
-        } catch (RuntimeException ex) {
+            return Username.of(usernameValue);
+        } catch (DomainException ex) {
             return null;
         }
     }

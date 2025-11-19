@@ -50,7 +50,7 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
     }
 
     @Override
-    public List<StaffAccountSummaryReadModel> findAll(StaffAccountStatus status, StaffAccountId enabledBy, StaffAccountId disabledBy, Instant createdBefore, Instant createdAfter) {
+    public List<StaffAccountSummaryReadModel> findAll(StaffAccountStatus status, Username enabledBy, Username disabledBy, Instant createdBefore, Instant createdAfter) {
         StringBuilder sql = new StringBuilder("""
                 SELECT id, username, status, order_access_duration, modmail_transcript_access_duration, created_at_utc
                 FROM staff_accounts
@@ -65,12 +65,12 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
         }
 
         if (enabledBy != null) {
-            sql.append(" AND enabled_by = :enabledBy");
+            sql.append(" AND EXISTS (SELECT 1 FROM staff_accounts enabler WHERE enabler.id = staff_accounts.enabled_by AND enabler.username = :enabledBy)");
             params.add("enabledBy", enabledBy.getValue());
         }
 
         if (disabledBy != null) {
-            sql.append(" AND disabled_by = :disabledBy");
+            sql.append(" AND EXISTS (SELECT 1 FROM staff_accounts disabler WHERE disabler.id = staff_accounts.disabled_by AND disabler.username = :disabledBy)");
             params.add("disabledBy", disabledBy.getValue());
         }
 

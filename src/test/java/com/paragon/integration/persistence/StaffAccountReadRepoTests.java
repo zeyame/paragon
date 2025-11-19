@@ -242,7 +242,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(enabledStaffAccount);
 
             // When
-            List<StaffAccountSummaryReadModel> results = sut.findAll(null, enablerAccountId, null, null, null);
+            List<StaffAccountSummaryReadModel> results = sut.findAll(null, Username.of("enabler"), null, null, null);
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(enabledStaffAccount.getId().getValue()));
@@ -268,7 +268,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(disabledStaffAccount);
 
             // When
-            List<StaffAccountSummaryReadModel> results = sut.findAll(null, null, disablerAccountId, null, null);
+            List<StaffAccountSummaryReadModel> results = sut.findAll(null, null, Username.of("disabler"), null, null);
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(disabledStaffAccount.getId().getValue()));
@@ -330,7 +330,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(enabledActiveStaffAccount);
 
             // When
-            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, enablerAccountId, null, null, null);
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, Username.of("enabler"), null, null, null);
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(enabledActiveStaffAccount.getId().getValue()));
@@ -356,7 +356,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(disabledStaffAccount);
 
             // When
-            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.DISABLED, null, disablerAccountId, null, null);
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.DISABLED, null, Username.of("disabler"), null, null);
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(disabledStaffAccount.getId().getValue()));
@@ -419,7 +419,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(enabledStaffAccount);
 
             // When
-            List<StaffAccountSummaryReadModel> results = sut.findAll(null, enablerAccountId, null, beforeTime, null);
+            List<StaffAccountSummaryReadModel> results = sut.findAll(null, Username.of("enabler"), null, beforeTime, null);
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(enabledStaffAccount.getId().getValue()));
@@ -446,7 +446,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(disabledStaffAccount);
 
             // When
-            List<StaffAccountSummaryReadModel> results = sut.findAll(null, null, disablerAccountId, null, afterTime);
+            List<StaffAccountSummaryReadModel> results = sut.findAll(null, null, Username.of("disabler"), null, afterTime);
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(disabledStaffAccount.getId().getValue()));
@@ -492,7 +492,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(enabledActiveStaffAccount);
 
             // When
-            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, enablerAccountId, null, beforeTime, null);
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, Username.of("enabler"), null, beforeTime, null);
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(enabledActiveStaffAccount.getId().getValue()));
@@ -539,7 +539,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(disabledStaffAccount);
 
             // When
-            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.DISABLED, null, disablerAccountId, beforeTime, afterTime);
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.DISABLED, null, Username.of("disabler"), beforeTime, afterTime);
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(disabledStaffAccount.getId().getValue()));
@@ -567,7 +567,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(enabledActiveStaffAccount);
 
             // When
-            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, enablerAccountId, null, beforeTime, afterTime);
+            List<StaffAccountSummaryReadModel> results = sut.findAll(StaffAccountStatus.ACTIVE, Username.of("enabler"), null, beforeTime, afterTime);
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(enabledActiveStaffAccount.getId().getValue()));
