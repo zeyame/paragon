@@ -197,17 +197,16 @@ public class StaffAccountReadRepoTests {
         @Test
         void callsJdbcHelperWithExpectedSqlAndParams() {
             // Given
-            Username username = Username.of("john_doe");
             String expectedSql = """
                 SELECT id, username, status, order_access_duration, modmail_transcript_access_duration, created_at_utc
                 FROM staff_accounts
                 WHERE username = :username
                 """;
             SqlParamsBuilder expectedParams = new SqlParamsBuilder()
-                    .add("username", username.getValue());
+                    .add("username", "john_doe");
 
             // When
-            sut.findByUsername(username);
+            sut.findByUsername("john_doe");
 
             // Then
             ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
@@ -216,13 +215,12 @@ public class StaffAccountReadRepoTests {
 
             SqlStatement capturedSqlStatement = sqlStatementCaptor.getValue();
             assertThat(capturedSqlStatement.sql()).isEqualTo(expectedSql);
-            assertThat(capturedSqlStatement.params().build().get("username")).isEqualTo(expectedParams.build().get("username"));
+            assertThat(capturedSqlStatement.params().build().get("username")).isEqualTo("john_doe");
         }
 
         @Test
-        void returnsExpectedSummaryModel_whenStaffAccountExists() {
+        void shouldReturnExpectedSummaryModel() {
             // Given
-            Username username = Username.of("john_doe");
             StaffAccountSummaryReadModel expectedStaffAccountSummary = new StaffAccountSummaryReadModel(
                     UUID.randomUUID(),
                     "john_doe",
@@ -236,7 +234,7 @@ public class StaffAccountReadRepoTests {
                     .thenReturn(Optional.of(expectedStaffAccountSummary));
 
             // When
-            Optional<StaffAccountSummaryReadModel> optionalStaffAccountSummary = sut.findByUsername(username);
+            Optional<StaffAccountSummaryReadModel> optionalStaffAccountSummary = sut.findByUsername("john_doe");
 
             // Then
             assertThat(optionalStaffAccountSummary).isPresent();
@@ -246,13 +244,11 @@ public class StaffAccountReadRepoTests {
         @Test
         void returnsEmptyOptional_whenStaffAccountDoesNotExist() {
             // Given
-            Username username = Username.of("john_doe");
-
             when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountSummaryReadModel.class)))
                     .thenReturn(Optional.empty());
 
             // When
-            Optional<StaffAccountSummaryReadModel> optionalStaffAccountSummary = sut.findByUsername(username);
+            Optional<StaffAccountSummaryReadModel> optionalStaffAccountSummary = sut.findByUsername("john_doe");
 
             // Then
             assertThat(optionalStaffAccountSummary).isEmpty();
@@ -265,7 +261,7 @@ public class StaffAccountReadRepoTests {
                     .thenThrow(InfraException.class);
 
             // When & Then
-            assertThatThrownBy(() -> sut.findByUsername(Username.of("john_doe")))
+            assertThatThrownBy(() -> sut.findByUsername("john_doe"))
                     .isInstanceOf(InfraException.class);
         }
     }

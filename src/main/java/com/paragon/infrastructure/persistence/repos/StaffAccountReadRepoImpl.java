@@ -97,14 +97,14 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
     }
 
     @Override
-    public Optional<StaffAccountSummaryReadModel> findByUsername(Username username) {
+    public Optional<StaffAccountSummaryReadModel> findByUsername(String username) {
         String sql = """
                 SELECT id, username, status, order_access_duration, modmail_transcript_access_duration, created_at_utc
                 FROM staff_accounts
                 WHERE username = :username
                 """;
 
-        SqlParamsBuilder params = new SqlParamsBuilder().add("username", username.getValue());
+        SqlParamsBuilder params = new SqlParamsBuilder().add("username", username);
         return readJdbcHelper.queryFirstOrDefault(
                 new SqlStatement(sql, params),
                 StaffAccountSummaryReadModel.class
