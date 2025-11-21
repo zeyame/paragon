@@ -2,6 +2,7 @@ package com.paragon.application.common.exceptions;
 
 import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.domain.exceptions.DomainException;
+import com.paragon.domain.exceptions.aggregate.RefreshTokenException;
 import com.paragon.domain.exceptions.aggregate.StaffAccountException;
 import com.paragon.domain.exceptions.entity.AuditTrailEntryException;
 import com.paragon.domain.exceptions.entity.PermissionException;
@@ -9,12 +10,14 @@ import com.paragon.domain.exceptions.valueobject.*;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.springframework.stereotype.Component;
 
+// TODO: Change this to be a mapper with static methods (no interface)
 @Component
 public class AppExceptionHandlerImpl implements AppExceptionHandler {
     @Override
     public AppException handleDomainException(DomainException domainException) {
         return switch (domainException) {
             case StaffAccountException staffAccountException -> handleStaffAccountException(staffAccountException);
+            case RefreshTokenException refreshTokenException -> handleRefreshTokenException(refreshTokenException);
             case AuditTrailEntryException auditTrailEntryException -> handleAuditTrailEntryException(auditTrailEntryException);
             case PermissionException permissionException -> handlePermissionException(permissionException);
 
@@ -57,6 +60,20 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
                     new AppException(exception, AppExceptionStatusCode.AUTHENTICATION_FAILED);
 
             case 10010, 10011 -> // state conflict (account already enabled/disabled)
+                    new AppException(exception, AppExceptionStatusCode.INVALID_RESOURCE_STATE);
+
+            default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);
+        };
+    }
+
+    private AppException handleRefreshTokenException(RefreshTokenException exception) {
+        int domainErrorCode = exception.getDomainErrorCode();
+
+        return switch (domainErrorCode) {
+            case 20001, 20002, 20004 -> // missing token hash, staff account id, or IP address - internal error
+                    new AppException(exception, AppExceptionStatusCode.SERVER_ERROR);
+
+            case 20003 -> // token already revoked - invalid state
                     new AppException(exception, AppExceptionStatusCode.INVALID_RESOURCE_STATE);
 
             default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);

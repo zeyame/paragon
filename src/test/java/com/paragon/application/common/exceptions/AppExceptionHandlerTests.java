@@ -1,7 +1,9 @@
 package com.paragon.application.common.exceptions;
 
 import com.paragon.domain.exceptions.DomainException;
+import com.paragon.domain.exceptions.aggregate.RefreshTokenException;
 import com.paragon.domain.exceptions.aggregate.StaffAccountException;
+import com.paragon.domain.exceptions.aggregate.RefreshTokenExceptionInfo;
 import com.paragon.domain.exceptions.aggregate.StaffAccountExceptionInfo;
 import com.paragon.domain.exceptions.entity.AuditTrailEntryException;
 import com.paragon.domain.exceptions.entity.AuditTrailEntryExceptionInfo;
@@ -235,6 +237,24 @@ public class AppExceptionHandlerTests {
                     arguments(
                             new PlaintextRefreshTokenException(PlaintextRefreshTokenExceptionInfo.missingValue()),
                             AppExceptionStatusCode.SERVER_ERROR
+                    ),
+
+                    // RefreshTokenException - internal errors and invalid state
+                    arguments(
+                            new RefreshTokenException(RefreshTokenExceptionInfo.tokenHashRequired()),
+                            AppExceptionStatusCode.SERVER_ERROR
+                    ),
+                    arguments(
+                            new RefreshTokenException(RefreshTokenExceptionInfo.staffAccountIdRequired()),
+                            AppExceptionStatusCode.SERVER_ERROR
+                    ),
+                    arguments(
+                            new RefreshTokenException(RefreshTokenExceptionInfo.ipAddressRequired()),
+                            AppExceptionStatusCode.SERVER_ERROR
+                    ),
+                    arguments(
+                            new RefreshTokenException(RefreshTokenExceptionInfo.tokenAlreadyRevoked()),
+                            AppExceptionStatusCode.INVALID_RESOURCE_STATE
                     ),
 
                     // OrderAccessDurationException - user input (CLIENT_ERROR)
