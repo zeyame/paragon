@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     id                          UUID PRIMARY KEY,
 
     staff_account_id            UUID NOT NULL REFERENCES staff_accounts(id),
-    token_hash                  VARCHAR(64) NOT NULL,
+    token_hash                  VARCHAR(64) UNIQUE NOT NULL,
     issued_from_ip_address      VARCHAR(45) NOT NULL,
     expires_at_utc              TIMESTAMP WITH TIME ZONE NOT NULL,
     is_revoked                  BOOLEAN NOT NULL DEFAULT false,
