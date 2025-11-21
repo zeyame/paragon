@@ -15,10 +15,7 @@ import com.paragon.domain.interfaces.RefreshTokenWriteRepo;
 import com.paragon.domain.interfaces.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.aggregates.StaffAccount;
-import com.paragon.domain.models.valueobjects.FailedLoginAttempts;
-import com.paragon.domain.models.valueobjects.IpAddress;
-import com.paragon.domain.models.valueobjects.RefreshTokenHash;
-import com.paragon.domain.models.valueobjects.Username;
+import com.paragon.domain.models.valueobjects.*;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.junit.jupiter.api.Test;
@@ -74,7 +71,7 @@ public class LoginStaffAccountCommandHandlerTests {
         when(staffAccountWriteRepoMock.getByUsername(any(Username.class)))
                 .thenReturn(Optional.of(staffAccountToLogin));
 
-        when(passwordHasherMock.verify(anyString(), anyString()))
+        when(passwordHasherMock.verify(anyString(), any(Password.class)))
                 .thenReturn(true);
         when(tokenHasherMock.hash(anyString()))
                 .thenReturn("hashed-token");
@@ -182,7 +179,7 @@ public class LoginStaffAccountCommandHandlerTests {
     @Test
     void whenPasswordIsInvalid_shouldRegisterFailedLoginAttempt() {
         // Given
-        when(passwordHasherMock.verify(anyString(), anyString()))
+        when(passwordHasherMock.verify(anyString(), any(Password.class)))
                 .thenReturn(false);
 
         ArgumentCaptor<StaffAccount> staffAccountArgumentCaptor = ArgumentCaptor.forClass(StaffAccount.class);
@@ -201,7 +198,7 @@ public class LoginStaffAccountCommandHandlerTests {
     @Test
     void whenPasswordIsInvalid_shouldCommitTransactionBeforeThrowing() {
         // Given
-        when(passwordHasherMock.verify(anyString(), anyString()))
+        when(passwordHasherMock.verify(anyString(), any(Password.class)))
                 .thenReturn(false);
 
         // When & Then
@@ -214,7 +211,7 @@ public class LoginStaffAccountCommandHandlerTests {
     @Test
     void whenPasswordIsInvalid_shouldThrowAppException() {
         // Given
-        when(passwordHasherMock.verify(anyString(), anyString()))
+        when(passwordHasherMock.verify(anyString(), any(Password.class)))
                 .thenReturn(false);
 
         // When & Then

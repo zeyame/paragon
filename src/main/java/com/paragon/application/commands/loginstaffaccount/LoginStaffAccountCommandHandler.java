@@ -52,7 +52,7 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
             staffAccount = staffAccountWriteRepo.getByUsername(Username.of(command.username()))
                     .orElseThrow(() -> new AppException(AppExceptionInfo.invalidLoginCredentials()));
 
-            if (!isValidPassword(command.password(), staffAccount.getPassword().getValue())) {
+            if (!isValidPassword(command.password(), staffAccount.getPassword())) {
                 staffAccount.registerFailedLoginAttempt();
                 staffAccountWriteRepo.update(staffAccount);
                 unitOfWork.commit();
@@ -105,7 +105,7 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
         }
     }
 
-    private boolean isValidPassword(String enteredPassword, String storedPassword) {
+    private boolean isValidPassword(String enteredPassword, Password storedPassword) {
         return passwordHasher.verify(enteredPassword, storedPassword);
     }
 }
