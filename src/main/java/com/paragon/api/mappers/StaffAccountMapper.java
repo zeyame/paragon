@@ -4,6 +4,7 @@ import com.paragon.api.dtos.staffaccount.disable.DisableStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.enable.EnableStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.StaffAccountSummaryResponseDto;
+import com.paragon.api.dtos.staffaccount.getbyusername.GetStaffAccountByUsernameResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.resetpassword.ResetStaffAccountPasswordResponseDto;
@@ -17,6 +18,7 @@ import com.paragon.application.commands.resetstaffaccountpassword.ResetStaffAcco
 import com.paragon.application.commands.resetstaffaccountpassword.ResetStaffAccountPasswordCommandResponse;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryResponse;
 import com.paragon.application.queries.getallstaffaccounts.StaffAccountSummary;
+import com.paragon.application.queries.getstaffaccountbyusername.GetStaffAccountByUsernameQueryResponse;
 
 public class StaffAccountMapper {
     public static RegisterStaffAccountCommand toRegisterCommand(RegisterStaffAccountRequestDto requestDto, String requestingStaffAccountId) {
@@ -97,6 +99,17 @@ public class StaffAccountMapper {
                 staffAccountSummary.orderAccessDuration(),
                 staffAccountSummary.modmailTranscriptAccessDuration(),
                 staffAccountSummary.createdAtUtc()
+        );
+    }
+
+    public static GetStaffAccountByUsernameResponseDto toGetStaffAccountByUsernameResponseDto(GetStaffAccountByUsernameQueryResponse queryResponse) {
+        return new GetStaffAccountByUsernameResponseDto(
+                queryResponse.id(),
+                queryResponse.username(),
+                queryResponse.status(),
+                queryResponse.orderAccessDuration(),
+                queryResponse.modmailTranscriptAccessDuration(),
+                queryResponse.createdAt()
         );
     }
 }

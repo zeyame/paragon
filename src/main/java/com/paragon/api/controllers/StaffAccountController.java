@@ -4,6 +4,7 @@ import com.paragon.api.dtos.ResponseDto;
 import com.paragon.api.dtos.staffaccount.disable.DisableStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.enable.EnableStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
+import com.paragon.api.dtos.staffaccount.getbyusername.GetStaffAccountByUsernameResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.resetpassword.ResetStaffAccountPasswordResponseDto;
@@ -21,6 +22,8 @@ import com.paragon.application.commands.resetstaffaccountpassword.ResetStaffAcco
 import com.paragon.application.queries.QueryHandler;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQuery;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryResponse;
+import com.paragon.application.queries.getstaffaccountbyusername.GetStaffAccountByUsernameQuery;
+import com.paragon.application.queries.getstaffaccountbyusername.GetStaffAccountByUsernameQueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.task.TaskExecutor;
@@ -38,6 +41,7 @@ public class StaffAccountController {
     private final CommandHandler<EnableStaffAccountCommand, EnableStaffAccountCommandResponse> enableStaffAccountCommandHandler;
     private final CommandHandler<ResetStaffAccountPasswordCommand, ResetStaffAccountPasswordCommandResponse> resetStaffAccountPasswordCommandHandler;
     private final QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> getAllStaffAccountsQueryHandler;
+    private final QueryHandler<GetStaffAccountByUsernameQuery, GetStaffAccountByUsernameQueryResponse> getStaffAccountByUsernameQueryHandler;
     private final HttpContextHelper httpContextHelper;
     private final TaskExecutor taskExecutor;
     private static final Logger log = LoggerFactory.getLogger(StaffAccountController.class);
@@ -48,12 +52,15 @@ public class StaffAccountController {
             CommandHandler<EnableStaffAccountCommand, EnableStaffAccountCommandResponse> enableStaffAccountCommandHandler,
             CommandHandler<ResetStaffAccountPasswordCommand, ResetStaffAccountPasswordCommandResponse> resetStaffAccountPasswordCommandHandler,
             QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> getAllStaffAccountsQueryHandler,
-            HttpContextHelper httpContextHelper, TaskExecutor taskExecutor) {
+            QueryHandler<GetStaffAccountByUsernameQuery, GetStaffAccountByUsernameQueryResponse> getStaffAccountByUsernameQueryHandler,
+            HttpContextHelper httpContextHelper,
+            TaskExecutor taskExecutor) {
         this.registerStaffAccountCommandHandler = registerStaffAccountCommandHandler;
         this.disableStaffAccountCommandHandler = disableStaffAccountCommandHandler;
         this.enableStaffAccountCommandHandler = enableStaffAccountCommandHandler;
         this.resetStaffAccountPasswordCommandHandler = resetStaffAccountPasswordCommandHandler;
         this.getAllStaffAccountsQueryHandler = getAllStaffAccountsQueryHandler;
+        this.getStaffAccountByUsernameQueryHandler = getStaffAccountByUsernameQueryHandler;
         this.httpContextHelper = httpContextHelper;
         this.taskExecutor = taskExecutor;
     }
@@ -138,4 +145,20 @@ public class StaffAccountController {
         }, taskExecutor);
     }
 
+    @GetMapping("/username/{username}")
+    @PreAuthorize("hasAuthority('VIEW_ACCOUNTS_LIST')")
+    public CompletableFuture<ResponseEntity<ResponseDto<GetStaffAccountByUsernameResponseDto>>> getByUsername(
+            @PathVariable("username") String username
+    ) {
+        String requestingStaffAccountId = httpContextHelper.getAuthenticatedStaffId();
+        log.info("Received request to get staff account by username: {} from staff account with ID: {}.",
+                username, requestingStaffAccountId);
+
+        return CompletableFuture.supplyAsync(() -> {
+            var query = new GetStaffAccountByUsernameQuery(username);
+            var queryResponse = getStaffAccountByUsernameQueryHandler.handle(query);
+            var responseDto = new ResponseDto<>(StaffAccountMapper.toGetStaffAccountByUsernameResponseDto(queryResponse), null);
+            return ResponseEntity.ok(responseDto);
+        }, taskExecutor);
+    }
 }

@@ -5,6 +5,7 @@ import com.paragon.api.dtos.staffaccount.disable.DisableStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.enable.EnableStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.StaffAccountSummaryResponseDto;
+import com.paragon.api.dtos.staffaccount.getbyusername.GetStaffAccountByUsernameResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.resetpassword.ResetStaffAccountPasswordResponseDto;
@@ -26,6 +27,10 @@ import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQu
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryHandler;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryResponse;
 import com.paragon.application.queries.getallstaffaccounts.StaffAccountSummary;
+import com.paragon.application.queries.getstaffaccountbyusername.GetStaffAccountByUsernameQuery;
+import com.paragon.application.queries.getstaffaccountbyusername.GetStaffAccountByUsernameQueryHandler;
+import com.paragon.application.queries.getstaffaccountbyusername.GetStaffAccountByUsernameQueryResponse;
+import com.paragon.domain.models.valueobjects.Username;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -56,6 +61,7 @@ public class StaffAccountControllerTests {
         private final EnableStaffAccountCommandHandler enableStaffAccountCommandHandlerMock;
         private final ResetStaffAccountPasswordCommandHandler resetStaffAccountPasswordCommandHandlerMock;
         private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
+        private final GetStaffAccountByUsernameQueryHandler getStaffAccountByUsernameQueryHandlerMock;
         private final HttpContextHelper httpContextHelperMock;
         private final RegisterStaffAccountCommandResponse commandResponse;
         private final String requestingStaffId;
@@ -66,6 +72,7 @@ public class StaffAccountControllerTests {
             enableStaffAccountCommandHandlerMock = mock(EnableStaffAccountCommandHandler.class);
             resetStaffAccountPasswordCommandHandlerMock = mock(ResetStaffAccountPasswordCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
+            getStaffAccountByUsernameQueryHandlerMock = mock(GetStaffAccountByUsernameQueryHandler.class);
             httpContextHelperMock = mock(HttpContextHelper.class);
             TaskExecutor taskExecutor = Runnable::run;
 
@@ -78,6 +85,7 @@ public class StaffAccountControllerTests {
                     enableStaffAccountCommandHandlerMock,
                     resetStaffAccountPasswordCommandHandlerMock,
                     getAllStaffAccountsQueryHandlerMock,
+                    getStaffAccountByUsernameQueryHandlerMock,
                     httpContextHelperMock,
                     taskExecutor
             );
@@ -181,6 +189,7 @@ public class StaffAccountControllerTests {
         private final EnableStaffAccountCommandHandler enableStaffAccountCommandHandlerMock;
         private final ResetStaffAccountPasswordCommandHandler resetStaffAccountPasswordCommandHandlerMock;
         private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
+        private final GetStaffAccountByUsernameQueryHandler getStaffAccountByUsernameQueryHandlerMock;
         private final HttpContextHelper httpContextHelperMock;
         private final String staffIdToBeEnabled;
         private final String requestingStaffId;
@@ -192,6 +201,7 @@ public class StaffAccountControllerTests {
             enableStaffAccountCommandHandlerMock = mock(EnableStaffAccountCommandHandler.class);
             resetStaffAccountPasswordCommandHandlerMock = mock(ResetStaffAccountPasswordCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
+            getStaffAccountByUsernameQueryHandlerMock = mock(GetStaffAccountByUsernameQueryHandler.class);
             httpContextHelperMock = mock(HttpContextHelper.class);
             TaskExecutor taskExecutor = Runnable::run;
 
@@ -201,6 +211,7 @@ public class StaffAccountControllerTests {
                     enableStaffAccountCommandHandlerMock,
                     resetStaffAccountPasswordCommandHandlerMock,
                     getAllStaffAccountsQueryHandlerMock,
+                    getStaffAccountByUsernameQueryHandlerMock,
                     httpContextHelperMock,
                     taskExecutor
             );
@@ -271,6 +282,7 @@ public class StaffAccountControllerTests {
         private final EnableStaffAccountCommandHandler enableStaffAccountCommandHandlerMock;
         private final ResetStaffAccountPasswordCommandHandler resetStaffAccountPasswordCommandHandlerMock;
         private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
+        private final GetStaffAccountByUsernameQueryHandler getStaffAccountByUsernameQueryHandlerMock;
         private final HttpContextHelper httpContextHelperMock;
         private final String staffIdToBeDisabled;
         private final String requestingStaffId;
@@ -282,6 +294,7 @@ public class StaffAccountControllerTests {
             enableStaffAccountCommandHandlerMock = mock(EnableStaffAccountCommandHandler.class);
             resetStaffAccountPasswordCommandHandlerMock = mock(ResetStaffAccountPasswordCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
+            getStaffAccountByUsernameQueryHandlerMock = mock(GetStaffAccountByUsernameQueryHandler.class);
             httpContextHelperMock = mock(HttpContextHelper.class);
             TaskExecutor taskExecutor = Runnable::run;
 
@@ -291,6 +304,7 @@ public class StaffAccountControllerTests {
                     enableStaffAccountCommandHandlerMock,
                     resetStaffAccountPasswordCommandHandlerMock,
                     getAllStaffAccountsQueryHandlerMock,
+                    getStaffAccountByUsernameQueryHandlerMock,
                     httpContextHelperMock,
                     taskExecutor
             );
@@ -364,6 +378,7 @@ public class StaffAccountControllerTests {
         private final EnableStaffAccountCommandHandler enableStaffAccountCommandHandlerMock;
         private final ResetStaffAccountPasswordCommandHandler resetStaffAccountPasswordCommandHandlerMock;
         private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
+        private final GetStaffAccountByUsernameQueryHandler getStaffAccountByUsernameQueryHandlerMock;
         private final HttpContextHelper httpContextHelperMock;
         private final String targetStaffAccountId;
         private final String requestingStaffId;
@@ -375,6 +390,7 @@ public class StaffAccountControllerTests {
             enableStaffAccountCommandHandlerMock = mock(EnableStaffAccountCommandHandler.class);
             resetStaffAccountPasswordCommandHandlerMock = mock(ResetStaffAccountPasswordCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
+            getStaffAccountByUsernameQueryHandlerMock = mock(GetStaffAccountByUsernameQueryHandler.class);
             httpContextHelperMock = mock(HttpContextHelper.class);
             TaskExecutor taskExecutor = Runnable::run;
 
@@ -384,6 +400,7 @@ public class StaffAccountControllerTests {
                     enableStaffAccountCommandHandlerMock,
                     resetStaffAccountPasswordCommandHandlerMock,
                     getAllStaffAccountsQueryHandlerMock,
+                    getStaffAccountByUsernameQueryHandlerMock,
                     httpContextHelperMock,
                     taskExecutor
             );
@@ -410,7 +427,7 @@ public class StaffAccountControllerTests {
 
             // Then
             ResponseDto<ResetStaffAccountPasswordResponseDto> responseDto = futureDto.join().getBody();
-            assertThat(responseDto).isNotNull();
+            assertThat(responseDto.result()).isNotNull();
             assertThat(responseDto.errorDto()).isNull();
 
             ResetStaffAccountPasswordResponseDto result = responseDto.result();
@@ -456,6 +473,7 @@ public class StaffAccountControllerTests {
         private final EnableStaffAccountCommandHandler enableStaffAccountCommandHandlerMock;
         private final ResetStaffAccountPasswordCommandHandler resetStaffAccountPasswordCommandHandlerMock;
         private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
+        private final GetStaffAccountByUsernameQueryHandler getStaffAccountByUsernameQueryHandlerMock;
         private final HttpContextHelper httpContextHelperMock;
         private final GetAllStaffAccountsQueryResponse queryResponse;
 
@@ -465,6 +483,7 @@ public class StaffAccountControllerTests {
             enableStaffAccountCommandHandlerMock = mock(EnableStaffAccountCommandHandler.class);
             resetStaffAccountPasswordCommandHandlerMock = mock(ResetStaffAccountPasswordCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
+            getStaffAccountByUsernameQueryHandlerMock = mock(GetStaffAccountByUsernameQueryHandler.class);
             httpContextHelperMock = mock(HttpContextHelper.class);
             TaskExecutor taskExecutor = Runnable::run;
 
@@ -474,6 +493,7 @@ public class StaffAccountControllerTests {
                     enableStaffAccountCommandHandlerMock,
                     resetStaffAccountPasswordCommandHandlerMock,
                     getAllStaffAccountsQueryHandlerMock,
+                    getStaffAccountByUsernameQueryHandlerMock,
                     httpContextHelperMock,
                     taskExecutor
             );
@@ -502,33 +522,8 @@ public class StaffAccountControllerTests {
             assertThat(completedResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
 
-        @ParameterizedTest
-        @MethodSource("provideQueryFilters")
-        void callsHandler_withCorrectQuery(String status, String enabledBy, String disabledBy, String createdBefore, String createdAfter) {
-            // Given
-            ArgumentCaptor<GetAllStaffAccountsQuery> queryCaptor = ArgumentCaptor.forClass(GetAllStaffAccountsQuery.class);
-            GetAllStaffAccountsQuery expectedQuery = new GetAllStaffAccountsQuery(status, enabledBy, disabledBy, createdBefore, createdAfter);
-
-            // When
-            sut.getAll(status, enabledBy, disabledBy, createdBefore, createdAfter);
-
-            // Then
-            verify(getAllStaffAccountsQueryHandlerMock, times(1)).handle(queryCaptor.capture());
-            assertThat(queryCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedQuery);
-        }
-
-        private static Stream<Arguments> provideQueryFilters() {
-            return Stream.of(
-                    Arguments.of(null, null, null, null, null),
-                    Arguments.of("ACTIVE", null, null, null, null),
-                    Arguments.of("DISABLED", UUID.randomUUID().toString(), null, null, null),
-                    Arguments.of("ACTIVE", UUID.randomUUID().toString(), UUID.randomUUID().toString(), "2025-01-01T00:00:00Z", "2024-01-01T00:00:00Z"),
-                    Arguments.of(null, null, UUID.randomUUID().toString(), "2023-12-31T23:59:59Z", null)
-            );
-        }
-
         @Test
-        void mapsQueryResponse_toCorrectResponseDto() {
+        void shouldReturnExpectedResponseDto() {
             // When
             CompletableFuture<ResponseEntity<ResponseDto<GetAllStaffAccountsResponseDto>>> futureDto = sut.getAll(null, null, null, null, null);
 
@@ -551,6 +546,21 @@ public class StaffAccountControllerTests {
             assertThat(actualSummary.modmailTranscriptAccessDuration()).isEqualTo(expectedSummary.modmailTranscriptAccessDuration());
         }
 
+        @ParameterizedTest
+        @MethodSource("provideQueryFilters")
+        void callsHandler_withCorrectQuery(String status, String enabledBy, String disabledBy, String createdBefore, String createdAfter) {
+            // Given
+            ArgumentCaptor<GetAllStaffAccountsQuery> queryCaptor = ArgumentCaptor.forClass(GetAllStaffAccountsQuery.class);
+            GetAllStaffAccountsQuery expectedQuery = new GetAllStaffAccountsQuery(status, enabledBy, disabledBy, createdBefore, createdAfter);
+
+            // When
+            sut.getAll(status, enabledBy, disabledBy, createdBefore, createdAfter);
+
+            // Then
+            verify(getAllStaffAccountsQueryHandlerMock, times(1)).handle(queryCaptor.capture());
+            assertThat(queryCaptor.getValue()).usingRecursiveComparison().isEqualTo(expectedQuery);
+        }
+
         @Test
         void whenHandlerThrowsException_shouldPropagateException() {
             // Given
@@ -559,6 +569,110 @@ public class StaffAccountControllerTests {
 
             // When & Then
             assertThatThrownBy(() -> sut.getAll(null, null, null, null, null).join())
+                    .hasCauseInstanceOf(AppException.class);
+        }
+
+        private static Stream<Arguments> provideQueryFilters() {
+            return Stream.of(
+                    Arguments.of(null, null, null, null, null),
+                    Arguments.of("ACTIVE", null, null, null, null),
+                    Arguments.of("DISABLED", UUID.randomUUID().toString(), null, null, null),
+                    Arguments.of("ACTIVE", UUID.randomUUID().toString(), UUID.randomUUID().toString(), "2025-01-01T00:00:00Z", "2024-01-01T00:00:00Z"),
+                    Arguments.of(null, null, UUID.randomUUID().toString(), "2023-12-31T23:59:59Z", null)
+            );
+        }
+    }
+
+    @Nested
+    class GetByUsername {
+        private final StaffAccountController sut;
+        private final RegisterStaffAccountCommandHandler registerStaffAccountCommandHandlerMock;
+        private final DisableStaffAccountCommandHandler disableStaffAccountCommandHandlerMock;
+        private final EnableStaffAccountCommandHandler enableStaffAccountCommandHandlerMock;
+        private final ResetStaffAccountPasswordCommandHandler resetStaffAccountPasswordCommandHandlerMock;
+        private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
+        private final GetStaffAccountByUsernameQueryHandler getStaffAccountByUsernameQueryHandlerMock;
+        private final HttpContextHelper httpContextHelperMock;
+
+        public GetByUsername() {
+            registerStaffAccountCommandHandlerMock = mock(RegisterStaffAccountCommandHandler.class);
+            disableStaffAccountCommandHandlerMock = mock(DisableStaffAccountCommandHandler.class);
+            enableStaffAccountCommandHandlerMock = mock(EnableStaffAccountCommandHandler.class);
+            resetStaffAccountPasswordCommandHandlerMock = mock(ResetStaffAccountPasswordCommandHandler.class);
+            getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
+            getStaffAccountByUsernameQueryHandlerMock = mock(GetStaffAccountByUsernameQueryHandler.class);
+            httpContextHelperMock = mock(HttpContextHelper.class);
+            TaskExecutor taskExecutor = Runnable::run;
+
+            sut = new StaffAccountController(
+                    registerStaffAccountCommandHandlerMock,
+                    disableStaffAccountCommandHandlerMock,
+                    enableStaffAccountCommandHandlerMock,
+                    resetStaffAccountPasswordCommandHandlerMock,
+                    getAllStaffAccountsQueryHandlerMock,
+                    getStaffAccountByUsernameQueryHandlerMock,
+                    httpContextHelperMock,
+                    taskExecutor
+            );
+        }
+
+        @Test
+        void shouldReturnExpectedResponse() {
+            // Given
+            String username = "john_doe";
+
+            GetStaffAccountByUsernameQueryResponse queryResponse = new GetStaffAccountByUsernameQueryResponse(
+                    UUID.randomUUID(),
+                    username,
+                    "PENDING_PASSWORD_CHANGE",
+                    10,
+                    20,
+                    Instant.now()
+            );
+            when(getStaffAccountByUsernameQueryHandlerMock.handle(any(GetStaffAccountByUsernameQuery.class)))
+                    .thenReturn(queryResponse);
+
+            // When
+            CompletableFuture<ResponseEntity<ResponseDto<GetStaffAccountByUsernameResponseDto>>> futureDto = sut.getByUsername(username);
+
+            // Then
+            ResponseDto<GetStaffAccountByUsernameResponseDto> responseDto = futureDto.join().getBody();
+            assertThat(responseDto.result()).isNotNull();
+            assertThat(responseDto.errorDto()).isNull();;
+
+            GetStaffAccountByUsernameResponseDto result = responseDto.result();
+            assertThat(result.id()).isEqualTo(queryResponse.id());
+            assertThat(result.username()).isEqualTo(username);
+            assertThat(result.status()).isEqualTo(queryResponse.status());
+            assertThat(result.orderAccessDuration()).isEqualTo(queryResponse.orderAccessDuration());
+            assertThat(result.modmailTranscriptAccessDuration()).isEqualTo(queryResponse.modmailTranscriptAccessDuration());
+            assertThat(result.createdAt()).isEqualTo(queryResponse.createdAt());
+        }
+
+        @Test
+        void shouldPassCorrectQueryToHandler() {
+            // Given
+            String username = "john_doe";
+
+            // When
+            sut.getByUsername(username);
+
+            // Then
+            ArgumentCaptor<GetStaffAccountByUsernameQuery> queryCaptor = ArgumentCaptor.forClass(GetStaffAccountByUsernameQuery.class);
+            verify(getStaffAccountByUsernameQueryHandlerMock, times(1)).handle(queryCaptor.capture());
+
+            GetStaffAccountByUsernameQuery capturedQuery = queryCaptor.getValue();
+            assertThat(capturedQuery.username()).isEqualTo(username);
+        }
+
+        @Test
+        void whenHandlerThrowsException_shouldPropagateException() {
+            // Given
+            when(getStaffAccountByUsernameQueryHandlerMock.handle(any(GetStaffAccountByUsernameQuery.class)))
+                    .thenThrow(AppException.class);
+
+            // When & Then
+            assertThatThrownBy(() -> sut.getByUsername("john_doe").join())
                     .hasCauseInstanceOf(AppException.class);
         }
     }

@@ -4,6 +4,7 @@ import com.paragon.api.dtos.staffaccount.disable.DisableStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.enable.EnableStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.GetAllStaffAccountsResponseDto;
 import com.paragon.api.dtos.staffaccount.getall.StaffAccountSummaryResponseDto;
+import com.paragon.api.dtos.staffaccount.getbyusername.GetStaffAccountByUsernameResponseDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.resetpassword.ResetStaffAccountPasswordResponseDto;
@@ -17,6 +18,7 @@ import com.paragon.application.commands.resetstaffaccountpassword.ResetStaffAcco
 import com.paragon.application.commands.resetstaffaccountpassword.ResetStaffAccountPasswordCommandResponse;
 import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQueryResponse;
 import com.paragon.application.queries.getallstaffaccounts.StaffAccountSummary;
+import com.paragon.application.queries.getstaffaccountbyusername.GetStaffAccountByUsernameQueryResponse;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -27,8 +29,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class StaffAccountMapperTests {
-    private final StaffAccountMapper sut = new StaffAccountMapper();
-
     @Nested
     class ToRegisterCommand {
         @Test
@@ -44,7 +44,7 @@ public class StaffAccountMapperTests {
             String requestingStaffAccountId = UUID.randomUUID().toString();
 
             // When
-            RegisterStaffAccountCommand command = sut.toRegisterCommand(requestDto, requestingStaffAccountId);
+            RegisterStaffAccountCommand command = StaffAccountMapper.toRegisterCommand(requestDto, requestingStaffAccountId);
 
             // Then
             assertThat(command.username()).isEqualTo(requestDto.username());
@@ -70,7 +70,7 @@ public class StaffAccountMapperTests {
             );
 
             // When
-            RegisterStaffAccountResponseDto responseDto = sut.toRegisterResponseDto(commandResponse);
+            RegisterStaffAccountResponseDto responseDto = StaffAccountMapper.toRegisterResponseDto(commandResponse);
 
             // Then
             assertThat(responseDto.id()).isEqualTo(commandResponse.id());
@@ -90,7 +90,7 @@ public class StaffAccountMapperTests {
             String requestingStaffAccountId = UUID.randomUUID().toString();
 
             // When
-            DisableStaffAccountCommand command = sut.toDisableCommand(staffAccountIdToBeDisabled, requestingStaffAccountId);
+            DisableStaffAccountCommand command = StaffAccountMapper.toDisableCommand(staffAccountIdToBeDisabled, requestingStaffAccountId);
 
             // Then
             assertThat(command.staffAccountIdToBeDisabled()).isEqualTo(staffAccountIdToBeDisabled);
@@ -111,7 +111,7 @@ public class StaffAccountMapperTests {
             );
 
             // When
-            DisableStaffAccountResponseDto responseDto = sut.toDisableResponseDto(commandResponse);
+            DisableStaffAccountResponseDto responseDto = StaffAccountMapper.toDisableResponseDto(commandResponse);
 
             // Then
             assertThat(responseDto.id()).isEqualTo(commandResponse.id());
@@ -128,7 +128,7 @@ public class StaffAccountMapperTests {
             String staffAccountIdToBeEnabled = UUID.randomUUID().toString();
             String requestingStaffAccountId = UUID.randomUUID().toString();
 
-            EnableStaffAccountCommand command = sut.toEnableCommand(staffAccountIdToBeEnabled, requestingStaffAccountId);
+            EnableStaffAccountCommand command = StaffAccountMapper.toEnableCommand(staffAccountIdToBeEnabled, requestingStaffAccountId);
 
             assertThat(command.staffAccountIdToBeEnabled()).isEqualTo(staffAccountIdToBeEnabled);
             assertThat(command.requestingStaffAccountId()).isEqualTo(requestingStaffAccountId);
@@ -146,7 +146,7 @@ public class StaffAccountMapperTests {
                     5
             );
 
-            EnableStaffAccountResponseDto responseDto = sut.toEnableResponseDto(commandResponse);
+            EnableStaffAccountResponseDto responseDto = StaffAccountMapper.toEnableResponseDto(commandResponse);
 
             assertThat(responseDto.id()).isEqualTo(commandResponse.id());
             assertThat(responseDto.status()).isEqualTo(commandResponse.status());
@@ -164,7 +164,7 @@ public class StaffAccountMapperTests {
             String requestingStaffAccountId = UUID.randomUUID().toString();
 
             // When
-            ResetStaffAccountPasswordCommand command = sut.toResetPasswordCommand(staffAccountIdToReset, requestingStaffAccountId);
+            ResetStaffAccountPasswordCommand command = StaffAccountMapper.toResetPasswordCommand(staffAccountIdToReset, requestingStaffAccountId);
 
             // Then
             assertThat(command.staffAccountIdToReset()).isEqualTo(staffAccountIdToReset);
@@ -187,7 +187,7 @@ public class StaffAccountMapperTests {
             );
 
             // When
-            ResetStaffAccountPasswordResponseDto responseDto = sut.toResetPasswordResponseDto(commandResponse);
+            ResetStaffAccountPasswordResponseDto responseDto = StaffAccountMapper.toResetPasswordResponseDto(commandResponse);
 
             // Then
             assertThat(responseDto.id()).isEqualTo(commandResponse.id());
@@ -225,7 +225,7 @@ public class StaffAccountMapperTests {
             );
 
             // When
-            GetAllStaffAccountsResponseDto responseDto = sut.toGetAllResponseDto(queryResponse);
+            GetAllStaffAccountsResponseDto responseDto = StaffAccountMapper.toGetAllResponseDto(queryResponse);
 
             // Then
             assertThat(responseDto.staffAccountSummaryResponseDtos()).hasSize(2);
@@ -253,10 +253,38 @@ public class StaffAccountMapperTests {
             GetAllStaffAccountsQueryResponse queryResponse = new GetAllStaffAccountsQueryResponse(List.of());
 
             // When
-            GetAllStaffAccountsResponseDto responseDto = sut.toGetAllResponseDto(queryResponse);
+            GetAllStaffAccountsResponseDto responseDto = StaffAccountMapper.toGetAllResponseDto(queryResponse);
 
             // Then
             assertThat(responseDto.staffAccountSummaryResponseDtos()).isEmpty();
+        }
+    }
+
+    @Nested
+    class ToGetStaffAccountByUsernameDto {
+        @Test
+        void shouldMapAllFieldsCorrectly() {
+            // Given
+            Instant createdAt = Instant.now();
+            GetStaffAccountByUsernameQueryResponse queryResponse = new GetStaffAccountByUsernameQueryResponse(
+                    UUID.randomUUID(),
+                    "john_doe",
+                    "ACTIVE",
+                    15,
+                    5,
+                    createdAt
+            );
+
+            // When
+            GetStaffAccountByUsernameResponseDto responseDto = StaffAccountMapper.toGetStaffAccountByUsernameResponseDto(queryResponse);
+
+            // Then
+            assertThat(responseDto.id()).isEqualTo(queryResponse.id());
+            assertThat(responseDto.username()).isEqualTo(queryResponse.username());
+            assertThat(responseDto.status()).isEqualTo(queryResponse.status());
+            assertThat(responseDto.orderAccessDuration()).isEqualTo(queryResponse.orderAccessDuration());
+            assertThat(responseDto.modmailTranscriptAccessDuration()).isEqualTo(queryResponse.modmailTranscriptAccessDuration());
+            assertThat(responseDto.createdAt()).isEqualTo(queryResponse.createdAt());
         }
     }
 }
