@@ -18,6 +18,10 @@ public class SqlParamsBuilder {
         return this;
     }
 
+    public Object get(String key) {
+        return values.get(key);
+    }
+
     public Map<String, Object> build() {
         return Collections.unmodifiableMap(new HashMap<>(values));
     }
