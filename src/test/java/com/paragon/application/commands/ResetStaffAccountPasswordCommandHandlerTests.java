@@ -14,6 +14,7 @@ import com.paragon.application.common.interfaces.PasswordHasher;
 import com.paragon.domain.interfaces.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.Password;
+import com.paragon.domain.models.valueobjects.PlaintextPassword;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
@@ -70,8 +71,8 @@ public class ResetStaffAccountPasswordCommandHandlerTests {
         when(staffAccountWriteRepoMock.getById(any(StaffAccountId.class)))
                 .thenReturn(Optional.of(staffAccount));
 
-        when(passwordHasherMock.hash(anyString()))
-                .thenReturn("hashed-password");
+        when(passwordHasherMock.hash(any(PlaintextPassword.class)))
+                .thenReturn(Password.of("hashed-password"));
     }
 
     @Test

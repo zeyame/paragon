@@ -1,6 +1,8 @@
 package com.paragon.infrastructure.security;
 
 import com.paragon.application.common.interfaces.PasswordHasher;
+import com.paragon.domain.models.valueobjects.Password;
+import com.paragon.domain.models.valueobjects.PlaintextPassword;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -13,8 +15,9 @@ public class BCryptPasswordHasher implements PasswordHasher {
     }
 
     @Override
-    public String hash(String plainText) {
-        return encoder.encode(plainText);
+    public Password hash(PlaintextPassword plaintextPassword) {
+        String encodedPassword = encoder.encode(plaintextPassword.getValue());
+        return Password.of(encodedPassword);
     }
 
     @Override

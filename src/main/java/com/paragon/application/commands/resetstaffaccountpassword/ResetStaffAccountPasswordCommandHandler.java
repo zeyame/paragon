@@ -50,11 +50,11 @@ public class ResetStaffAccountPasswordCommandHandler implements CommandHandler<R
             StaffAccount staffAccount = staffAccountWriteRepo.getById(staffAccountId)
                     .orElseThrow(() -> new AppException(AppExceptionInfo.staffAccountNotFound(command.staffAccountIdToReset())));
 
-            PlaintextPassword tempPassword = PlaintextPassword.generate();
-            String hashedTempPassword = passwordHasher.hash(tempPassword.getValue());
+            PlaintextPassword plaintextTempPassword = PlaintextPassword.generate();
+            Password hashedTempPassword = passwordHasher.hash(plaintextTempPassword);
 
             StaffAccountId resetBy = StaffAccountId.from(command.requestingStaffAccountId());
-            staffAccount.resetPassword(Password.of(hashedTempPassword), resetBy);
+            staffAccount.resetPassword(hashedTempPassword, resetBy);
             staffAccountWriteRepo.update(staffAccount);
 
             eventBus.publishAll(staffAccount.dequeueUncommittedEvents());
@@ -63,7 +63,7 @@ public class ResetStaffAccountPasswordCommandHandler implements CommandHandler<R
 
             return new ResetStaffAccountPasswordCommandResponse(
                     staffAccount.getId().getValue().toString(),
-                    tempPassword.getValue(),
+                    plaintextTempPassword.getValue(),
                     staffAccount.getStatus().toString(),
                     staffAccount.getPasswordIssuedAt(),
                     staffAccount.getVersion().getValue()

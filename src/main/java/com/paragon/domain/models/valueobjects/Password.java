@@ -22,11 +22,6 @@ public class Password extends ValueObject {
         return new Password(hashedValue);
     }
 
-    public static Password fromPlainText(String plainText, PasswordHasher passwordHasher) {
-        String hashed = passwordHasher.hash(plainText);
-        return new Password(hashed);
-    }
-
     public static Password fromHashed(String hashedValue) {
         return new Password(hashedValue);
     }

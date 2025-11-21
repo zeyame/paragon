@@ -12,7 +12,9 @@ import com.paragon.domain.exceptions.DomainException;
 import com.paragon.application.common.interfaces.PasswordHasher;
 import com.paragon.domain.interfaces.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
+import com.paragon.domain.models.valueobjects.Password;
 import com.paragon.domain.models.valueobjects.PermissionCode;
+import com.paragon.domain.models.valueobjects.PlaintextPassword;
 import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
@@ -52,7 +54,7 @@ public class RegisterStaffAccountCommandHandlerTests {
         command = createValidRegisterStaffAccountCommand();
 
         hashedPassword = "$2a$10$7eqJtq98hPqEX7fNZaFWoOaYp84f5bRC6vh4Y4QJ9hK1QeYUpbFVa";
-        when(passwordHasherMock.hash(anyString())).thenReturn(hashedPassword);
+        when(passwordHasherMock.hash(any(PlaintextPassword.class))).thenReturn(Password.of(hashedPassword));
     }
 
     @Test
