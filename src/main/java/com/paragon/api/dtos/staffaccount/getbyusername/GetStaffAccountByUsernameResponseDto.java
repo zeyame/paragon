@@ -1,10 +1,12 @@
 package com.paragon.api.dtos.staffaccount.getbyusername;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.Instant;
 import java.util.UUID;
 
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public record GetStaffAccountByUsernameResponseDto(
         @JsonProperty("id")
         UUID id,
@@ -13,9 +15,9 @@ public record GetStaffAccountByUsernameResponseDto(
         @JsonProperty("status")
         String status,
         @JsonProperty("order_access_duration")
-        int orderAccessDuration,
+        Integer orderAccessDuration,
         @JsonProperty("modmail_transcript_access_duration")
-        int modmailTranscriptAccessDuration,
+        Integer modmailTranscriptAccessDuration,
         @JsonProperty("created_at")
         Instant createdAt
 ) {
@@ -24,8 +26,8 @@ public record GetStaffAccountByUsernameResponseDto(
                 null,
                 null,
                 null,
-                0,
-                0,
+                null,
+                null,
                 null
         );
     }

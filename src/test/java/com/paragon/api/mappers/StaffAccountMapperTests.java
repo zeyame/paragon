@@ -303,8 +303,8 @@ public class StaffAccountMapperTests {
             assertThat(responseDto.id()).isNull();
             assertThat(responseDto.username()).isNull();
             assertThat(responseDto.status()).isNull();
-            assertThat(responseDto.orderAccessDuration()).isZero();
-            assertThat(responseDto.modmailTranscriptAccessDuration()).isZero();
+            assertThat(responseDto.orderAccessDuration()).isNull();
+            assertThat(responseDto.modmailTranscriptAccessDuration()).isNull();
             assertThat(responseDto.createdAt()).isNull();
         }
     }
