@@ -96,7 +96,7 @@ public class RefreshTokenTests {
             RefreshToken refreshToken = RefreshTokenFixture.validRefreshToken();
 
             // When
-            refreshToken.replace();
+            refreshToken.replace(RefreshTokenHash.of("hashed-token"));
 
             // Then
             assertThat(refreshToken.isRevoked()).isTrue();
@@ -108,10 +108,83 @@ public class RefreshTokenTests {
             RefreshToken refreshToken = RefreshTokenFixture.validRefreshToken();
 
             // When
-            refreshToken.replace();
+            refreshToken.replace(RefreshTokenHash.of("hashed-token"));
 
             // Then
             assertThat(refreshToken.getReplacedBy()).isNotNull();
+        }
+
+        @Test
+        void shouldReturnNewTokenWithDifferentIdAndHash() {
+            // Given
+            RefreshToken refreshToken = RefreshTokenFixture.validRefreshToken();
+
+            // When
+            RefreshToken newToken = refreshToken.replace(RefreshTokenHash.of("new-hash"));
+
+            // Then
+            assertThat(newToken.getId()).isNotEqualTo(refreshToken.getId());
+            assertThat(newToken.getTokenHash()).isNotEqualTo(refreshToken.getTokenHash());
+        }
+
+        @Test
+        void shouldReturnNewTokenWithSameStaffAccountId() {
+            // Given
+            RefreshToken refreshToken = RefreshTokenFixture.validRefreshToken();
+
+            // When
+            RefreshToken newToken = refreshToken.replace(RefreshTokenHash.of("new-hash"));
+
+            // Then
+            assertThat(refreshToken.getStaffAccountId()).isEqualTo(newToken.getStaffAccountId());
+        }
+
+        @Test
+        void shouldReturnNewTokenWithSameIpAddress() {
+            // Given
+            RefreshToken refreshToken = RefreshTokenFixture.validRefreshToken();
+
+            // When
+            RefreshToken newToken = refreshToken.replace(RefreshTokenHash.of("new-hash"));
+
+            // Then
+            assertThat(refreshToken.getIssuedFromIpAddress()).isEqualTo(newToken.getIssuedFromIpAddress());
+        }
+
+        @Test
+        void shouldSetRevokedAtTimestamp() {
+            // Given
+            RefreshToken refreshToken = RefreshTokenFixture.validRefreshToken();
+
+            // When
+            refreshToken.replace(RefreshTokenHash.of("new-hash"));
+
+            // Then
+            assertThat(refreshToken.getRevokedAt()).isNotNull();
+        }
+
+        @Test
+        void shouldIncreaseVersionOfReplacedToken() {
+            // Given
+            RefreshToken refreshToken = RefreshTokenFixture.validRefreshToken();
+
+            // When
+            refreshToken.replace(RefreshTokenHash.of("new-hash"));
+
+            // Then
+            assertThat(refreshToken.getVersion().getValue()).isEqualTo(2);
+        }
+
+        @Test
+        void shouldLinkReplacedTokenToNewToken() {
+            // Given
+            RefreshToken refreshToken = RefreshTokenFixture.validRefreshToken();
+
+            // When
+            RefreshToken newToken = refreshToken.replace(RefreshTokenHash.of("new-hash"));
+
+            // Then
+            assertThat(refreshToken.getReplacedBy()).isEqualTo(newToken.getId());
         }
 
         @Test
@@ -121,7 +194,7 @@ public class RefreshTokenTests {
 
             // When & Then
             assertThatExceptionOfType(RefreshTokenException.class)
-                    .isThrownBy(refreshToken::replace)
+                    .isThrownBy(() -> refreshToken.replace(RefreshTokenHash.of("new-hash")))
                     .extracting("domainErrorCode", "message")
                     .containsExactly(
                             RefreshTokenExceptionInfo.tokenAlreadyRevoked().getDomainErrorCode(),

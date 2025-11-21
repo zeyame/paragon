@@ -21,7 +21,7 @@ public class RefreshToken extends EventSourcedAggregate<DomainEvent, RefreshToke
     private final Instant expiresAt;
     private boolean isRevoked;
     private Instant revokedAt;
-    private final RefreshTokenId replacedBy;
+    private RefreshTokenId replacedBy;
     private static final Duration EXPIRY_DURATION = Duration.ofDays(7);
 
     private RefreshToken(RefreshTokenId refreshTokenId,
@@ -60,8 +60,19 @@ public class RefreshToken extends EventSourcedAggregate<DomainEvent, RefreshToke
         increaseVersion();
     }
 
-    public RefreshToken replace() {
-        return null;
+    public RefreshToken replace(RefreshTokenHash newTokenHash) {
+        throwIfTokenIsAlreadyRevoked();
+        this.isRevoked = true;
+        this.revokedAt = Instant.now();
+
+        RefreshTokenId newTokenId = RefreshTokenId.generate();
+        this.replacedBy = newTokenId;
+        increaseVersion();
+
+        return new RefreshToken(
+                newTokenId, newTokenHash, staffAccountId, issuedFromIpAddress,
+                Instant.now().plus(EXPIRY_DURATION), false, null, null, Version.initial()
+        );
     }
 
     public static RefreshToken createFrom(RefreshTokenId refreshTokenId,
