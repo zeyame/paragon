@@ -91,4 +91,10 @@ public class RefreshTokenFixture {
                 .withRevokedAt(Instant.now())
                 .build();
     }
+
+    public static RefreshToken expiredRefreshToken() {
+        return new RefreshTokenFixture()
+                .withExpiresAt(Instant.now().minusSeconds(1))
+                .build();
+    }
 }
