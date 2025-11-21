@@ -3,6 +3,7 @@ package com.paragon.integration.persistence;
 import com.paragon.domain.interfaces.RefreshTokenWriteRepo;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.aggregates.StaffAccount;
+import com.paragon.domain.models.valueobjects.RefreshTokenHash;
 import com.paragon.helpers.TestJdbcHelper;
 import com.paragon.helpers.fixtures.RefreshTokenFixture;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
@@ -57,9 +58,40 @@ public class RefreshTokenWriteRepoTests {
     }
 
     @Nested
+    class GetByTokenHash extends IntegrationTestBase {
+        private final RefreshTokenWriteRepo sut;
+        private final TestJdbcHelper jdbcHelper;
+
+        @Autowired
+        public GetByTokenHash(WriteJdbcHelper writeJdbcHelper) {
+            sut = new RefreshTokenWriteRepoImpl(writeJdbcHelper);
+            jdbcHelper = new TestJdbcHelper(writeJdbcHelper);
+        }
+
+        @Test
+        void shouldGetRefreshTokenByTokenHash() {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withCreatedBy(adminId)
+                    .build();
+            jdbcHelper.insertStaffAccount(staffAccount);
+
+            RefreshToken refreshToken = new RefreshTokenFixture()
+                    .withTokenHash("token-hash")
+                    .withStaffAccountId(staffAccount.getId().getValue().toString())
+                    .build();
+            jdbcHelper.insertRefreshToken(refreshToken);
+
+            // When
+            Optional<RefreshToken> optionalRefreshToken = sut.getByTokenHash(RefreshTokenHash.of("token-hash"));
+            assertThat(optionalRefreshToken).isPresent();
+            assertThat(optionalRefreshToken.get()).isEqualTo(refreshToken);
+        }
+    }
+
+    @Nested
     class GetActiveTokensByStaffAccountId extends IntegrationTestBase {
         private final RefreshTokenWriteRepoImpl sut;
-        private WriteJdbcHelper writeJdbcHelper;
         private final TestJdbcHelper jdbcHelper;
 
         @Autowired
