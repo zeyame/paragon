@@ -5,7 +5,7 @@ import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryRead
 import java.time.Instant;
 import java.util.UUID;
 
-public class StaffAccountSummaryModelFixture {
+public class StaffAccountSummaryReadModelFixture {
     private UUID id = UUID.randomUUID();
     private String username = "testuser";
     private String status = "PENDING_PASSWORD_CHANGE";
@@ -13,32 +13,32 @@ public class StaffAccountSummaryModelFixture {
     private int modmailTranscriptAccessDuration = 14;
     private Instant createdAtUtc = Instant.now();
 
-    public StaffAccountSummaryModelFixture withId(UUID value) {
+    public StaffAccountSummaryReadModelFixture withId(UUID value) {
         this.id = value;
         return this;
     }
 
-    public StaffAccountSummaryModelFixture withUsername(String value) {
+    public StaffAccountSummaryReadModelFixture withUsername(String value) {
         this.username = value;
         return this;
     }
 
-    public StaffAccountSummaryModelFixture withStatus(String value) {
+    public StaffAccountSummaryReadModelFixture withStatus(String value) {
         this.status = value;
         return this;
     }
 
-    public StaffAccountSummaryModelFixture withOrderAccessDuration(int days) {
+    public StaffAccountSummaryReadModelFixture withOrderAccessDuration(int days) {
         this.orderAccessDuration = days;
         return this;
     }
 
-    public StaffAccountSummaryModelFixture withModmailTranscriptAccessDuration(int days) {
+    public StaffAccountSummaryReadModelFixture withModmailTranscriptAccessDuration(int days) {
         this.modmailTranscriptAccessDuration = days;
         return this;
     }
 
-    public StaffAccountSummaryModelFixture withCreatedAtUtc(Instant value) {
+    public StaffAccountSummaryReadModelFixture withCreatedAtUtc(Instant value) {
         this.createdAtUtc = value;
         return this;
     }
@@ -55,6 +55,6 @@ public class StaffAccountSummaryModelFixture {
     }
 
     public static StaffAccountSummaryReadModel validStaffAccountSummary() {
-        return new StaffAccountSummaryModelFixture().build();
+        return new StaffAccountSummaryReadModelFixture().build();
     }
 }

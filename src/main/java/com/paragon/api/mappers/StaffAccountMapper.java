@@ -20,6 +20,8 @@ import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQu
 import com.paragon.application.queries.getallstaffaccounts.StaffAccountSummary;
 import com.paragon.application.queries.getstaffaccountbyusername.GetStaffAccountByUsernameQueryResponse;
 
+import java.util.Optional;
+
 public class StaffAccountMapper {
     public static RegisterStaffAccountCommand toRegisterCommand(RegisterStaffAccountRequestDto requestDto, String requestingStaffAccountId) {
         return new RegisterStaffAccountCommand(
@@ -103,13 +105,15 @@ public class StaffAccountMapper {
     }
 
     public static GetStaffAccountByUsernameResponseDto toGetStaffAccountByUsernameResponseDto(GetStaffAccountByUsernameQueryResponse queryResponse) {
-        return new GetStaffAccountByUsernameResponseDto(
-                queryResponse.id(),
-                queryResponse.username(),
-                queryResponse.status(),
-                queryResponse.orderAccessDuration(),
-                queryResponse.modmailTranscriptAccessDuration(),
-                queryResponse.createdAt()
-        );
+        return queryResponse.staffAccountSummary()
+                .map(summary -> new GetStaffAccountByUsernameResponseDto(
+                        summary.id(),
+                        summary.username(),
+                        summary.status(),
+                        summary.orderAccessDuration(),
+                        summary.modmailTranscriptAccessDuration(),
+                        summary.createdAtUtc()
+                ))
+                .orElseGet(GetStaffAccountByUsernameResponseDto::empty);
     }
 }

@@ -44,6 +44,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
@@ -619,21 +620,21 @@ public class StaffAccountControllerTests {
         @Test
         void shouldReturnExpectedResponse() {
             // Given
-            String username = "john_doe";
-
-            GetStaffAccountByUsernameQueryResponse queryResponse = new GetStaffAccountByUsernameQueryResponse(
+            StaffAccountSummary staffAccountSummary = new StaffAccountSummary(
                     UUID.randomUUID(),
-                    username,
+                    "john_doe",
                     "PENDING_PASSWORD_CHANGE",
                     10,
                     20,
                     Instant.now()
             );
+
+            GetStaffAccountByUsernameQueryResponse queryResponse = new GetStaffAccountByUsernameQueryResponse(Optional.of(staffAccountSummary));
             when(getStaffAccountByUsernameQueryHandlerMock.handle(any(GetStaffAccountByUsernameQuery.class)))
                     .thenReturn(queryResponse);
 
             // When
-            CompletableFuture<ResponseEntity<ResponseDto<GetStaffAccountByUsernameResponseDto>>> futureDto = sut.getByUsername(username);
+            CompletableFuture<ResponseEntity<ResponseDto<GetStaffAccountByUsernameResponseDto>>> futureDto = sut.getByUsername("john_doe");
 
             // Then
             ResponseDto<GetStaffAccountByUsernameResponseDto> responseDto = futureDto.join().getBody();
@@ -641,12 +642,12 @@ public class StaffAccountControllerTests {
             assertThat(responseDto.errorDto()).isNull();;
 
             GetStaffAccountByUsernameResponseDto result = responseDto.result();
-            assertThat(result.id()).isEqualTo(queryResponse.id());
-            assertThat(result.username()).isEqualTo(username);
-            assertThat(result.status()).isEqualTo(queryResponse.status());
-            assertThat(result.orderAccessDuration()).isEqualTo(queryResponse.orderAccessDuration());
-            assertThat(result.modmailTranscriptAccessDuration()).isEqualTo(queryResponse.modmailTranscriptAccessDuration());
-            assertThat(result.createdAt()).isEqualTo(queryResponse.createdAt());
+            assertThat(result.id()).isEqualTo(staffAccountSummary.id());
+            assertThat(result.username()).isEqualTo("john_doe");
+            assertThat(result.status()).isEqualTo(staffAccountSummary.status());
+            assertThat(result.orderAccessDuration()).isEqualTo(staffAccountSummary.orderAccessDuration());
+            assertThat(result.modmailTranscriptAccessDuration()).isEqualTo(staffAccountSummary.modmailTranscriptAccessDuration());
+            assertThat(result.createdAt()).isEqualTo(staffAccountSummary.createdAtUtc());
         }
 
         @Test

@@ -1,14 +1,8 @@
 package com.paragon.application.queries.getstaffaccountbyusername;
 
-import java.time.Instant;
-import java.util.UUID;
+import com.paragon.application.queries.getallstaffaccounts.StaffAccountSummary;
 
-public record GetStaffAccountByUsernameQueryResponse(
-        UUID id,
-        String username,
-        String status,
-        int orderAccessDuration,
-        int modmailTranscriptAccessDuration,
-        Instant createdAt
-) {
+import java.util.Optional;
+
+public record GetStaffAccountByUsernameQueryResponse(Optional<StaffAccountSummary> staffAccountSummary) {
 }

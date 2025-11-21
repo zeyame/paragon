@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -263,28 +264,48 @@ public class StaffAccountMapperTests {
     @Nested
     class ToGetStaffAccountByUsernameDto {
         @Test
-        void shouldMapAllFieldsCorrectly() {
+        void shouldMapAllFieldsCorrectlyWhenStaffAccountExists() {
             // Given
             Instant createdAt = Instant.now();
             GetStaffAccountByUsernameQueryResponse queryResponse = new GetStaffAccountByUsernameQueryResponse(
-                    UUID.randomUUID(),
-                    "john_doe",
-                    "ACTIVE",
-                    15,
-                    5,
-                    createdAt
+                    Optional.of(new StaffAccountSummary(
+                            UUID.randomUUID(),
+                            "john_doe",
+                            "ACTIVE",
+                            15,
+                            5,
+                            createdAt
+                    ))
             );
 
             // When
             GetStaffAccountByUsernameResponseDto responseDto = StaffAccountMapper.toGetStaffAccountByUsernameResponseDto(queryResponse);
 
             // Then
-            assertThat(responseDto.id()).isEqualTo(queryResponse.id());
-            assertThat(responseDto.username()).isEqualTo(queryResponse.username());
-            assertThat(responseDto.status()).isEqualTo(queryResponse.status());
-            assertThat(responseDto.orderAccessDuration()).isEqualTo(queryResponse.orderAccessDuration());
-            assertThat(responseDto.modmailTranscriptAccessDuration()).isEqualTo(queryResponse.modmailTranscriptAccessDuration());
-            assertThat(responseDto.createdAt()).isEqualTo(queryResponse.createdAt());
+            StaffAccountSummary staffAccountSummary = queryResponse.staffAccountSummary().get();
+            assertThat(responseDto.id()).isEqualTo(staffAccountSummary.id());
+            assertThat(responseDto.username()).isEqualTo(staffAccountSummary.username());
+            assertThat(responseDto.status()).isEqualTo(staffAccountSummary.status());
+            assertThat(responseDto.orderAccessDuration()).isEqualTo(staffAccountSummary.orderAccessDuration());
+            assertThat(responseDto.modmailTranscriptAccessDuration()).isEqualTo(staffAccountSummary.modmailTranscriptAccessDuration());
+            assertThat(responseDto.createdAt()).isEqualTo(staffAccountSummary.createdAtUtc());
+        }
+
+        @Test
+        void shouldReturnEmptyResponseDtoWhenStaffAccountDoesNotExist() {
+            // Given
+            GetStaffAccountByUsernameQueryResponse queryResponse = new GetStaffAccountByUsernameQueryResponse(Optional.empty());
+
+            // When
+            GetStaffAccountByUsernameResponseDto responseDto = StaffAccountMapper.toGetStaffAccountByUsernameResponseDto(queryResponse);
+
+            // Then
+            assertThat(responseDto.id()).isNull();
+            assertThat(responseDto.username()).isNull();
+            assertThat(responseDto.status()).isNull();
+            assertThat(responseDto.orderAccessDuration()).isZero();
+            assertThat(responseDto.modmailTranscriptAccessDuration()).isZero();
+            assertThat(responseDto.createdAt()).isNull();
         }
     }
 }
