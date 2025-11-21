@@ -75,6 +75,10 @@ public class RefreshToken extends EventSourcedAggregate<DomainEvent, RefreshToke
         );
     }
 
+    public boolean isExpired() {
+        return !expiresAt.isAfter(Instant.now());
+    }
+
     public static RefreshToken createFrom(RefreshTokenId refreshTokenId,
                                           RefreshTokenHash tokenHash,
                                           StaffAccountId staffAccountId,

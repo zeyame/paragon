@@ -202,4 +202,34 @@ public class RefreshTokenTests {
                     );
         }
     }
+
+    @Nested
+    class IsExpired {
+        @Test
+        void shouldReturnTrueIfTokenIsExpired() {
+            RefreshToken refreshToken = new RefreshTokenFixture()
+                    .withExpiresAt(Instant.now().minusSeconds(1))
+                    .build();
+
+            assertThat(refreshToken.isExpired()).isTrue();
+        }
+
+        @Test
+        void shouldReturnTrueWhenTokenHasJustExpired() {
+            RefreshToken refreshToken = new RefreshTokenFixture()
+                    .withExpiresAt(Instant.now())
+                    .build();
+
+            assertThat(refreshToken.isExpired()).isTrue();
+        }
+
+        @Test
+        void shouldReturnFalseWhenTokenIsNotExpired() {
+            RefreshToken refreshToken = new RefreshTokenFixture()
+                    .withExpiresAt(Instant.now().plusSeconds(1))
+                    .build();
+
+            assertThat(refreshToken.isExpired()).isFalse();
+        }
+    }
 }
