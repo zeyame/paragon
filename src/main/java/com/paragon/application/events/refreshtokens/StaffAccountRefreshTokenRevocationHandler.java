@@ -1,6 +1,7 @@
 package com.paragon.application.events.refreshtokens;
 
 import com.paragon.application.events.EventHandler;
+import com.paragon.application.services.StaffAccountRefreshTokenRevocationService;
 import com.paragon.domain.events.EventNames;
 import com.paragon.domain.events.staffaccountevents.StaffAccountEventBase;
 import com.paragon.domain.exceptions.DomainException;
@@ -15,11 +16,11 @@ import java.util.List;
 
 @Component
 public class StaffAccountRefreshTokenRevocationHandler implements EventHandler<StaffAccountEventBase> {
-    private final RefreshTokenWriteRepo refreshTokenWriteRepo;
+    private final StaffAccountRefreshTokenRevocationService revocationService;
     private static final Logger log = LoggerFactory.getLogger(StaffAccountRefreshTokenRevocationHandler.class);
 
-    public StaffAccountRefreshTokenRevocationHandler(RefreshTokenWriteRepo refreshTokenWriteRepo) {
-        this.refreshTokenWriteRepo = refreshTokenWriteRepo;
+    public StaffAccountRefreshTokenRevocationHandler(StaffAccountRefreshTokenRevocationService revocationService) {
+        this.revocationService = revocationService;
     }
 
     @Override
@@ -27,13 +28,9 @@ public class StaffAccountRefreshTokenRevocationHandler implements EventHandler<S
         try {
             log.info("Attempting to revoke all active refresh tokens for staff account with ID: {}, in event: {}",
                     event.getStaffAccountId().getValue(), event.getEventName());
-
-            List<RefreshToken> activeTokens = refreshTokenWriteRepo.getActiveTokensByStaffAccountId(event.getStaffAccountId());
-            activeTokens.forEach(RefreshToken::revoke);
-            refreshTokenWriteRepo.updateAll(activeTokens);
-
-            log.info("Successfully revoked {} active refresh token(s) for staff account with ID: {}, in event: {}",
-                    activeTokens.size(), event.getStaffAccountId().getValue(), event.getEventName());
+            revocationService.revokeAllTokensForStaffAccount(event.getStaffAccountId());
+            log.info("Successfully revoked all active refresh tokens for staff account with ID: {}, in event: {}",
+                    event.getStaffAccountId().getValue(), event.getEventName());
         } catch (DomainException ex) {
             log.error("Domain rule violation while revoking refresh tokens for staff account with ID={}, in event: {}. Error reason: {}",
                     event.getStaffAccountId().getValue(), event.getEventName(), ex.getMessage(), ex);

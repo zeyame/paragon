@@ -1,6 +1,10 @@
 package com.paragon.application.events.refreshtokens;
 
+import com.paragon.application.services.StaffAccountRefreshTokenRevocationService;
+import com.paragon.domain.events.staffaccountevents.StaffAccountDisabledEvent;
+import com.paragon.domain.events.staffaccountevents.StaffAccountEventBase;
 import com.paragon.domain.events.staffaccountevents.StaffAccountLockedEvent;
+import com.paragon.domain.events.staffaccountevents.StaffAccountPasswordResetEvent;
 import com.paragon.domain.interfaces.RefreshTokenWriteRepo;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
@@ -23,69 +27,29 @@ import static org.mockito.Mockito.*;
 
 public class StaffAccountRefreshTokenRevocationHandlerTests {
     private final StaffAccountRefreshTokenRevocationHandler sut;
-    private final RefreshTokenWriteRepo refreshTokenWriteRepoMock;
+    private final StaffAccountRefreshTokenRevocationService staffAccountRefreshTokenRevocationServiceMock;
 
     StaffAccountRefreshTokenRevocationHandlerTests() {
-        this.refreshTokenWriteRepoMock = mock(RefreshTokenWriteRepo.class);
-        sut = new StaffAccountRefreshTokenRevocationHandler(refreshTokenWriteRepoMock);
+        staffAccountRefreshTokenRevocationServiceMock = mock(StaffAccountRefreshTokenRevocationService.class);
+        sut = new StaffAccountRefreshTokenRevocationHandler(staffAccountRefreshTokenRevocationServiceMock);
     }
 
     @ParameterizedTest
     @MethodSource("provideEvents")
-    void shouldRevokeAllTokensForStaffAccount(StaffAccountLockedEvent event) {
-        // Given
-        ArgumentCaptor<List<RefreshToken>> revokedTokensCaptor = ArgumentCaptor.forClass(List.class);
-        List<RefreshToken> activeTokens = List.of(RefreshTokenFixture.validRefreshToken(), RefreshTokenFixture.validRefreshToken());
-
-        when(refreshTokenWriteRepoMock.getActiveTokensByStaffAccountId(any(StaffAccountId.class)))
-                .thenReturn(activeTokens);
-
+    void shouldCallRevocationService(StaffAccountEventBase event) {
         // When
         sut.handle(event);
 
         // Then
-        for (RefreshToken token : activeTokens) {
-            assertThat(token.isRevoked()).isTrue();
-        }
-
-        verify(refreshTokenWriteRepoMock, times(1)).updateAll(revokedTokensCaptor.capture());
-        List<RefreshToken> revokedTokens = revokedTokensCaptor.getValue();
-        assertThat(revokedTokens.size()).isEqualTo(activeTokens.size());
-    }
-
-    @Test
-    void shouldCatchDomainException() {
-        // Given
-        List<RefreshToken> refreshTokens = List.of(
-                new RefreshTokenFixture()
-                        .withRevoked(true) // forces a domain exception
-                        .withRevokedAt(Instant.now())
-                        .build()
-        );
-
-        when(refreshTokenWriteRepoMock.getActiveTokensByStaffAccountId(any(StaffAccountId.class)))
-                .thenReturn(refreshTokens);
-
-        // When & Then
-        assertThatNoException()
-                .isThrownBy(() -> sut.handle(new StaffAccountLockedEvent(StaffAccountFixture.validStaffAccount())));
-    }
-
-    @Test
-    void shouldCatchInfraException() {
-        // Given
-        doThrow(InfraException.class)
-                .when(refreshTokenWriteRepoMock)
-                .getActiveTokensByStaffAccountId(any(StaffAccountId.class));
-
-        // When & Then
-        assertThatNoException()
-                .isThrownBy(() -> sut.handle(new StaffAccountLockedEvent(StaffAccountFixture.validStaffAccount())));
+        verify(staffAccountRefreshTokenRevocationServiceMock, times(1))
+                .revokeAllTokensForStaffAccount(event.getStaffAccountId());
     }
 
     private static Stream<Arguments> provideEvents() {
         return Stream.of(
-                Arguments.of(new StaffAccountLockedEvent(StaffAccountFixture.validStaffAccount()))
+                Arguments.of(new StaffAccountLockedEvent(StaffAccountFixture.validStaffAccount())),
+                Arguments.of(new StaffAccountDisabledEvent(StaffAccountFixture.validStaffAccount())),
+                Arguments.of(new StaffAccountPasswordResetEvent(StaffAccountFixture.validStaffAccount()))
         );
     }
 }
