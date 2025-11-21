@@ -21,6 +21,17 @@ public class AppExceptionInfoTests {
     }
 
     @Test
+    void refreshTokenNotFound_shouldHaveExpectedCodeAndMessage() {
+        // When
+        AppExceptionInfo info = AppExceptionInfo.refreshTokenNotFound();
+
+        // Then
+        assertThat(info.getMessage()).isEqualTo("The provided refresh token does not exist.");
+        assertThat(info.getAppErrorCode()).isEqualTo(102);
+        assertThat(info.getStatusCode()).isEqualTo(AppExceptionStatusCode.RESOURCE_NOT_FOUND);
+    }
+
+    @Test
     void staffAccountUsernameAlreadyExists_shouldHaveExpectedCodeAndMessage() {
         // Given
         String username = "admin";

@@ -22,6 +22,14 @@ public class AppExceptionInfo {
         );
     }
 
+    public static AppExceptionInfo refreshTokenNotFound() {
+        return new AppExceptionInfo(
+                "The provided refresh token does not exist.",
+                102,
+                AppExceptionStatusCode.RESOURCE_NOT_FOUND
+        );
+    }
+
     public static AppExceptionInfo staffAccountUsernameAlreadyExists(String username) {
         return new AppExceptionInfo(
                 String.format("A staff account with username '%s' already exists.", username),
