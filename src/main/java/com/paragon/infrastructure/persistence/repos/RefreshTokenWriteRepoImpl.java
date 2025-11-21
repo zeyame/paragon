@@ -4,6 +4,7 @@ import com.paragon.domain.interfaces.RefreshTokenWriteRepo;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.infrastructure.persistence.daos.RefreshTokenDao;
+import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
@@ -68,6 +69,28 @@ public class RefreshTokenWriteRepoImpl implements RefreshTokenWriteRepo {
         return refreshTokenDaos.stream()
                 .map(RefreshTokenDao::toRefreshToken)
                 .toList();
+    }
+
+    @Override
+    public void update(RefreshToken refreshToken) {
+        String sql = """
+                    UPDATE refresh_tokens
+                    SET is_revoked = :isRevoked, revoked_at_utc = :revokedAtUtc, replaced_by = :replacedBy, version = :version, updated_at_utc = :updatedAtUtc
+                    WHERE id = :id
+                    """;
+
+        SqlParamsBuilder params = new SqlParamsBuilder()
+                .add("id", refreshToken.getId().getValue())
+                .add("isRevoked", refreshToken.isRevoked())
+                .add("revokedAtUtc", refreshToken.getRevokedAt())
+                .add("replacedBy", refreshToken.getReplacedBy() != null ? refreshToken.getReplacedBy().getValue() : null)
+                .add("version", refreshToken.getVersion().getValue())
+                .add("updatedAtUtc", Instant.now());
+
+        int affectedRows = jdbcHelper.execute(new SqlStatement(sql, params));
+        if (affectedRows != 1) {
+            throw new InfraException(); // potential concurrency detected
+        }
     }
 
     @Override

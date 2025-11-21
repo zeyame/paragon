@@ -1,17 +1,21 @@
 package com.paragon.infrastructure.persistence.repos;
 
+import com.paragon.domain.interfaces.RefreshTokenWriteRepo;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.helpers.fixtures.RefreshTokenDaoFixture;
 import com.paragon.helpers.fixtures.RefreshTokenFixture;
+import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.daos.RefreshTokenDao;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
+import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
@@ -147,6 +151,78 @@ public class RefreshTokenWriteRepoTests {
 
             // When & Then
             assertThatThrownBy(() -> sut.getActiveTokensByStaffAccountId(StaffAccountId.generate()))
+                    .isInstanceOf(InfraException.class);
+        }
+    }
+
+    @Nested
+    class Update {
+        private final WriteJdbcHelper jdbcHelperMock;
+        private final RefreshTokenWriteRepo sut;
+
+        public Update() {
+            jdbcHelperMock = mock(WriteJdbcHelper.class);
+            sut = new RefreshTokenWriteRepoImpl(jdbcHelperMock);
+        }
+
+        @Test
+        void shouldExecuteUpdateWithCorrectSqlAndParams() {
+            // Given
+            RefreshToken refreshToken = RefreshTokenFixture.revokedRefreshToken();
+
+            String expectedSql = """
+                    UPDATE refresh_tokens
+                    SET is_revoked = :isRevoked, revoked_at_utc = :revokedAtUtc, replaced_by = :replacedBy, version = :version, updated_at_utc = :updatedAtUtc
+                    WHERE id = :id
+                    """;
+
+            SqlParamsBuilder expectedParams = new SqlParamsBuilder()
+                    .add("id", refreshToken.getId().getValue())
+                    .add("isRevoked", refreshToken.isRevoked())
+                    .add("revokedAtUtc", refreshToken.getRevokedAt())
+                    .add("replacedBy", refreshToken.getReplacedBy() != null ? refreshToken.getReplacedBy().getValue() : null)
+                    .add("version", refreshToken.getVersion().getValue())
+                    .add("updatedAtUtc", Instant.now());
+
+            when(jdbcHelperMock.execute(any(SqlStatement.class)))
+                    .thenReturn(1);
+
+            // When
+            sut.update(refreshToken);
+
+            // Then
+            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
+            verify(jdbcHelperMock, times(1)).execute(sqlStatementCaptor.capture());
+
+            SqlStatement sqlStatement = sqlStatementCaptor.getValue();
+            assertThat(sqlStatement.sql()).isEqualTo(expectedSql);
+            assertThat(sqlStatement.params().get("id")).isEqualTo(expectedParams.get("id"));
+            assertThat(sqlStatement.params().get("isRevoked")).isEqualTo(expectedParams.get("isRevoked"));
+            assertThat(sqlStatement.params().get("revokedAtUtc")).isEqualTo(expectedParams.get("revokedAtUtc"));
+            assertThat(sqlStatement.params().get("replacedBy")).isEqualTo(expectedParams.get("replacedBy"));
+            assertThat(sqlStatement.params().get("version")).isEqualTo(expectedParams.get("version"));
+            assertThat(sqlStatement.params().get("updatedAtUtc")).isNotNull();
+        }
+
+        @Test
+        void shouldThrowInfraException_whenExecuteReturnsNoAffectedRows() {
+            // Given
+            when(jdbcHelperMock.execute(any(SqlStatement.class))).thenReturn(0); // potential concurrency
+
+            // When & Then
+            assertThatExceptionOfType(InfraException.class)
+                    .isThrownBy(() -> sut.update(RefreshTokenFixture.validRefreshToken()));
+        }
+
+        @Test
+        void shouldPropagateInfraException_whenJdbcHelperThrows() {
+            // Given
+            doThrow(InfraException.class)
+                    .when(jdbcHelperMock)
+                    .execute(any(SqlStatement.class));
+
+            // When & Then
+            assertThatThrownBy(() -> sut.update(RefreshTokenFixture.validRefreshToken()))
                     .isInstanceOf(InfraException.class);
         }
     }

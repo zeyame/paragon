@@ -8,5 +8,6 @@ import java.util.List;
 public interface RefreshTokenWriteRepo {
     void create(RefreshToken refreshToken);
     List<RefreshToken> getActiveTokensByStaffAccountId(StaffAccountId staffAccountId);
+    void update(RefreshToken refreshToken);
     void updateAll(List<RefreshToken> refreshTokens);
 }
