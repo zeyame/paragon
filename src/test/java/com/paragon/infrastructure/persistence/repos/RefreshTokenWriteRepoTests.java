@@ -2,6 +2,7 @@ package com.paragon.infrastructure.persistence.repos;
 
 import com.paragon.domain.interfaces.RefreshTokenWriteRepo;
 import com.paragon.domain.models.aggregates.RefreshToken;
+import com.paragon.domain.models.valueobjects.RefreshTokenHash;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.helpers.fixtures.RefreshTokenDaoFixture;
 import com.paragon.helpers.fixtures.RefreshTokenFixture;
@@ -17,6 +18,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -83,6 +85,78 @@ public class RefreshTokenWriteRepoTests {
             // When & Then
             assertThatExceptionOfType(InfraException.class)
                     .isThrownBy(() -> sut.create(refreshToken));
+        }
+    }
+
+    @Nested
+    class GetByTokenHash {
+        private final WriteJdbcHelper jdbcHelperMock;
+        private final RefreshTokenWriteRepo sut;
+
+        public GetByTokenHash() {
+            jdbcHelperMock = mock(WriteJdbcHelper.class);
+            sut = new RefreshTokenWriteRepoImpl(jdbcHelperMock);
+        }
+
+        @Test
+        void shouldReturnRefreshToken() {
+            // Given
+            RefreshTokenDao refreshTokenDao = RefreshTokenDaoFixture.validRefreshTokenDao();
+            when(jdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(RefreshTokenDao.class)))
+                    .thenReturn(Optional.of(refreshTokenDao));
+
+            // When
+            Optional<RefreshToken> optionalRefreshToken = sut.getByTokenHash(RefreshTokenHash.of("token-hash"));
+
+            // Then
+            assertThat(optionalRefreshToken).isPresent();
+            assertThat(optionalRefreshToken.get()).isEqualTo(refreshTokenDao.toRefreshToken());
+        }
+
+        @Test
+        void shouldCallJdbcHelperWithCorrectSqlAndParams() {
+            // Given
+            RefreshTokenHash tokenHash = RefreshTokenHash.of("token-hash");
+            String expectedSql = """
+                        SELECT * FROM refresh_tokens
+                        WHERE token_hash = :tokenHash
+                    """;
+
+            // When
+            sut.getByTokenHash(tokenHash);
+
+            // Then
+            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
+            verify(jdbcHelperMock, times(1)).queryFirstOrDefault(sqlStatementCaptor.capture(), eq(RefreshTokenDao.class));
+
+            SqlStatement sqlStatement = sqlStatementCaptor.getValue();
+            assertThat(sqlStatement.sql()).isEqualTo(expectedSql);
+            assertThat(sqlStatement.params().get("tokenHash")).isEqualTo(tokenHash.getValue());
+        }
+
+        @Test
+        void shouldReturnEmptyOptional_whenTokenHashDoesNotExist() {
+            // Given
+            when(jdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(RefreshTokenDao.class)))
+                    .thenReturn(Optional.empty());
+
+            // When
+            Optional<RefreshToken> optionalRefreshToken = sut.getByTokenHash(RefreshTokenHash.of("token-hash"));
+
+            // Then
+            assertThat(optionalRefreshToken).isEmpty();
+        }
+
+        @Test
+        void shouldPropagateInfraException_whenJdbcHelperThrows() {
+            // Given
+            doThrow(InfraException.class)
+                    .when(jdbcHelperMock)
+                    .queryFirstOrDefault(any(SqlStatement.class), eq(RefreshTokenDao.class));
+
+            // When & Then
+            assertThatExceptionOfType(InfraException.class)
+                    .isThrownBy(() -> sut.getByTokenHash(RefreshTokenHash.of("token-hash")));
         }
     }
 

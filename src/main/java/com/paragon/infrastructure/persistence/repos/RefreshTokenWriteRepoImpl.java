@@ -2,6 +2,7 @@ package com.paragon.infrastructure.persistence.repos;
 
 import com.paragon.domain.interfaces.RefreshTokenWriteRepo;
 import com.paragon.domain.models.aggregates.RefreshToken;
+import com.paragon.domain.models.valueobjects.RefreshTokenHash;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.infrastructure.persistence.daos.RefreshTokenDao;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class RefreshTokenWriteRepoImpl implements RefreshTokenWriteRepo {
@@ -47,6 +49,21 @@ public class RefreshTokenWriteRepoImpl implements RefreshTokenWriteRepo {
                 .add("updatedAtUtc", Instant.now());
 
         jdbcHelper.execute(new SqlStatement(sql, params));
+    }
+
+    @Override
+    public Optional<RefreshToken> getByTokenHash(RefreshTokenHash tokenHash) {
+        String sql = """
+                        SELECT * FROM refresh_tokens
+                        WHERE token_hash = :tokenHash
+                    """;
+        SqlParamsBuilder params = new SqlParamsBuilder()
+                .add("tokenHash", tokenHash.getValue());
+
+        Optional<RefreshTokenDao> optionalRefreshTokenDao = jdbcHelper.queryFirstOrDefault(
+                new SqlStatement(sql, params), RefreshTokenDao.class
+        );
+        return optionalRefreshTokenDao.map(RefreshTokenDao::toRefreshToken);
     }
 
     @Override
