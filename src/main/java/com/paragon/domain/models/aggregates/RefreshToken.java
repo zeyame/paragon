@@ -53,25 +53,15 @@ public class RefreshToken extends EventSourcedAggregate<DomainEvent, RefreshToke
         );
     }
 
-    private static void assertValidTokenIssuance(RefreshTokenHash refreshTokenHash, StaffAccountId staffAccountId, IpAddress ipAddress) {
-        if (refreshTokenHash == null) {
-            throw new RefreshTokenException(RefreshTokenExceptionInfo.tokenHashRequired());
-        }
-        if (staffAccountId == null) {
-            throw new RefreshTokenException(RefreshTokenExceptionInfo.staffAccountIdRequired());
-        }
-        if (ipAddress == null) {
-            throw new RefreshTokenException(RefreshTokenExceptionInfo.ipAddressRequired());
-        }
-    }
-
     public void revoke() {
-        if (isRevoked) {
-            throw new RefreshTokenException(RefreshTokenExceptionInfo.tokenAlreadyRevoked());
-        }
+        throwIfTokenIsAlreadyRevoked();
         this.isRevoked = true;
         this.revokedAt = Instant.now();
         increaseVersion();
+    }
+
+    public RefreshToken replace() {
+        return null;
     }
 
     public static RefreshToken createFrom(RefreshTokenId refreshTokenId,
@@ -94,5 +84,23 @@ public class RefreshToken extends EventSourcedAggregate<DomainEvent, RefreshToke
                 replacedBy,
                 version
         );
+    }
+
+    private static void assertValidTokenIssuance(RefreshTokenHash refreshTokenHash, StaffAccountId staffAccountId, IpAddress ipAddress) {
+        if (refreshTokenHash == null) {
+            throw new RefreshTokenException(RefreshTokenExceptionInfo.tokenHashRequired());
+        }
+        if (staffAccountId == null) {
+            throw new RefreshTokenException(RefreshTokenExceptionInfo.staffAccountIdRequired());
+        }
+        if (ipAddress == null) {
+            throw new RefreshTokenException(RefreshTokenExceptionInfo.ipAddressRequired());
+        }
+    }
+
+    private void throwIfTokenIsAlreadyRevoked() {
+        if (isRevoked) {
+            throw new RefreshTokenException(RefreshTokenExceptionInfo.tokenAlreadyRevoked());
+        }
     }
 }

@@ -84,4 +84,11 @@ public class RefreshTokenFixture {
     public static RefreshToken validRefreshToken() {
         return new RefreshTokenFixture().build();
     }
+
+    public static RefreshToken revokedRefreshToken() {
+        return new RefreshTokenFixture()
+                .withRevoked(true)
+                .withRevokedAt(Instant.now())
+                .build();
+    }
 }

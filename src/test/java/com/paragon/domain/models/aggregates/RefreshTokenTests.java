@@ -6,6 +6,7 @@ import com.paragon.domain.models.valueobjects.IpAddress;
 import com.paragon.domain.models.valueobjects.RefreshTokenHash;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.domain.models.valueobjects.Version;
+import com.paragon.helpers.fixtures.RefreshTokenFixture;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -83,6 +84,48 @@ public class RefreshTokenTests {
                     .containsExactly(
                             RefreshTokenExceptionInfo.ipAddressRequired().getMessage(),
                             RefreshTokenExceptionInfo.ipAddressRequired().getDomainErrorCode()
+                    );
+        }
+    }
+
+    @Nested
+    class Replace {
+        @Test
+        void shouldRevokeCurrentToken() {
+            // Given
+            RefreshToken refreshToken = RefreshTokenFixture.validRefreshToken();
+
+            // When
+            refreshToken.replace();
+
+            // Then
+            assertThat(refreshToken.isRevoked()).isTrue();
+        }
+
+        @Test
+        void shouldMarkOldTokenAsReplaced() {
+            // Given
+            RefreshToken refreshToken = RefreshTokenFixture.validRefreshToken();
+
+            // When
+            refreshToken.replace();
+
+            // Then
+            assertThat(refreshToken.getReplacedBy()).isNotNull();
+        }
+
+        @Test
+        void shouldThrowIfRefreshTokenIsRevoked() {
+            // Given
+            RefreshToken refreshToken = RefreshTokenFixture.revokedRefreshToken();
+
+            // When & Then
+            assertThatExceptionOfType(RefreshTokenException.class)
+                    .isThrownBy(refreshToken::replace)
+                    .extracting("domainErrorCode", "message")
+                    .containsExactly(
+                            RefreshTokenExceptionInfo.tokenAlreadyRevoked().getDomainErrorCode(),
+                            RefreshTokenExceptionInfo.tokenAlreadyRevoked().getMessage()
                     );
         }
     }
