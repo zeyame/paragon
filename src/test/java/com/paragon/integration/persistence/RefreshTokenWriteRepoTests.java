@@ -1,5 +1,6 @@
 package com.paragon.integration.persistence;
 
+import com.paragon.domain.interfaces.RefreshTokenWriteRepo;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.helpers.TestJdbcHelper;
@@ -21,7 +22,6 @@ public class RefreshTokenWriteRepoTests {
     @Nested
     class Create extends IntegrationTestBase {
         private final RefreshTokenWriteRepoImpl sut;
-        private WriteJdbcHelper writeJdbcHelper;
         private final TestJdbcHelper jdbcHelper;
 
         @Autowired
@@ -96,9 +96,43 @@ public class RefreshTokenWriteRepoTests {
     }
 
     @Nested
+    class Update extends IntegrationTestBase {
+        private final RefreshTokenWriteRepo sut;
+        private final TestJdbcHelper jdbcHelper;
+
+        @Autowired
+        public Update(WriteJdbcHelper writeJdbcHelper) {
+            sut = new RefreshTokenWriteRepoImpl(writeJdbcHelper);
+            jdbcHelper = new TestJdbcHelper(writeJdbcHelper);
+        }
+
+        @Test
+        void shouldUpdateRefreshToken() {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withCreatedBy(adminId)
+                    .build();
+            jdbcHelper.insertStaffAccount(staffAccount);
+
+            RefreshToken refreshToken = new RefreshTokenFixture()
+                    .withStaffAccountId(staffAccount.getId().getValue().toString())
+                    .build();
+            jdbcHelper.insertRefreshToken(refreshToken);
+
+            refreshToken.revoke();
+
+            // When
+            sut.update(refreshToken);
+
+            // Then
+            RefreshToken updatedToken = jdbcHelper.getRefreshTokenById(refreshToken.getId()).get();
+            assertThat(updatedToken.isRevoked()).isTrue();
+        }
+    }
+
+    @Nested
     class UpdateAll extends IntegrationTestBase {
         private final RefreshTokenWriteRepoImpl sut;
-        private WriteJdbcHelper writeJdbcHelper;
         private final TestJdbcHelper jdbcHelper;
 
         @Autowired
