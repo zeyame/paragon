@@ -63,9 +63,9 @@ public class LoginStaffAccountCommandHandler implements CommandHandler<LoginStaf
             staffAccountWriteRepo.update(staffAccount);
 
             PlaintextRefreshToken plaintextRefreshToken = PlaintextRefreshToken.generate();
-            String hashedToken = tokenHasher.hash(plaintextRefreshToken.getValue());
+            RefreshTokenHash tokenHash = tokenHasher.hash(plaintextRefreshToken);
 
-            RefreshToken refreshToken = RefreshToken.issue(RefreshTokenHash.of(hashedToken), staffAccount.getId(), IpAddress.of(command.ipAddress()));
+            RefreshToken refreshToken = RefreshToken.issue(tokenHash, staffAccount.getId(), IpAddress.of(command.ipAddress()));
             refreshTokenWriteRepo.create(refreshToken);
 
             List<String> permissionCodes = staffAccount.getPermissionCodes()

@@ -73,8 +73,8 @@ public class LoginStaffAccountCommandHandlerTests {
 
         when(passwordHasherMock.verify(anyString(), any(Password.class)))
                 .thenReturn(true);
-        when(tokenHasherMock.hash(anyString()))
-                .thenReturn("hashed-token");
+        when(tokenHasherMock.hash(any(PlaintextRefreshToken.class)))
+                .thenReturn(RefreshTokenHash.of("hashed-token"));
     }
 
     @Test
