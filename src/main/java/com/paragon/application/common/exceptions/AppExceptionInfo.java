@@ -22,11 +22,11 @@ public class AppExceptionInfo {
         );
     }
 
-    public static AppExceptionInfo refreshTokenNotFound() {
+    public static AppExceptionInfo invalidRefreshToken() {
         return new AppExceptionInfo(
-                "The provided refresh token does not exist.",
+                "The provided refresh token is invalid.",
                 102,
-                AppExceptionStatusCode.RESOURCE_NOT_FOUND
+                AppExceptionStatusCode.AUTHENTICATION_FAILED
         );
     }
 

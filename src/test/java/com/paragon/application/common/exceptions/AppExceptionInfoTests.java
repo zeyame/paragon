@@ -23,12 +23,12 @@ public class AppExceptionInfoTests {
     @Test
     void refreshTokenNotFound_shouldHaveExpectedCodeAndMessage() {
         // When
-        AppExceptionInfo info = AppExceptionInfo.refreshTokenNotFound();
+        AppExceptionInfo info = AppExceptionInfo.invalidRefreshToken();
 
         // Then
-        assertThat(info.getMessage()).isEqualTo("The provided refresh token does not exist.");
+        assertThat(info.getMessage()).isEqualTo("The provided refresh token is invalid.");
         assertThat(info.getAppErrorCode()).isEqualTo(102);
-        assertThat(info.getStatusCode()).isEqualTo(AppExceptionStatusCode.RESOURCE_NOT_FOUND);
+        assertThat(info.getStatusCode()).isEqualTo(AppExceptionStatusCode.AUTHENTICATION_FAILED);
     }
 
     @Test
