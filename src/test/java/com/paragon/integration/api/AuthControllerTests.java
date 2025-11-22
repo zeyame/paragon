@@ -40,7 +40,6 @@ public class AuthControllerTests {
     @Nested
     class Login extends IntegrationTestBase {
         private final TestJdbcHelper jdbcHelper;
-        private WriteJdbcHelper writeJdbcHelper;
 
         @Autowired
         public Login(WriteJdbcHelper writeJdbcHelper) {
@@ -267,12 +266,10 @@ public class AuthControllerTests {
     @Nested
     class Refresh extends IntegrationTestBase {
         private final TestJdbcHelper jdbcHelper;
-        private final TokenHasher tokenHasher;
 
         @Autowired
-        public Refresh(WriteJdbcHelper writeJdbcHelper, TokenHasher tokenHasher) {
+        public Refresh(WriteJdbcHelper writeJdbcHelper) {
             this.jdbcHelper = new TestJdbcHelper(writeJdbcHelper);
-            this.tokenHasher = tokenHasher;
         }
 
         @Test

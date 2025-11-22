@@ -4,7 +4,7 @@ import com.paragon.api.dtos.ResponseDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountRequestDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountResponseDto;
 import com.paragon.api.dtos.auth.refresh.RefreshStaffAccountTokenResponseDto;
-import com.paragon.api.security.HttpContextHelperImpl;
+import com.paragon.api.security.HttpContextHelper;
 import com.paragon.api.security.JwtGenerator;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommand;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandHandler;
@@ -36,7 +36,7 @@ public class AuthControllerTests {
     class Login {
         private final AuthController sut;
         private final LoginStaffAccountCommandHandler loginStaffAccountCommandHandlerMock;
-        private final HttpContextHelperImpl httpContextHelperMock;
+        private final HttpContextHelper httpContextHelperMock;
         private final JwtGenerator jwtGeneratorMock;
         private final RefreshStaffAccountTokenCommandHandler refreshStaffAccountTokenCommandHandlerMock;
         private final LoginStaffAccountRequestDto requestDto;
@@ -44,7 +44,7 @@ public class AuthControllerTests {
 
         public Login() {
             loginStaffAccountCommandHandlerMock = mock(LoginStaffAccountCommandHandler.class);
-            httpContextHelperMock = mock(HttpContextHelperImpl.class);
+            httpContextHelperMock = mock(HttpContextHelper.class);
             jwtGeneratorMock = mock(JwtGenerator.class);
             refreshStaffAccountTokenCommandHandlerMock = mock(RefreshStaffAccountTokenCommandHandler.class);
             TaskExecutor taskExecutor = Runnable::run;
@@ -162,14 +162,14 @@ public class AuthControllerTests {
         private final AuthController sut;
         private final LoginStaffAccountCommandHandler loginStaffAccountCommandHandlerMock;
         private final RefreshStaffAccountTokenCommandHandler refreshStaffAccountTokenCommandHandlerMock;
-        private final HttpContextHelperImpl httpContextHelperMock;
+        private final HttpContextHelper httpContextHelperMock;
         private final JwtGenerator jwtGeneratorMock;
         private final RefreshStaffAccountTokenCommandResponse commandResponse;
 
         public Refresh() {
             loginStaffAccountCommandHandlerMock = mock(LoginStaffAccountCommandHandler.class);
             refreshStaffAccountTokenCommandHandlerMock = mock(RefreshStaffAccountTokenCommandHandler.class);
-            httpContextHelperMock = mock(HttpContextHelperImpl.class);
+            httpContextHelperMock = mock(HttpContextHelper.class);
             jwtGeneratorMock = mock(JwtGenerator.class);
             TaskExecutor taskExecutor = Runnable::run;
 
