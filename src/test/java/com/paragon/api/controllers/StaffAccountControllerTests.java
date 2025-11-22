@@ -9,7 +9,7 @@ import com.paragon.api.dtos.staffaccount.getbyusername.GetStaffAccountByUsername
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto;
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.resetpassword.ResetStaffAccountPasswordResponseDto;
-import com.paragon.api.security.HttpContextHelper;
+import com.paragon.api.security.HttpContextHelperImpl;
 import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommand;
 import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommandHandler;
 import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommandResponse;
@@ -61,7 +61,7 @@ public class StaffAccountControllerTests {
         private final ResetStaffAccountPasswordCommandHandler resetStaffAccountPasswordCommandHandlerMock;
         private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
         private final GetStaffAccountByUsernameQueryHandler getStaffAccountByUsernameQueryHandlerMock;
-        private final HttpContextHelper httpContextHelperMock;
+        private final HttpContextHelperImpl httpContextHelperMock;
         private final RegisterStaffAccountCommandResponse commandResponse;
         private final String requestingStaffId;
 
@@ -72,7 +72,7 @@ public class StaffAccountControllerTests {
             resetStaffAccountPasswordCommandHandlerMock = mock(ResetStaffAccountPasswordCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
             getStaffAccountByUsernameQueryHandlerMock = mock(GetStaffAccountByUsernameQueryHandler.class);
-            httpContextHelperMock = mock(HttpContextHelper.class);
+            httpContextHelperMock = mock(HttpContextHelperImpl.class);
             TaskExecutor taskExecutor = Runnable::run;
 
             requestingStaffId = UUID.randomUUID().toString();
@@ -189,7 +189,7 @@ public class StaffAccountControllerTests {
         private final ResetStaffAccountPasswordCommandHandler resetStaffAccountPasswordCommandHandlerMock;
         private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
         private final GetStaffAccountByUsernameQueryHandler getStaffAccountByUsernameQueryHandlerMock;
-        private final HttpContextHelper httpContextHelperMock;
+        private final HttpContextHelperImpl httpContextHelperMock;
         private final String staffIdToBeEnabled;
         private final String requestingStaffId;
         private final EnableStaffAccountCommandResponse commandResponse;
@@ -201,7 +201,7 @@ public class StaffAccountControllerTests {
             resetStaffAccountPasswordCommandHandlerMock = mock(ResetStaffAccountPasswordCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
             getStaffAccountByUsernameQueryHandlerMock = mock(GetStaffAccountByUsernameQueryHandler.class);
-            httpContextHelperMock = mock(HttpContextHelper.class);
+            httpContextHelperMock = mock(HttpContextHelperImpl.class);
             TaskExecutor taskExecutor = Runnable::run;
 
             sut = new StaffAccountController(
@@ -282,7 +282,7 @@ public class StaffAccountControllerTests {
         private final ResetStaffAccountPasswordCommandHandler resetStaffAccountPasswordCommandHandlerMock;
         private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
         private final GetStaffAccountByUsernameQueryHandler getStaffAccountByUsernameQueryHandlerMock;
-        private final HttpContextHelper httpContextHelperMock;
+        private final HttpContextHelperImpl httpContextHelperMock;
         private final String staffIdToBeDisabled;
         private final String requestingStaffId;
         private final DisableStaffAccountCommandResponse commandResponse;
@@ -294,7 +294,7 @@ public class StaffAccountControllerTests {
             resetStaffAccountPasswordCommandHandlerMock = mock(ResetStaffAccountPasswordCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
             getStaffAccountByUsernameQueryHandlerMock = mock(GetStaffAccountByUsernameQueryHandler.class);
-            httpContextHelperMock = mock(HttpContextHelper.class);
+            httpContextHelperMock = mock(HttpContextHelperImpl.class);
             TaskExecutor taskExecutor = Runnable::run;
 
             sut = new StaffAccountController(
@@ -378,7 +378,7 @@ public class StaffAccountControllerTests {
         private final ResetStaffAccountPasswordCommandHandler resetStaffAccountPasswordCommandHandlerMock;
         private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
         private final GetStaffAccountByUsernameQueryHandler getStaffAccountByUsernameQueryHandlerMock;
-        private final HttpContextHelper httpContextHelperMock;
+        private final HttpContextHelperImpl httpContextHelperMock;
         private final String targetStaffAccountId;
         private final String requestingStaffId;
         private final ResetStaffAccountPasswordCommandResponse commandResponse;
@@ -390,7 +390,7 @@ public class StaffAccountControllerTests {
             resetStaffAccountPasswordCommandHandlerMock = mock(ResetStaffAccountPasswordCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
             getStaffAccountByUsernameQueryHandlerMock = mock(GetStaffAccountByUsernameQueryHandler.class);
-            httpContextHelperMock = mock(HttpContextHelper.class);
+            httpContextHelperMock = mock(HttpContextHelperImpl.class);
             TaskExecutor taskExecutor = Runnable::run;
 
             sut = new StaffAccountController(
@@ -473,7 +473,7 @@ public class StaffAccountControllerTests {
         private final ResetStaffAccountPasswordCommandHandler resetStaffAccountPasswordCommandHandlerMock;
         private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
         private final GetStaffAccountByUsernameQueryHandler getStaffAccountByUsernameQueryHandlerMock;
-        private final HttpContextHelper httpContextHelperMock;
+        private final HttpContextHelperImpl httpContextHelperMock;
         private final GetAllStaffAccountsQueryResponse queryResponse;
 
         public GetAll() {
@@ -483,7 +483,7 @@ public class StaffAccountControllerTests {
             resetStaffAccountPasswordCommandHandlerMock = mock(ResetStaffAccountPasswordCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
             getStaffAccountByUsernameQueryHandlerMock = mock(GetStaffAccountByUsernameQueryHandler.class);
-            httpContextHelperMock = mock(HttpContextHelper.class);
+            httpContextHelperMock = mock(HttpContextHelperImpl.class);
             TaskExecutor taskExecutor = Runnable::run;
 
             sut = new StaffAccountController(
@@ -591,7 +591,7 @@ public class StaffAccountControllerTests {
         private final ResetStaffAccountPasswordCommandHandler resetStaffAccountPasswordCommandHandlerMock;
         private final GetAllStaffAccountsQueryHandler getAllStaffAccountsQueryHandlerMock;
         private final GetStaffAccountByUsernameQueryHandler getStaffAccountByUsernameQueryHandlerMock;
-        private final HttpContextHelper httpContextHelperMock;
+        private final HttpContextHelperImpl httpContextHelperMock;
 
         public GetByUsername() {
             registerStaffAccountCommandHandlerMock = mock(RegisterStaffAccountCommandHandler.class);
@@ -600,7 +600,7 @@ public class StaffAccountControllerTests {
             resetStaffAccountPasswordCommandHandlerMock = mock(ResetStaffAccountPasswordCommandHandler.class);
             getAllStaffAccountsQueryHandlerMock = mock(GetAllStaffAccountsQueryHandler.class);
             getStaffAccountByUsernameQueryHandlerMock = mock(GetStaffAccountByUsernameQueryHandler.class);
-            httpContextHelperMock = mock(HttpContextHelper.class);
+            httpContextHelperMock = mock(HttpContextHelperImpl.class);
             TaskExecutor taskExecutor = Runnable::run;
 
             sut = new StaffAccountController(

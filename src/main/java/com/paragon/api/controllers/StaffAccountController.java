@@ -9,7 +9,7 @@ import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountRequestDto
 import com.paragon.api.dtos.staffaccount.register.RegisterStaffAccountResponseDto;
 import com.paragon.api.dtos.staffaccount.resetpassword.ResetStaffAccountPasswordResponseDto;
 import com.paragon.api.mappers.StaffAccountMapper;
-import com.paragon.api.security.HttpContextHelper;
+import com.paragon.api.security.HttpContextHelperImpl;
 import com.paragon.application.commands.CommandHandler;
 import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommand;
 import com.paragon.application.commands.disablestaffaccount.DisableStaffAccountCommandResponse;
@@ -42,7 +42,7 @@ public class StaffAccountController {
     private final CommandHandler<ResetStaffAccountPasswordCommand, ResetStaffAccountPasswordCommandResponse> resetStaffAccountPasswordCommandHandler;
     private final QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> getAllStaffAccountsQueryHandler;
     private final QueryHandler<GetStaffAccountByUsernameQuery, GetStaffAccountByUsernameQueryResponse> getStaffAccountByUsernameQueryHandler;
-    private final HttpContextHelper httpContextHelper;
+    private final HttpContextHelperImpl httpContextHelper;
     private final TaskExecutor taskExecutor;
     private static final Logger log = LoggerFactory.getLogger(StaffAccountController.class);
 
@@ -53,7 +53,7 @@ public class StaffAccountController {
             CommandHandler<ResetStaffAccountPasswordCommand, ResetStaffAccountPasswordCommandResponse> resetStaffAccountPasswordCommandHandler,
             QueryHandler<GetAllStaffAccountsQuery, GetAllStaffAccountsQueryResponse> getAllStaffAccountsQueryHandler,
             QueryHandler<GetStaffAccountByUsernameQuery, GetStaffAccountByUsernameQueryResponse> getStaffAccountByUsernameQueryHandler,
-            HttpContextHelper httpContextHelper,
+            HttpContextHelperImpl httpContextHelper,
             TaskExecutor taskExecutor) {
         this.registerStaffAccountCommandHandler = registerStaffAccountCommandHandler;
         this.disableStaffAccountCommandHandler = disableStaffAccountCommandHandler;

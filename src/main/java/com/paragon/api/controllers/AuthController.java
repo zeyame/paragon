@@ -4,7 +4,7 @@ import com.paragon.api.dtos.ResponseDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountRequestDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountResponseDto;
 import com.paragon.api.dtos.auth.refresh.RefreshStaffAccountTokenResponseDto;
-import com.paragon.api.security.HttpContextHelper;
+import com.paragon.api.security.HttpContextHelperImpl;
 import com.paragon.api.security.JwtGenerator;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommand;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandHandler;
@@ -26,14 +26,14 @@ import java.util.concurrent.CompletableFuture;
 @RequestMapping("v1/auth")
 public class AuthController {
     private final LoginStaffAccountCommandHandler loginStaffAccountCommandHandler;
-    private final HttpContextHelper httpContextHelper;
+    private final HttpContextHelperImpl httpContextHelper;
     private final JwtGenerator jwtGenerator;
     private final TaskExecutor taskExecutor;
     private final RefreshStaffAccountTokenCommandHandler refreshStaffAccountTokenCommandHandler;
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     public AuthController(LoginStaffAccountCommandHandler loginStaffAccountCommandHandler,
-                          HttpContextHelper httpContextHelper,
+                          HttpContextHelperImpl httpContextHelper,
                           JwtGenerator jwtGenerator,
                           TaskExecutor taskExecutor,
                           RefreshStaffAccountTokenCommandHandler refreshStaffAccountTokenCommandHandler) {
