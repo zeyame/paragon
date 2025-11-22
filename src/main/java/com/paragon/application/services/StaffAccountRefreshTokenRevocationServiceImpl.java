@@ -8,9 +8,11 @@ import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public class StaffAccountRefreshTokenRevocationServiceImpl implements StaffAccountRefreshTokenRevocationService {
     private final RefreshTokenWriteRepo refreshTokenWriteRepo;
     private final AppExceptionHandler appExceptionHandler;
