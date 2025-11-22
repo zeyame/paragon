@@ -57,8 +57,8 @@ public class RefreshStaffAccountTokenCommandHandler implements CommandHandler<Re
             RefreshTokenHash newTokenHash = tokenHasher.hash(newPlainToken);
             RefreshToken newToken = refreshToken.replace(newTokenHash);
 
-            refreshTokenWriteRepo.update(refreshToken);
             refreshTokenWriteRepo.create(newToken);
+            refreshTokenWriteRepo.update(refreshToken);
 
             Optional<StaffAccount> optionalStaffAccount = staffAccountWriteRepo.getById(refreshToken.getStaffAccountId());
             if (optionalStaffAccount.isEmpty()) {
