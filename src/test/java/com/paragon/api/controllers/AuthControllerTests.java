@@ -3,11 +3,15 @@ package com.paragon.api.controllers;
 import com.paragon.api.dtos.ResponseDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountRequestDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountResponseDto;
+import com.paragon.api.dtos.auth.refresh.RefreshStaffAccountTokenResponseDto;
 import com.paragon.api.security.HttpContextHelper;
 import com.paragon.api.security.JwtGenerator;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommand;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandHandler;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandResponse;
+import com.paragon.application.commands.refreshstaffaccounttoken.RefreshStaffAccountTokenCommand;
+import com.paragon.application.commands.refreshstaffaccounttoken.RefreshStaffAccountTokenCommandHandler;
+import com.paragon.application.commands.refreshstaffaccounttoken.RefreshStaffAccountTokenCommandResponse;
 import com.paragon.application.common.exceptions.AppException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -34,6 +38,7 @@ public class AuthControllerTests {
         private final LoginStaffAccountCommandHandler loginStaffAccountCommandHandlerMock;
         private final HttpContextHelper httpContextHelperMock;
         private final JwtGenerator jwtGeneratorMock;
+        private final RefreshStaffAccountTokenCommandHandler refreshStaffAccountTokenCommandHandlerMock;
         private final LoginStaffAccountRequestDto requestDto;
         private final LoginStaffAccountCommandResponse commandResponse;
 
@@ -41,6 +46,7 @@ public class AuthControllerTests {
             loginStaffAccountCommandHandlerMock = mock(LoginStaffAccountCommandHandler.class);
             httpContextHelperMock = mock(HttpContextHelper.class);
             jwtGeneratorMock = mock(JwtGenerator.class);
+            refreshStaffAccountTokenCommandHandlerMock = mock(RefreshStaffAccountTokenCommandHandler.class);
             TaskExecutor taskExecutor = Runnable::run;
 
             when(httpContextHelperMock.extractIpAddress()).thenReturn("192.168.1.1");
@@ -48,7 +54,7 @@ public class AuthControllerTests {
 
             sut = new AuthController(
                     loginStaffAccountCommandHandlerMock, httpContextHelperMock,
-                    jwtGeneratorMock, taskExecutor
+                    jwtGeneratorMock, taskExecutor, refreshStaffAccountTokenCommandHandlerMock
             );
 
             requestDto = createValidLoginStaffAccountRequestDto();
@@ -148,6 +154,110 @@ public class AuthControllerTests {
                     "john_doe",
                     "John_doe123?"
             );
+        }
+    }
+
+    @Nested
+    class Refresh {
+        private final AuthController sut;
+        private final LoginStaffAccountCommandHandler loginStaffAccountCommandHandlerMock;
+        private final RefreshStaffAccountTokenCommandHandler refreshStaffAccountTokenCommandHandlerMock;
+        private final HttpContextHelper httpContextHelperMock;
+        private final JwtGenerator jwtGeneratorMock;
+        private final RefreshStaffAccountTokenCommandResponse commandResponse;
+
+        public Refresh() {
+            loginStaffAccountCommandHandlerMock = mock(LoginStaffAccountCommandHandler.class);
+            refreshStaffAccountTokenCommandHandlerMock = mock(RefreshStaffAccountTokenCommandHandler.class);
+            httpContextHelperMock = mock(HttpContextHelper.class);
+            jwtGeneratorMock = mock(JwtGenerator.class);
+            TaskExecutor taskExecutor = Runnable::run;
+
+            when(httpContextHelperMock.extractRefreshTokenFromCookie()).thenReturn("plain-token");
+            when(jwtGeneratorMock.generateAccessToken(anyString(), any(List.class))).thenReturn("generated.jwt.token");
+
+            sut = new AuthController(
+                    loginStaffAccountCommandHandlerMock,
+                    httpContextHelperMock,
+                    jwtGeneratorMock,
+                    taskExecutor,
+                    refreshStaffAccountTokenCommandHandlerMock
+            );
+
+            commandResponse = new RefreshStaffAccountTokenCommandResponse(
+                    UUID.randomUUID().toString(),
+                    "john_doe",
+                    false,
+                    "new-plain-token",
+                    List.of("MANAGE_ACCOUNTS"),
+                    2
+            );
+
+            when(refreshStaffAccountTokenCommandHandlerMock.handle(any(RefreshStaffAccountTokenCommand.class)))
+                    .thenReturn(commandResponse);
+        }
+
+        @Test
+        void shouldReturnOkResponse() {
+            // When
+            CompletableFuture<ResponseEntity<ResponseDto<RefreshStaffAccountTokenResponseDto>>> futureDto = sut.refresh();
+
+            // Then
+            assertThat(futureDto.join().getStatusCode()).isEqualTo(HttpStatus.OK);
+        }
+
+        @Test
+        void shouldReturnExpectedResponseDto() {
+            // When
+            ResponseDto<RefreshStaffAccountTokenResponseDto> responseDto = sut.refresh().join().getBody();
+
+            // Then
+            assertThat(responseDto.errorDto()).isNull();
+
+            RefreshStaffAccountTokenResponseDto result = responseDto.result();
+            assertThat(result.id()).isEqualTo(commandResponse.staffAccountId());
+            assertThat(result.username()).isEqualTo(commandResponse.username());
+            assertThat(result.requiresPasswordReset()).isEqualTo(commandResponse.requiresPasswordReset());
+            assertThat(result.version()).isEqualTo(commandResponse.version());
+        }
+
+        @Test
+        void shouldPassCorrectCommandToHandler() {
+            // When
+            sut.refresh();
+
+            // Then
+            ArgumentCaptor<RefreshStaffAccountTokenCommand> commandCaptor = ArgumentCaptor.forClass(RefreshStaffAccountTokenCommand.class);
+            verify(refreshStaffAccountTokenCommandHandlerMock).handle(commandCaptor.capture());
+            assertThat(commandCaptor.getValue().plainToken()).isEqualTo("plain-token");
+        }
+
+        @Test
+        void shouldSetJwt() {
+            // When
+            sut.refresh().join();
+
+            // Then
+            verify(jwtGeneratorMock).generateAccessToken(commandResponse.staffAccountId(), commandResponse.permissionCodes());
+            verify(httpContextHelperMock).setJwtHeader("generated.jwt.token");
+        }
+
+        @Test
+        void shouldSetRefreshToken() {
+            // When
+            sut.refresh().join();
+
+            // Then
+            verify(httpContextHelperMock).setRefreshTokenCookie(commandResponse.plainRefreshToken());
+        }
+
+        @Test
+        void shouldPropagateAppException_whenHandlerThrows() {
+            when(refreshStaffAccountTokenCommandHandlerMock.handle(any(RefreshStaffAccountTokenCommand.class)))
+                    .thenThrow(AppException.class);
+
+            assertThatThrownBy(() -> sut.refresh().join())
+                    .hasCauseInstanceOf(AppException.class);
         }
     }
 }

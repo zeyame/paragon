@@ -13,7 +13,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Component
 public class HttpContextHelper {
 
-    public String getAuthenticatedStaffId() {
+    public String extractAuthenticatedStaffId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
@@ -42,6 +42,23 @@ public class HttpContextHelper {
 
         // Fall back to remote address
         return request.getRemoteAddr();
+    }
+
+    public String extractRefreshTokenFromCookie() {
+        HttpServletRequest request = getCurrentRequest();
+        Cookie[] cookies = request.getCookies();
+
+        if (cookies == null) {
+            return null;
+        }
+
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals("refresh_token")) {
+                return cookie.getValue();
+            }
+        }
+
+        return null;
     }
 
     public void setJwtHeader(String jwt) {

@@ -30,10 +30,8 @@ import com.paragon.application.queries.getallstaffaccounts.StaffAccountSummary;
 import com.paragon.application.queries.getstaffaccountbyusername.GetStaffAccountByUsernameQuery;
 import com.paragon.application.queries.getstaffaccountbyusername.GetStaffAccountByUsernameQueryHandler;
 import com.paragon.application.queries.getstaffaccountbyusername.GetStaffAccountByUsernameQueryResponse;
-import com.paragon.domain.models.valueobjects.Username;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -78,7 +76,7 @@ public class StaffAccountControllerTests {
             TaskExecutor taskExecutor = Runnable::run;
 
             requestingStaffId = UUID.randomUUID().toString();
-            when(httpContextHelperMock.getAuthenticatedStaffId()).thenReturn(requestingStaffId);
+            when(httpContextHelperMock.extractAuthenticatedStaffId()).thenReturn(requestingStaffId);
 
             sut = new StaffAccountController(
                     registerStaffAccountCommandHandlerMock,
@@ -226,7 +224,7 @@ public class StaffAccountControllerTests {
                     3
             );
 
-            when(httpContextHelperMock.getAuthenticatedStaffId()).thenReturn(requestingStaffId);
+            when(httpContextHelperMock.extractAuthenticatedStaffId()).thenReturn(requestingStaffId);
             when(enableStaffAccountCommandHandlerMock.handle(any(EnableStaffAccountCommand.class)))
                     .thenReturn(commandResponse);
         }
@@ -321,7 +319,7 @@ public class StaffAccountControllerTests {
             when(disableStaffAccountCommandHandlerMock.handle(any(DisableStaffAccountCommand.class)))
                     .thenReturn(commandResponse);
 
-            when(httpContextHelperMock.getAuthenticatedStaffId())
+            when(httpContextHelperMock.extractAuthenticatedStaffId())
                     .thenReturn(requestingStaffId);
         }
 
@@ -416,7 +414,7 @@ public class StaffAccountControllerTests {
                     3
             );
 
-            when(httpContextHelperMock.getAuthenticatedStaffId()).thenReturn(requestingStaffId);
+            when(httpContextHelperMock.extractAuthenticatedStaffId()).thenReturn(requestingStaffId);
             when(resetStaffAccountPasswordCommandHandlerMock.handle(any(ResetStaffAccountPasswordCommand.class)))
                     .thenReturn(commandResponse);
         }

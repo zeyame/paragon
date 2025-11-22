@@ -68,7 +68,7 @@ public class StaffAccountController {
     @PostMapping
     @PreAuthorize("hasAuthority('MANAGE_ACCOUNTS')")
     public CompletableFuture<ResponseEntity<ResponseDto<RegisterStaffAccountResponseDto>>> register(@RequestBody RegisterStaffAccountRequestDto requestDto) {
-        String requestingStaffAccountId = httpContextHelper.getAuthenticatedStaffId();
+        String requestingStaffAccountId = httpContextHelper.extractAuthenticatedStaffId();
         log.info("Received request to register a new staff account from a staff account with ID: {}.", requestingStaffAccountId);
 
         return CompletableFuture.supplyAsync(() -> {
@@ -82,7 +82,7 @@ public class StaffAccountController {
     @PutMapping("/enable/{id}")
     @PreAuthorize("hasAuthority('MANAGE_ACCOUNTS')")
     public CompletableFuture<ResponseEntity<ResponseDto<EnableStaffAccountResponseDto>>> enable(@PathVariable("id") String staffAccountIdToBeEnabled) {
-        String requestingStaffAccountId = httpContextHelper.getAuthenticatedStaffId();
+        String requestingStaffAccountId = httpContextHelper.extractAuthenticatedStaffId();
         log.info("Received request to enable staff account with ID: {} from staff account with ID: {}.",
                 staffAccountIdToBeEnabled, requestingStaffAccountId);
 
@@ -97,7 +97,7 @@ public class StaffAccountController {
     @PutMapping("/disable/{id}")
     @PreAuthorize("hasAuthority('MANAGE_ACCOUNTS')")
     public CompletableFuture<ResponseEntity<ResponseDto<DisableStaffAccountResponseDto>>> disable(@PathVariable("id") String staffAccountIdToBeDisabled) {
-        String requestingStaffAccountId = httpContextHelper.getAuthenticatedStaffId();
+        String requestingStaffAccountId = httpContextHelper.extractAuthenticatedStaffId();
         log.info("Received request to disable a staff account with ID: {} was received from a staff account with ID: {}.",
                 staffAccountIdToBeDisabled, requestingStaffAccountId);
 
@@ -112,7 +112,7 @@ public class StaffAccountController {
     @PutMapping("/reset-password/{id}")
     @PreAuthorize("hasAuthority('RESET_ACCOUNT_PASSWORD')")
     public CompletableFuture<ResponseEntity<ResponseDto<ResetStaffAccountPasswordResponseDto>>> resetPassword(@PathVariable("id") String staffAccountIdToReset) {
-        String requestingStaffAccountId = httpContextHelper.getAuthenticatedStaffId();
+        String requestingStaffAccountId = httpContextHelper.extractAuthenticatedStaffId();
         log.info("Received request to reset password for staff account ID: {} from staff account ID: {}.",
                 staffAccountIdToReset, requestingStaffAccountId);
 
@@ -134,7 +134,7 @@ public class StaffAccountController {
             @RequestParam(value = "createdBefore", required = false) String createdBefore,
             @RequestParam(value = "createdAfter", required = false) String createdAfter
     ) {
-        String requestingStaffAccountId = httpContextHelper.getAuthenticatedStaffId();
+        String requestingStaffAccountId = httpContextHelper.extractAuthenticatedStaffId();
         log.info("Received request to get all staff accounts from a staff account with ID: {}.", requestingStaffAccountId);
 
         return CompletableFuture.supplyAsync(() -> {
@@ -150,7 +150,7 @@ public class StaffAccountController {
     public CompletableFuture<ResponseEntity<ResponseDto<GetStaffAccountByUsernameResponseDto>>> getByUsername(
             @PathVariable("username") String username
     ) {
-        String requestingStaffAccountId = httpContextHelper.getAuthenticatedStaffId();
+        String requestingStaffAccountId = httpContextHelper.extractAuthenticatedStaffId();
         log.info("Received request to get staff account by username: {} from staff account with ID: {}.",
                 username, requestingStaffAccountId);
 
