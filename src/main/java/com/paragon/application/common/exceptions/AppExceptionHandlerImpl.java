@@ -183,8 +183,8 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
         int domainErrorCode = exception.getDomainErrorCode();
 
         return switch (domainErrorCode) {
-            case 114001 -> // missing value - internal error (generated token from system)
-                    new AppException(exception, AppExceptionStatusCode.SERVER_ERROR);
+            case 114001 ->
+                    new AppException(exception, AppExceptionStatusCode.CLIENT_ERROR);
 
             default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);
         };

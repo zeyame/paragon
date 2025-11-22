@@ -33,12 +33,12 @@ public class AppExceptionHandlerTests {
         @MethodSource("provideDomainExceptions")
         void shouldMapToCorrectAppException(DomainException domainException, AppExceptionStatusCode expectedStatusCode) {
             // When
-            AppException result = sut.handleDomainException(domainException);
+            AppException translatedAppException = sut.handleDomainException(domainException);
 
             // Then
-            assertThat(result.getMessage()).isEqualTo(domainException.getMessage());
-            assertThat(result.getErrorCode()).isEqualTo(domainException.getDomainErrorCode());
-            assertThat(result.getStatusCode()).isEqualTo(expectedStatusCode);
+            assertThat(translatedAppException.getMessage()).isEqualTo(domainException.getMessage());
+            assertThat(translatedAppException.getErrorCode()).isEqualTo(domainException.getDomainErrorCode());
+            assertThat(translatedAppException.getStatusCode()).isEqualTo(expectedStatusCode);
         }
 
         private static Stream<Arguments> provideDomainExceptions() {
@@ -236,7 +236,7 @@ public class AppExceptionHandlerTests {
                     // PlaintextRefreshTokenException - internal error (SERVER_ERROR)
                     arguments(
                             new PlaintextRefreshTokenException(PlaintextRefreshTokenExceptionInfo.missingValue()),
-                            AppExceptionStatusCode.SERVER_ERROR
+                            AppExceptionStatusCode.CLIENT_ERROR
                     ),
 
                     // RefreshTokenException - internal errors and invalid state
