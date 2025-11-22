@@ -14,6 +14,7 @@ import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.PlaintextRefreshToken;
 import com.paragon.helpers.TestJdbcHelper;
 import com.paragon.helpers.TestPasswordHasherHelper;
+import com.paragon.helpers.TestRefreshTokenHasherHelper;
 import com.paragon.helpers.fixtures.RefreshTokenFixture;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
@@ -488,7 +489,7 @@ public class AuthControllerTests {
         }
 
         private String hashPlainRefreshToken(String plainRefreshToken) {
-            return tokenHasher.hash(PlaintextRefreshToken.of(plainRefreshToken)).getValue();
+            return TestRefreshTokenHasherHelper.hash(plainRefreshToken);
         }
 
         private ResponseDto<RefreshStaffAccountTokenResponseDto> readResponse(MockHttpServletResponse response) throws Exception {
