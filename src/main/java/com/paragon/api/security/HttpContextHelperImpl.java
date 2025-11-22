@@ -11,7 +11,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Component
-public class HttpContextHelperImpl {
+public class HttpContextHelperImpl implements HttpContextHelper {
 
     public String extractAuthenticatedStaffId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
