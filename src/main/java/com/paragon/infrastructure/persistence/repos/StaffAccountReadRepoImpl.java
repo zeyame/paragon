@@ -97,7 +97,7 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
     }
 
     @Override
-    public Optional<StaffAccountSummaryReadModel> findByUsername(String username) {
+    public Optional<StaffAccountSummaryReadModel> findSummaryByUsername(String username) {
         String sql = """
                 SELECT id, username, status, created_at_utc
                 FROM staff_accounts

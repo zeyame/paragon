@@ -206,7 +206,7 @@ public class StaffAccountReadRepoTests {
                     .add("username", "john_doe");
 
             // When
-            sut.findByUsername("john_doe");
+            sut.findSummaryByUsername("john_doe");
 
             // Then
             ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
@@ -232,7 +232,7 @@ public class StaffAccountReadRepoTests {
                     .thenReturn(Optional.of(expectedStaffAccountSummary));
 
             // When
-            Optional<StaffAccountSummaryReadModel> optionalStaffAccountSummary = sut.findByUsername("john_doe");
+            Optional<StaffAccountSummaryReadModel> optionalStaffAccountSummary = sut.findSummaryByUsername("john_doe");
 
             // Then
             assertThat(optionalStaffAccountSummary).isPresent();
@@ -246,7 +246,7 @@ public class StaffAccountReadRepoTests {
                     .thenReturn(Optional.empty());
 
             // When
-            Optional<StaffAccountSummaryReadModel> optionalStaffAccountSummary = sut.findByUsername("john_doe");
+            Optional<StaffAccountSummaryReadModel> optionalStaffAccountSummary = sut.findSummaryByUsername("john_doe");
 
             // Then
             assertThat(optionalStaffAccountSummary).isEmpty();
@@ -259,7 +259,7 @@ public class StaffAccountReadRepoTests {
                     .thenThrow(InfraException.class);
 
             // When & Then
-            assertThatThrownBy(() -> sut.findByUsername("john_doe"))
+            assertThatThrownBy(() -> sut.findSummaryByUsername("john_doe"))
                     .isInstanceOf(InfraException.class);
         }
     }

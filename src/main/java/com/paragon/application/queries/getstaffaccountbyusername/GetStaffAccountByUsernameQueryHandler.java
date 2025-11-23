@@ -26,7 +26,7 @@ public class GetStaffAccountByUsernameQueryHandler implements QueryHandler<GetSt
     @Override
     public GetStaffAccountByUsernameQueryResponse handle(GetStaffAccountByUsernameQuery query) {
         try {
-            Optional<StaffAccountSummaryReadModel> optionalReadModel = staffAccountReadRepo.findByUsername(query.username());
+            Optional<StaffAccountSummaryReadModel> optionalReadModel = staffAccountReadRepo.findSummaryByUsername(query.username());
             return new GetStaffAccountByUsernameQueryResponse(
                     optionalReadModel.map(StaffAccountSummary::fromReadModel)
             );

@@ -7,7 +7,6 @@ import com.paragon.application.queries.getstaffaccountbyusername.GetStaffAccount
 import com.paragon.application.queries.getstaffaccountbyusername.GetStaffAccountByUsernameQueryHandler;
 import com.paragon.application.queries.getstaffaccountbyusername.GetStaffAccountByUsernameQueryResponse;
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo;
-import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.helpers.fixtures.StaffAccountSummaryReadModelFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
@@ -38,7 +37,7 @@ public class GetStaffAccountByUsernameQueryHandlerTests {
         StaffAccountSummaryReadModel readModel = new StaffAccountSummaryReadModelFixture()
                 .withUsername("john_doe")
                 .build();
-        when(staffAccountReadRepoMock.findByUsername(anyString()))
+        when(staffAccountReadRepoMock.findSummaryByUsername(anyString()))
                 .thenReturn(Optional.of(readModel));
 
         // When
@@ -63,7 +62,7 @@ public class GetStaffAccountByUsernameQueryHandlerTests {
         // Then
         ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
         verify(staffAccountReadRepoMock, times(1))
-                .findByUsername(argumentCaptor.capture());
+                .findSummaryByUsername(argumentCaptor.capture());
 
         assertThat(argumentCaptor.getValue()).isEqualTo("john_doe");
     }
@@ -73,7 +72,7 @@ public class GetStaffAccountByUsernameQueryHandlerTests {
         // Given
         doThrow(InfraException.class)
                 .when(staffAccountReadRepoMock)
-                .findByUsername(anyString());
+                .findSummaryByUsername(anyString());
 
         when(appExceptionHandlerMock.handleInfraException(any(InfraException.class)))
                 .thenReturn(mock(AppException.class));

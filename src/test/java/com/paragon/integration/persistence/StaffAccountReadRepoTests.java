@@ -146,7 +146,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(staffAccount);
 
             // When
-            Optional<StaffAccountSummaryReadModel> optionalStaffAccountSummary = sut.findByUsername("john_doe");
+            Optional<StaffAccountSummaryReadModel> optionalStaffAccountSummary = sut.findSummaryByUsername("john_doe");
 
             // Then
             assertThat(optionalStaffAccountSummary).isPresent();

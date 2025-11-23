@@ -18,5 +18,5 @@ public interface StaffAccountReadRepo {
                                                         Username disabledBy,
                                                         DateTimeUtc createdBefore,
                                                         DateTimeUtc createdAfter);
-    Optional<StaffAccountSummaryReadModel> findByUsername(String username);
+    Optional<StaffAccountSummaryReadModel> findSummaryByUsername(String username);
 }
