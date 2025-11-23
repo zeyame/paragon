@@ -9,7 +9,6 @@ import com.paragon.application.queries.getallstaffaccounts.GetAllStaffAccountsQu
 import com.paragon.application.queries.getallstaffaccounts.StaffAccountSummary;
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.models.valueobjects.DateTimeUtc;
-import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo;
 import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
@@ -21,7 +20,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -61,7 +59,7 @@ public class GetAllStaffAccountsQueryHandlerTests {
                         Instant.now()
                 )
         );
-        when(staffAccountReadRepoMock.findAll(any(), any(), any(), any(), any())).thenReturn(readModels);
+        when(staffAccountReadRepoMock.findAllSummaries(any(), any(), any(), any(), any())).thenReturn(readModels);
 
         // When
         GetAllStaffAccountsQueryResponse response = sut.handle(query);
@@ -90,7 +88,7 @@ public class GetAllStaffAccountsQueryHandlerTests {
                 "active",
                 expectedTimestamp
         );
-        when(staffAccountReadRepoMock.findAll(any(), any(), any(), any(), any())).thenReturn(List.of(readModel));
+        when(staffAccountReadRepoMock.findAllSummaries(any(), any(), any(), any(), any())).thenReturn(List.of(readModel));
 
         // When
         GetAllStaffAccountsQueryResponse response = sut.handle(query);
@@ -110,13 +108,13 @@ public class GetAllStaffAccountsQueryHandlerTests {
         // Given
         GetAllStaffAccountsQuery query = new GetAllStaffAccountsQuery("ACTIVE", null, null, null, null);
 
-        when(staffAccountReadRepoMock.findAll(any(), any(), any(), any(), any())).thenReturn(List.of());
+        when(staffAccountReadRepoMock.findAllSummaries(any(), any(), any(), any(), any())).thenReturn(List.of());
 
         // When
         sut.handle(query);
 
         // Then
-        verify(staffAccountReadRepoMock, times(1)).findAll(any(), any(), any(), any(), any());
+        verify(staffAccountReadRepoMock, times(1)).findAllSummaries(any(), any(), any(), any(), any());
     }
 
     @Test
@@ -124,7 +122,7 @@ public class GetAllStaffAccountsQueryHandlerTests {
         // Given
         GetAllStaffAccountsQuery query = new GetAllStaffAccountsQuery("ACTIVE", null, null, null, null);
 
-        when(staffAccountReadRepoMock.findAll(any(), any(), any(), any(), any())).thenReturn(List.of());
+        when(staffAccountReadRepoMock.findAllSummaries(any(), any(), any(), any(), any())).thenReturn(List.of());
 
         // When
         GetAllStaffAccountsQueryResponse response = sut.handle(query);
@@ -157,7 +155,7 @@ public class GetAllStaffAccountsQueryHandlerTests {
                 createdAfter
         );
 
-        when(staffAccountReadRepoMock.findAll(any(), any(), any(), any(), any()))
+        when(staffAccountReadRepoMock.findAllSummaries(any(), any(), any(), any(), any()))
                 .thenReturn(List.of());
 
         ArgumentCaptor<StaffAccountStatus> statusCaptor = ArgumentCaptor.forClass(StaffAccountStatus.class);
@@ -170,7 +168,7 @@ public class GetAllStaffAccountsQueryHandlerTests {
         sut.handle(query);
 
         // Then
-        verify(staffAccountReadRepoMock, times(1)).findAll(
+        verify(staffAccountReadRepoMock, times(1)).findAllSummaries(
                 statusCaptor.capture(),
                 enabledByCaptor.capture(),
                 disabledByCaptor.capture(),
@@ -201,7 +199,7 @@ public class GetAllStaffAccountsQueryHandlerTests {
                 .isThrownBy(() -> sut.handle(invalidQuery))
                 .extracting("message", "errorCode")
                 .containsExactly(AppExceptionInfo.mutuallyExclusiveStaffAccountFilters().getMessage(), AppExceptionInfo.mutuallyExclusiveStaffAccountFilters().getAppErrorCode());
-        verify(staffAccountReadRepoMock, never()).findAll(any(), any(), any(), any(), any());
+        verify(staffAccountReadRepoMock, never()).findAllSummaries(any(), any(), any(), any(), any());
     }
 
     @Test
@@ -229,7 +227,7 @@ public class GetAllStaffAccountsQueryHandlerTests {
                 .isThrownBy(() -> sut.handle(invalidQuery))
                 .extracting("message", "errorCode")
                 .containsExactly(expectedErrorMessage, expectedErrorCode);
-        verify(staffAccountReadRepoMock, never()).findAll(any(), any(), any(), any(), any());
+        verify(staffAccountReadRepoMock, never()).findAllSummaries(any(), any(), any(), any(), any());
     }
 
     @Test
@@ -237,7 +235,7 @@ public class GetAllStaffAccountsQueryHandlerTests {
         // Given
         GetAllStaffAccountsQuery query = new GetAllStaffAccountsQuery("ACTIVE", null, null, null, null);
 
-        when(staffAccountReadRepoMock.findAll(any(), any(), any(), any(), any()))
+        when(staffAccountReadRepoMock.findAllSummaries(any(), any(), any(), any(), any()))
                 .thenThrow(mock(InfraException.class));
 
         when(appExceptionHandlerMock.handleInfraException(any(InfraException.class)))

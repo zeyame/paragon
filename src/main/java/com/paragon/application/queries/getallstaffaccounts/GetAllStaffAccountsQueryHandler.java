@@ -40,7 +40,7 @@ public class GetAllStaffAccountsQueryHandler implements QueryHandler<GetAllStaff
             Username enabledByUsername = query.enabledBy() != null ? Username.of(query.enabledBy()) : null;
             Username disabledByUsername = query.disabledBy() != null ? Username.of(query.disabledBy()) : null;
 
-            List<StaffAccountSummaryReadModel> staffAccountSummaryReadModels = staffAccountReadRepo.findAll(
+            List<StaffAccountSummaryReadModel> staffAccountSummaryReadModels = staffAccountReadRepo.findAllSummaries(
                     StaffAccountStatus.fromString(query.status()),
                     enabledByUsername,
                     disabledByUsername,

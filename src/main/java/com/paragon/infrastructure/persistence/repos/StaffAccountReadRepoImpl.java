@@ -50,11 +50,11 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
     }
 
     @Override
-    public List<StaffAccountSummaryReadModel> findAll(StaffAccountStatus status,
-                                                      Username enabledBy,
-                                                      Username disabledBy,
-                                                      DateTimeUtc createdBefore,
-                                                      DateTimeUtc createdAfter) {
+    public List<StaffAccountSummaryReadModel> findAllSummaries(StaffAccountStatus status,
+                                                               Username enabledBy,
+                                                               Username disabledBy,
+                                                               DateTimeUtc createdBefore,
+                                                               DateTimeUtc createdAfter) {
         StringBuilder sql = new StringBuilder("""
                 SELECT id, username, status, created_at_utc
                 FROM staff_accounts

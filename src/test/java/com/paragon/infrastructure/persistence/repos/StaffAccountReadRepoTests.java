@@ -290,7 +290,7 @@ public class StaffAccountReadRepoTests {
             ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
 
             // When
-            sut.findAll(status, enabledBy, disabledBy, createdBefore, createdAfter);
+            sut.findAllSummaries(status, enabledBy, disabledBy, createdBefore, createdAfter);
 
             // Then
             verify(readJdbcHelperMock, times(1)).query(sqlStatementCaptor.capture(), eq(StaffAccountSummaryReadModel.class));
@@ -339,7 +339,7 @@ public class StaffAccountReadRepoTests {
                     .thenReturn(List.of());
 
             // When
-            var result = sut.findAll(null, null, null, null, null);
+            var result = sut.findAllSummaries(null, null, null, null, null);
 
             // Then
             assertThat(result).isEmpty();
@@ -359,7 +359,7 @@ public class StaffAccountReadRepoTests {
                     .thenReturn(List.of(summary));
 
             // When
-            var result = sut.findAll(StaffAccountStatus.ACTIVE, null, null, null, null);
+            var result = sut.findAllSummaries(StaffAccountStatus.ACTIVE, null, null, null, null);
 
             // Then
             assertThat(result).hasSize(1);
@@ -373,7 +373,7 @@ public class StaffAccountReadRepoTests {
                     .thenThrow(InfraException.class);
 
             // When & Then
-            assertThatThrownBy(() -> sut.findAll(null, null, null, null, null))
+            assertThatThrownBy(() -> sut.findAllSummaries(null, null, null, null, null))
                     .isInstanceOf(InfraException.class);
         }
 

@@ -13,10 +13,10 @@ import java.util.Optional;
 public interface StaffAccountReadRepo {
     boolean exists(StaffAccountId staffAccountId);
     boolean hasPermission(StaffAccountId staffAccountId, PermissionCode permissionCode);
-    List<StaffAccountSummaryReadModel> findAll(StaffAccountStatus status,
-                                               Username enabledBy,
-                                               Username disabledBy,
-                                               DateTimeUtc createdBefore,
-                                               DateTimeUtc createdAfter);
+    List<StaffAccountSummaryReadModel> findAllSummaries(StaffAccountStatus status,
+                                                        Username enabledBy,
+                                                        Username disabledBy,
+                                                        DateTimeUtc createdBefore,
+                                                        DateTimeUtc createdAfter);
     Optional<StaffAccountSummaryReadModel> findByUsername(String username);
 }
