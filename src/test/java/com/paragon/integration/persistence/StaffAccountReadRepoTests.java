@@ -10,6 +10,7 @@ import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.helpers.TestJdbcHelper;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
+import com.paragon.infrastructure.persistence.readmodels.StaffAccountDetailedReadModel;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
 import com.paragon.integration.IntegrationTestBase;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -584,6 +585,44 @@ public class StaffAccountReadRepoTests {
 
             // Then
             assertThat(results).anyMatch(s -> s.id().equals(enabledActiveStaffAccount.getId().getValue()));
+        }
+    }
+
+    @Nested
+    class FindDetailedById extends IntegrationTestBase {
+        private final StaffAccountReadRepo sut;
+        private final TestJdbcHelper testJdbcHelper;
+
+        @Autowired
+        public FindDetailedById(WriteJdbcHelper writeJdbcHelper, StaffAccountReadRepo staffAccountReadRepo) {
+            sut = staffAccountReadRepo;
+            testJdbcHelper = new TestJdbcHelper(writeJdbcHelper);
+        }
+
+        @Test
+        void shouldReturnStaffAccountDetailedReadModel() {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withUsername("john_doe")
+                    .withEmail("john_doe@example.com")
+                    .withCreatedBy(adminId)
+                    .withPermissionCodes(List.of("MANAGE_ACCOUNTS", "VIEW_ACCOUNTS_LIST"))
+                    .build();
+            testJdbcHelper.insertStaffAccount(staffAccount);
+
+            // When
+            Optional<StaffAccountDetailedReadModel> optionalStaffAccountDetailedReadModel = sut.findDetailedById(staffAccount.getId().getValue());
+
+            // Then
+            assertThat(optionalStaffAccountDetailedReadModel).isPresent();
+            StaffAccountDetailedReadModel retrievedDetailedModel = optionalStaffAccountDetailedReadModel.get();
+            assertThat(retrievedDetailedModel.id()).isEqualTo(staffAccount.getId().getValue());
+            assertThat(retrievedDetailedModel.username()).isEqualTo(staffAccount.getUsername().getValue());
+            assertThat(retrievedDetailedModel.orderAccessDurationInDays()).isEqualTo(staffAccount.getOrderAccessDuration().getValueInDays());
+            assertThat(retrievedDetailedModel.modmailTranscriptAccessDurationInDays()).isEqualTo(staffAccount.getModmailTranscriptAccessDuration().getValueInDays());
+            assertThat(retrievedDetailedModel.status()).isEqualTo(staffAccount.getStatus().toString());
+            assertThat(retrievedDetailedModel.createdBy()).isEqualTo(staffAccount.getCreatedBy().getValue());
+            assertThat(retrievedDetailedModel.permissionCodes()).isEqualTo(List.of("MANAGE_ACCOUNTS", "VIEW_ACCOUNTS_LIST"));
         }
     }
 }

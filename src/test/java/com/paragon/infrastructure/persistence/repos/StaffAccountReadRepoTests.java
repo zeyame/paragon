@@ -6,6 +6,8 @@ import com.paragon.domain.models.valueobjects.DateTimeUtc;
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.domain.models.valueobjects.Username;
+import com.paragon.infrastructure.persistence.daos.PermissionCodeDao;
+import com.paragon.infrastructure.persistence.daos.StaffAccountDetailedReadModelDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountIdDao;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.helpers.ReadJdbcHelper;
@@ -442,6 +444,7 @@ public class StaffAccountReadRepoTests {
 
     @Nested
     class FindDetailedById {
+
         private final ReadJdbcHelper readJdbcHelperMock;
         private final StaffAccountReadRepo sut;
 
@@ -453,35 +456,64 @@ public class StaffAccountReadRepoTests {
         @Test
         void shouldExecuteQueryWithCorrectSqlAndParams() {
             // Given
-            UUID staffAccountId = StaffAccountId.generate().getValue();
+            UUID staffAccountId = UUID.randomUUID();
+
             String expectedSql = """
-                       SELECT
-                            sa.id, sa.username, sa.order_access_duration AS order_access_duration_in_days,
-                            sa.modmail_transcript_access_duration AS modmail_transcript_access_duration_in_days,
-                            sa.status, sa.locked_until_utc, sa.last_login_at_utc, sa.created_by, sa.disabled_by
-                       FROM staff_accounts sa
-                       LEFT JOIN staff_account_permissions sap
-                       ON sa.id = sap.staff_account_id
-                       WHERE sa.id = :id
-                    """;
+                SELECT
+                    id,
+                    username,
+                    order_access_duration AS order_access_duration_in_days,
+                    modmail_transcript_access_duration AS modmail_transcript_access_duration_in_days,
+                    status,
+                    locked_until_utc,
+                    last_login_at_utc,
+                    created_by,
+                    disabled_by,
+                    created_at_utc
+                FROM staff_accounts
+                WHERE id = :id
+                """;
+
+            // Return a DAO so the method continues to the permission query
+            StaffAccountDetailedReadModelDao dao = new StaffAccountDetailedReadModelDao(
+                    staffAccountId,
+                    "john_doe",
+                    10,
+                    20,
+                    "ACTIVE",
+                    Instant.now(),
+                    Instant.now(),
+                    UUID.randomUUID(),
+                    UUID.randomUUID(),
+                    Instant.now()
+            );
+
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountDetailedReadModelDao.class)))
+                    .thenReturn(Optional.of(dao));
+
+            when(readJdbcHelperMock.query(any(SqlStatement.class), eq(PermissionCodeDao.class)))
+                    .thenReturn(List.of());
 
             // When
             sut.findDetailedById(staffAccountId);
 
             // Then
-            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
-            verify(readJdbcHelperMock, times(1)).queryFirstOrDefault(sqlStatementCaptor.capture(), eq(StaffAccountDetailedReadModel.class));
+            ArgumentCaptor<SqlStatement> captor = ArgumentCaptor.forClass(SqlStatement.class);
+            verify(readJdbcHelperMock).queryFirstOrDefault(captor.capture(), eq(StaffAccountDetailedReadModelDao.class));
 
-            SqlStatement sqlStatement = sqlStatementCaptor.getValue();
-            assertThat(sqlStatement.sql()).isEqualTo(expectedSql);
+            SqlStatement sqlStatement = captor.getValue();
+
+            assertThat(sqlStatement.sql()).isEqualToIgnoringWhitespace(expectedSql);
             assertThat(sqlStatement.params().get("id")).isEqualTo(staffAccountId);
         }
 
         @Test
         void shouldReturnExpectedDetailedModel() {
             // Given
-            StaffAccountDetailedReadModel expectedStaffAccountDetailedModel = new StaffAccountDetailedReadModel(
-                    UUID.randomUUID(),
+            UUID staffAccountId = UUID.randomUUID();
+
+            StaffAccountDetailedReadModelDao dao = new StaffAccountDetailedReadModelDao(
+                    staffAccountId,
                     "john_doe",
                     14,
                     30,
@@ -490,39 +522,51 @@ public class StaffAccountReadRepoTests {
                     Instant.parse("2024-12-31T23:45:00Z"),
                     UUID.randomUUID(),
                     UUID.randomUUID(),
-                    List.of("MANAGE_ACCOUNTS", "VIEW_ACCOUNTS_LIST"),
                     Instant.parse("2023-11-15T08:30:00Z")
             );
 
-            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountDetailedReadModel.class)))
-                    .thenReturn(Optional.of(expectedStaffAccountDetailedModel));
+            List<PermissionCodeDao> permDaos = List.of(
+                    new PermissionCodeDao("MANAGE_ACCOUNTS"),
+                    new PermissionCodeDao("VIEW_ACCOUNTS_LIST")
+            );
+
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountDetailedReadModelDao.class)))
+                    .thenReturn(Optional.of(dao));
+            when(readJdbcHelperMock.query(any(SqlStatement.class), eq(PermissionCodeDao.class)))
+                    .thenReturn(permDaos);
+
+            // Expected final result
+            StaffAccountDetailedReadModel expected = StaffAccountDetailedReadModel.from(
+                    dao,
+                    List.of("MANAGE_ACCOUNTS", "VIEW_ACCOUNTS_LIST")
+            );
 
             // When
-            Optional<StaffAccountDetailedReadModel> optionalStaffAccountDetailedReadModel = sut.findDetailedById(UUID.randomUUID());
+            Optional<StaffAccountDetailedReadModel> result = sut.findDetailedById(staffAccountId);
 
             // Then
-            assertThat(optionalStaffAccountDetailedReadModel).isPresent();
-            assertThat(optionalStaffAccountDetailedReadModel.get()).isEqualTo(expectedStaffAccountDetailedModel);
+            assertThat(result).isPresent();
+            assertThat(result.get()).isEqualTo(expected);
         }
 
         @Test
         void returnsEmptyOptional_whenStaffAccountDoesNotExist() {
             // Given
-            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountSummaryReadModel.class)))
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountDetailedReadModelDao.class)))
                     .thenReturn(Optional.empty());
 
             // When
-            Optional<StaffAccountDetailedReadModel> optionalStaffAccountDetailedReadModel = sut.findDetailedById(UUID.randomUUID());
+            Optional<StaffAccountDetailedReadModel> result = sut.findDetailedById(UUID.randomUUID());
 
             // Then
-            assertThat(optionalStaffAccountDetailedReadModel).isEmpty();
+            assertThat(result).isEmpty();
         }
 
         @Test
         void shouldPropagateInfraException_whenJdbcHelperThrows() {
             // Given
-            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountDetailedReadModel.class)))
-                    .thenThrow(InfraException.class);
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountDetailedReadModelDao.class)))
+                    .thenThrow(new InfraException());
 
             // When & Then
             assertThatThrownBy(() -> sut.findDetailedById(UUID.randomUUID()))

@@ -6,6 +6,8 @@ import com.paragon.domain.models.valueobjects.DateTimeUtc;
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.domain.models.valueobjects.Username;
+import com.paragon.infrastructure.persistence.daos.PermissionCodeDao;
+import com.paragon.infrastructure.persistence.daos.StaffAccountDetailedReadModelDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountIdDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountPermissionDao;
 import com.paragon.infrastructure.persistence.jdbc.helpers.ReadJdbcHelper;
@@ -116,20 +118,45 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
     @Override
     public Optional<StaffAccountDetailedReadModel> findDetailedById(UUID staffAccountId) {
         String sql = """
-                       SELECT
-                            sa.id, sa.username, sa.order_access_duration AS order_access_duration_in_days,
-                            sa.modmail_transcript_access_duration AS modmail_transcript_access_duration_in_days,
-                            sa.status, sa.locked_until_utc, sa.last_login_at_utc, sa.created_by, sa.disabled_by
-                       FROM staff_accounts sa
-                       LEFT JOIN staff_account_permissions sap
-                       ON sa.id = sap.staff_account_id
-                       WHERE sa.id = :id
+                        SELECT
+                            id,
+                            username,
+                            order_access_duration AS order_access_duration_in_days,
+                            modmail_transcript_access_duration AS modmail_transcript_access_duration_in_days,
+                            status,
+                            locked_until_utc,
+                            last_login_at_utc,
+                            created_by,
+                            disabled_by,
+                            created_at_utc
+                        FROM staff_accounts
+                        WHERE id = :id
                     """;
         SqlParamsBuilder params = new SqlParamsBuilder().add("id", staffAccountId);
 
-        return readJdbcHelper.queryFirstOrDefault(
+        Optional<StaffAccountDetailedReadModelDao> optionalDao = readJdbcHelper.queryFirstOrDefault(
                 new SqlStatement(sql, params),
-                StaffAccountDetailedReadModel.class
+                StaffAccountDetailedReadModelDao.class
         );
+        if (optionalDao.isEmpty()) {
+            return Optional.empty();
+        }
+
+        List<String> permissionCodes = getPermissionCodesBy(staffAccountId);
+        return Optional.of(StaffAccountDetailedReadModel.from(optionalDao.get(), permissionCodes));
+    }
+
+    private List<String> getPermissionCodesBy(UUID staffAccountId) {
+        String sql = "SELECT permission_code FROM staff_account_permissions WHERE staff_account_id = :id";
+        SqlParamsBuilder params = new SqlParamsBuilder().add("id", staffAccountId);
+
+        List<PermissionCodeDao> permissionCodeDaos = readJdbcHelper.query(
+                new SqlStatement(sql, params),
+                PermissionCodeDao.class
+        );
+        return permissionCodeDaos
+                .stream()
+                .map(dao -> dao.toPermissionCode().getValue())
+                .toList();
     }
 }
