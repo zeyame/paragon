@@ -198,7 +198,7 @@ public class StaffAccountReadRepoTests {
         void callsJdbcHelperWithExpectedSqlAndParams() {
             // Given
             String expectedSql = """
-                SELECT id, username, status, order_access_duration, modmail_transcript_access_duration, created_at_utc
+                SELECT id, username, status, created_at_utc
                 FROM staff_accounts
                 WHERE username = :username
                 """;
@@ -225,8 +225,6 @@ public class StaffAccountReadRepoTests {
                     UUID.randomUUID(),
                     "john_doe",
                     "active",
-                    10,
-                    5,
                     Instant.now()
             );
 
@@ -302,7 +300,7 @@ public class StaffAccountReadRepoTests {
             var params = statement.params().build();
 
             // Verify base SELECT and WHERE 1=1
-            assertThat(actualSql).contains("SELECT id, username, status, order_access_duration, modmail_transcript_access_duration, created_at_utc");
+            assertThat(actualSql).contains("SELECT id, username, status, created_at_utc");
             assertThat(actualSql).contains("FROM staff_accounts");
             assertThat(actualSql).contains("WHERE 1=1");
             assertThat(actualSql).endsWith("ORDER BY created_at_utc DESC");
@@ -354,8 +352,6 @@ public class StaffAccountReadRepoTests {
                     UUID.randomUUID(),
                     "john_doe",
                     "active",
-                    10,
-                    5,
                     Instant.now()
             );
 

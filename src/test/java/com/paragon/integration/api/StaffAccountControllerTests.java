@@ -21,7 +21,6 @@ import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.helpers.TestJdbcHelper;
 import com.paragon.helpers.TestJwtHelper;
-import com.paragon.helpers.TestPasswordHasherHelper;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
 import com.paragon.integration.IntegrationTestBase;
@@ -30,7 +29,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -39,7 +37,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -985,8 +982,6 @@ public class StaffAccountControllerTests {
             assertThat(result.id()).isEqualTo(staffAccount.getId().getValue());
             assertThat(result.username()).isEqualTo(staffAccount.getUsername().getValue());
             assertThat(result.status()).isEqualTo(staffAccount.getStatus().toString());
-            assertThat(result.orderAccessDuration()).isEqualTo(staffAccount.getOrderAccessDuration().getValueInDays());
-            assertThat(result.modmailTranscriptAccessDuration()).isEqualTo(staffAccount.getModmailTranscriptAccessDuration().getValueInDays());
             assertThat(result.createdAt()).isNotNull();
         }
 

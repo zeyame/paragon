@@ -52,16 +52,12 @@ public class GetAllStaffAccountsQueryHandlerTests {
                         UUID.randomUUID(),
                         "john_doe",
                         "active",
-                        10,
-                        5,
                         Instant.now()
                 ),
                 new StaffAccountSummaryReadModel(
                         UUID.randomUUID(),
                         "jane_smith",
                         "pending_password_change",
-                        14,
-                        7,
                         Instant.now()
                 )
         );
@@ -92,8 +88,6 @@ public class GetAllStaffAccountsQueryHandlerTests {
                 expectedId,
                 "test_user",
                 "active",
-                15,
-                10,
                 expectedTimestamp
         );
         when(staffAccountReadRepoMock.findAll(any(), any(), any(), any(), any())).thenReturn(List.of(readModel));
@@ -108,8 +102,6 @@ public class GetAllStaffAccountsQueryHandlerTests {
         assertThat(summary.id()).isEqualTo(expectedId);
         assertThat(summary.username()).isEqualTo("test_user");
         assertThat(summary.status()).isEqualTo("active");
-        assertThat(summary.orderAccessDuration()).isEqualTo(15);
-        assertThat(summary.modmailTranscriptAccessDuration()).isEqualTo(10);
         assertThat(summary.createdAtUtc()).isEqualTo(expectedTimestamp);
     }
 

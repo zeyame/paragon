@@ -9,8 +9,6 @@ public record StaffAccountSummary(
         UUID id,
         String username,
         String status,
-        int orderAccessDuration,
-        int modmailTranscriptAccessDuration,
         Instant createdAtUtc
 ) {
     public static StaffAccountSummary fromReadModel(StaffAccountSummaryReadModel rm) {
@@ -18,8 +16,6 @@ public record StaffAccountSummary(
                 rm.id(),
                 rm.username(),
                 rm.status(),
-                rm.orderAccessDuration(),
-                rm.modmailTranscriptAccessDuration(),
                 rm.createdAtUtc()
         );
     }

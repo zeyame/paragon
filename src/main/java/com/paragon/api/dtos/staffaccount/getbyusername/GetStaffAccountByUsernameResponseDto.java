@@ -14,17 +14,11 @@ public record GetStaffAccountByUsernameResponseDto(
         String username,
         @JsonProperty("status")
         String status,
-        @JsonProperty("order_access_duration")
-        Integer orderAccessDuration,
-        @JsonProperty("modmail_transcript_access_duration")
-        Integer modmailTranscriptAccessDuration,
         @JsonProperty("created_at")
         Instant createdAt
 ) {
     public static GetStaffAccountByUsernameResponseDto empty() {
         return new GetStaffAccountByUsernameResponseDto(
-                null,
-                null,
                 null,
                 null,
                 null,

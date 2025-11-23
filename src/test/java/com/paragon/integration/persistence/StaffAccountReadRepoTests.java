@@ -155,8 +155,6 @@ public class StaffAccountReadRepoTests {
             assertThat(retrievedSummary.id()).isEqualTo(staffAccount.getId().getValue());
             assertThat(retrievedSummary.username()).isEqualTo(staffAccount.getUsername().getValue());
             assertThat(retrievedSummary.status()).isEqualTo(staffAccount.getStatus().toString());
-            assertThat(retrievedSummary.orderAccessDuration()).isEqualTo(staffAccount.getOrderAccessDuration().getValueInDays());
-            assertThat(retrievedSummary.modmailTranscriptAccessDuration()).isEqualTo(staffAccount.getModmailTranscriptAccessDuration().getValueInDays());
         }
     }
 

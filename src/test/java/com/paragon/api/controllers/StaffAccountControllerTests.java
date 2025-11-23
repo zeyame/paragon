@@ -502,8 +502,6 @@ public class StaffAccountControllerTests {
                             UUID.randomUUID(),
                             "john_doe",
                             "active",
-                            10,
-                            5,
                             Instant.now()
                     )
             ));
@@ -541,8 +539,6 @@ public class StaffAccountControllerTests {
             assertThat(actualSummary.id()).isEqualTo(expectedSummary.id());
             assertThat(actualSummary.username()).isEqualTo(expectedSummary.username());
             assertThat(actualSummary.status()).isEqualTo(expectedSummary.status());
-            assertThat(actualSummary.orderAccessDuration()).isEqualTo(expectedSummary.orderAccessDuration());
-            assertThat(actualSummary.modmailTranscriptAccessDuration()).isEqualTo(expectedSummary.modmailTranscriptAccessDuration());
         }
 
         @ParameterizedTest
@@ -622,8 +618,6 @@ public class StaffAccountControllerTests {
                     UUID.randomUUID(),
                     "john_doe",
                     "PENDING_PASSWORD_CHANGE",
-                    10,
-                    20,
                     Instant.now()
             );
 
@@ -643,8 +637,6 @@ public class StaffAccountControllerTests {
             assertThat(result.id()).isEqualTo(staffAccountSummary.id());
             assertThat(result.username()).isEqualTo("john_doe");
             assertThat(result.status()).isEqualTo(staffAccountSummary.status());
-            assertThat(result.orderAccessDuration()).isEqualTo(staffAccountSummary.orderAccessDuration());
-            assertThat(result.modmailTranscriptAccessDuration()).isEqualTo(staffAccountSummary.modmailTranscriptAccessDuration());
             assertThat(result.createdAt()).isEqualTo(staffAccountSummary.createdAtUtc());
         }
 

@@ -9,8 +9,6 @@ public class StaffAccountSummaryReadModelFixture {
     private UUID id = UUID.randomUUID();
     private String username = "testuser";
     private String status = "PENDING_PASSWORD_CHANGE";
-    private int orderAccessDuration = 7;
-    private int modmailTranscriptAccessDuration = 14;
     private Instant createdAtUtc = Instant.now();
 
     public StaffAccountSummaryReadModelFixture withId(UUID value) {
@@ -28,16 +26,6 @@ public class StaffAccountSummaryReadModelFixture {
         return this;
     }
 
-    public StaffAccountSummaryReadModelFixture withOrderAccessDuration(int days) {
-        this.orderAccessDuration = days;
-        return this;
-    }
-
-    public StaffAccountSummaryReadModelFixture withModmailTranscriptAccessDuration(int days) {
-        this.modmailTranscriptAccessDuration = days;
-        return this;
-    }
-
     public StaffAccountSummaryReadModelFixture withCreatedAtUtc(Instant value) {
         this.createdAtUtc = value;
         return this;
@@ -48,8 +36,6 @@ public class StaffAccountSummaryReadModelFixture {
                 id,
                 username,
                 status,
-                orderAccessDuration,
-                modmailTranscriptAccessDuration,
                 createdAtUtc
         );
     }

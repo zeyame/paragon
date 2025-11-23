@@ -7,8 +7,5 @@ public record StaffAccountSummaryReadModel(
         UUID id,
         String username,
         String status,
-        int orderAccessDuration,
-        int modmailTranscriptAccessDuration,
         Instant createdAtUtc
 ) {}
-

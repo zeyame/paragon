@@ -56,7 +56,7 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
                                                       DateTimeUtc createdBefore,
                                                       DateTimeUtc createdAfter) {
         StringBuilder sql = new StringBuilder("""
-                SELECT id, username, status, order_access_duration, modmail_transcript_access_duration, created_at_utc
+                SELECT id, username, status, created_at_utc
                 FROM staff_accounts
                 WHERE 1=1
                 """);
@@ -99,7 +99,7 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
     @Override
     public Optional<StaffAccountSummaryReadModel> findByUsername(String username) {
         String sql = """
-                SELECT id, username, status, order_access_duration, modmail_transcript_access_duration, created_at_utc
+                SELECT id, username, status, created_at_utc
                 FROM staff_accounts
                 WHERE username = :username
                 """;

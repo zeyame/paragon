@@ -52,8 +52,6 @@ public class GetStaffAccountByUsernameQueryHandlerTests {
         assertThat(summary.id()).isEqualTo(readModel.id());
         assertThat(summary.username()).isEqualTo(readModel.username());
         assertThat(summary.status()).isEqualTo(readModel.status());
-        assertThat(summary.orderAccessDuration()).isEqualTo(readModel.orderAccessDuration());
-        assertThat(summary.modmailTranscriptAccessDuration()).isEqualTo(readModel.modmailTranscriptAccessDuration());
         assertThat(summary.createdAtUtc()).isEqualTo(readModel.createdAtUtc());
     }
 

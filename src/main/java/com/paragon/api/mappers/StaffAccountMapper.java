@@ -98,8 +98,6 @@ public class StaffAccountMapper {
                 staffAccountSummary.id(),
                 staffAccountSummary.username(),
                 staffAccountSummary.status(),
-                staffAccountSummary.orderAccessDuration(),
-                staffAccountSummary.modmailTranscriptAccessDuration(),
                 staffAccountSummary.createdAtUtc()
         );
     }
@@ -110,8 +108,6 @@ public class StaffAccountMapper {
                         summary.id(),
                         summary.username(),
                         summary.status(),
-                        summary.orderAccessDuration(),
-                        summary.modmailTranscriptAccessDuration(),
                         summary.createdAtUtc()
                 ))
                 .orElseGet(GetStaffAccountByUsernameResponseDto::empty);

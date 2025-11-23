@@ -12,10 +12,6 @@ public record StaffAccountSummaryResponseDto(
         String username,
         @JsonProperty("status")
         String status,
-        @JsonProperty("order_access_duration")
-        int orderAccessDuration,
-        @JsonProperty("modmail_transcript_access_duration")
-        int modmailTranscriptAccessDuration,
         @JsonProperty("created_at_utc")
         Instant createdAtUtc
 ) {}

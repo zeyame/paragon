@@ -209,16 +209,12 @@ public class StaffAccountMapperTests {
                     UUID.randomUUID(),
                     "john_doe",
                     "ACTIVE",
-                    14,
-                    7,
                     createdAt
             );
             StaffAccountSummary summary2 = new StaffAccountSummary(
                     UUID.randomUUID(),
                     "jane_smith",
                     "DISABLED",
-                    30,
-                    14,
                     createdAt.plusSeconds(3600)
             );
             GetAllStaffAccountsQueryResponse queryResponse = new GetAllStaffAccountsQueryResponse(
@@ -235,16 +231,12 @@ public class StaffAccountMapperTests {
             assertThat(dto1.id()).isEqualTo(summary1.id());
             assertThat(dto1.username()).isEqualTo(summary1.username());
             assertThat(dto1.status()).isEqualTo(summary1.status());
-            assertThat(dto1.orderAccessDuration()).isEqualTo(summary1.orderAccessDuration());
-            assertThat(dto1.modmailTranscriptAccessDuration()).isEqualTo(summary1.modmailTranscriptAccessDuration());
             assertThat(dto1.createdAtUtc()).isEqualTo(summary1.createdAtUtc());
 
             StaffAccountSummaryResponseDto dto2 = responseDto.staffAccountSummaryResponseDtos().get(1);
             assertThat(dto2.id()).isEqualTo(summary2.id());
             assertThat(dto2.username()).isEqualTo(summary2.username());
             assertThat(dto2.status()).isEqualTo(summary2.status());
-            assertThat(dto2.orderAccessDuration()).isEqualTo(summary2.orderAccessDuration());
-            assertThat(dto2.modmailTranscriptAccessDuration()).isEqualTo(summary2.modmailTranscriptAccessDuration());
             assertThat(dto2.createdAtUtc()).isEqualTo(summary2.createdAtUtc());
         }
 
@@ -272,8 +264,6 @@ public class StaffAccountMapperTests {
                             UUID.randomUUID(),
                             "john_doe",
                             "ACTIVE",
-                            15,
-                            5,
                             createdAt
                     ))
             );
@@ -286,8 +276,6 @@ public class StaffAccountMapperTests {
             assertThat(responseDto.id()).isEqualTo(staffAccountSummary.id());
             assertThat(responseDto.username()).isEqualTo(staffAccountSummary.username());
             assertThat(responseDto.status()).isEqualTo(staffAccountSummary.status());
-            assertThat(responseDto.orderAccessDuration()).isEqualTo(staffAccountSummary.orderAccessDuration());
-            assertThat(responseDto.modmailTranscriptAccessDuration()).isEqualTo(staffAccountSummary.modmailTranscriptAccessDuration());
             assertThat(responseDto.createdAt()).isEqualTo(staffAccountSummary.createdAtUtc());
         }
 
@@ -303,8 +291,6 @@ public class StaffAccountMapperTests {
             assertThat(responseDto.id()).isNull();
             assertThat(responseDto.username()).isNull();
             assertThat(responseDto.status()).isNull();
-            assertThat(responseDto.orderAccessDuration()).isNull();
-            assertThat(responseDto.modmailTranscriptAccessDuration()).isNull();
             assertThat(responseDto.createdAt()).isNull();
         }
     }
