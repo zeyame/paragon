@@ -11,11 +11,13 @@ import com.paragon.infrastructure.persistence.daos.StaffAccountPermissionDao;
 import com.paragon.infrastructure.persistence.jdbc.helpers.ReadJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
+import com.paragon.infrastructure.persistence.readmodels.StaffAccountDetailedReadModel;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
@@ -108,6 +110,26 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
         return readJdbcHelper.queryFirstOrDefault(
                 new SqlStatement(sql, params),
                 StaffAccountSummaryReadModel.class
+        );
+    }
+
+    @Override
+    public Optional<StaffAccountDetailedReadModel> findDetailedById(UUID staffAccountId) {
+        String sql = """
+                       SELECT
+                            sa.id, sa.username, sa.order_access_duration AS order_access_duration_in_days,
+                            sa.modmail_transcript_access_duration AS modmail_transcript_access_duration_in_days,
+                            sa.status, sa.locked_until_utc, sa.last_login_at_utc, sa.created_by, sa.disabled_by
+                       FROM staff_accounts sa
+                       LEFT JOIN staff_account_permissions sap
+                       ON sa.id = sap.staff_account_id
+                       WHERE sa.id = :id
+                    """;
+        SqlParamsBuilder params = new SqlParamsBuilder().add("id", staffAccountId);
+
+        return readJdbcHelper.queryFirstOrDefault(
+                new SqlStatement(sql, params),
+                StaffAccountDetailedReadModel.class
         );
     }
 }

@@ -11,6 +11,7 @@ import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.helpers.ReadJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
+import com.paragon.infrastructure.persistence.readmodels.StaffAccountDetailedReadModel;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -436,6 +437,96 @@ public class StaffAccountReadRepoTests {
                     // All five filters (status, enabledBy, createdBefore, createdAfter - note: can't have both enabledBy and disabledBy)
                     Arguments.of(StaffAccountStatus.ACTIVE, enabledByUsername, null, beforeInstant, afterInstant)
             );
+        }
+    }
+
+    @Nested
+    class FindDetailedById {
+        private final ReadJdbcHelper readJdbcHelperMock;
+        private final StaffAccountReadRepo sut;
+
+        public FindDetailedById() {
+            this.readJdbcHelperMock = mock(ReadJdbcHelper.class);
+            this.sut = new StaffAccountReadRepoImpl(readJdbcHelperMock);
+        }
+
+        @Test
+        void shouldExecuteQueryWithCorrectSqlAndParams() {
+            // Given
+            UUID staffAccountId = StaffAccountId.generate().getValue();
+            String expectedSql = """
+                       SELECT
+                            sa.id, sa.username, sa.order_access_duration AS order_access_duration_in_days,
+                            sa.modmail_transcript_access_duration AS modmail_transcript_access_duration_in_days,
+                            sa.status, sa.locked_until_utc, sa.last_login_at_utc, sa.created_by, sa.disabled_by
+                       FROM staff_accounts sa
+                       LEFT JOIN staff_account_permissions sap
+                       ON sa.id = sap.staff_account_id
+                       WHERE sa.id = :id
+                    """;
+
+            // When
+            sut.findDetailedById(staffAccountId);
+
+            // Then
+            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
+            verify(readJdbcHelperMock, times(1)).queryFirstOrDefault(sqlStatementCaptor.capture(), eq(StaffAccountDetailedReadModel.class));
+
+            SqlStatement sqlStatement = sqlStatementCaptor.getValue();
+            assertThat(sqlStatement.sql()).isEqualTo(expectedSql);
+            assertThat(sqlStatement.params().get("id")).isEqualTo(staffAccountId);
+        }
+
+        @Test
+        void shouldReturnExpectedDetailedModel() {
+            // Given
+            StaffAccountDetailedReadModel expectedStaffAccountDetailedModel = new StaffAccountDetailedReadModel(
+                    UUID.randomUUID(),
+                    "john_doe",
+                    14,
+                    30,
+                    "LOCKED",
+                    Instant.parse("2025-01-01T12:00:00Z"),
+                    Instant.parse("2024-12-31T23:45:00Z"),
+                    UUID.randomUUID(),
+                    UUID.randomUUID(),
+                    List.of("MANAGE_ACCOUNTS", "VIEW_ACCOUNTS_LIST"),
+                    Instant.parse("2023-11-15T08:30:00Z")
+            );
+
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountDetailedReadModel.class)))
+                    .thenReturn(Optional.of(expectedStaffAccountDetailedModel));
+
+            // When
+            Optional<StaffAccountDetailedReadModel> optionalStaffAccountDetailedReadModel = sut.findDetailedById(UUID.randomUUID());
+
+            // Then
+            assertThat(optionalStaffAccountDetailedReadModel).isPresent();
+            assertThat(optionalStaffAccountDetailedReadModel.get()).isEqualTo(expectedStaffAccountDetailedModel);
+        }
+
+        @Test
+        void returnsEmptyOptional_whenStaffAccountDoesNotExist() {
+            // Given
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountSummaryReadModel.class)))
+                    .thenReturn(Optional.empty());
+
+            // When
+            Optional<StaffAccountDetailedReadModel> optionalStaffAccountDetailedReadModel = sut.findDetailedById(UUID.randomUUID());
+
+            // Then
+            assertThat(optionalStaffAccountDetailedReadModel).isEmpty();
+        }
+
+        @Test
+        void shouldPropagateInfraException_whenJdbcHelperThrows() {
+            // Given
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountDetailedReadModel.class)))
+                    .thenThrow(InfraException.class);
+
+            // When & Then
+            assertThatThrownBy(() -> sut.findDetailedById(UUID.randomUUID()))
+                    .isInstanceOf(InfraException.class);
         }
     }
 }

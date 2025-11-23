@@ -5,10 +5,12 @@ import com.paragon.domain.models.valueobjects.DateTimeUtc;
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.domain.models.valueobjects.Username;
+import com.paragon.infrastructure.persistence.readmodels.StaffAccountDetailedReadModel;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface StaffAccountReadRepo {
     boolean exists(StaffAccountId staffAccountId);
@@ -19,4 +21,5 @@ public interface StaffAccountReadRepo {
                                                         DateTimeUtc createdBefore,
                                                         DateTimeUtc createdAfter);
     Optional<StaffAccountSummaryReadModel> findSummaryByUsername(String username);
+    Optional<StaffAccountDetailedReadModel> findDetailedById(UUID staffAccountId);
 }
