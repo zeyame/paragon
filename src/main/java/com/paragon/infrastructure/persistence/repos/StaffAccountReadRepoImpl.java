@@ -41,10 +41,10 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
     }
 
     @Override
-    public boolean hasPermission(StaffAccountId staffAccountId, PermissionCode permissionCode) {
+    public boolean hasPermission(UUID staffAccountId, PermissionCode permissionCode) {
         String sql = "SELECT * FROM staff_account_permissions WHERE staff_account_id = :staffAccountId AND permission_code = :permissionCode";
         SqlParamsBuilder params = new SqlParamsBuilder()
-                .add("staffAccountId", staffAccountId.getValue())
+                .add("staffAccountId", staffAccountId)
                 .add("permissionCode", permissionCode.getValue());
 
         return readJdbcHelper.queryFirstOrDefault(

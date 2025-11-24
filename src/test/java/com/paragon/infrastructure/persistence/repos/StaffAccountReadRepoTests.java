@@ -120,7 +120,7 @@ public class StaffAccountReadRepoTests {
         @Test
         void callsJdbcHelper_withExpectedSqlAndParams() {
             // Given
-            StaffAccountId staffAccountId = StaffAccountId.generate();
+            UUID staffAccountId = UUID.randomUUID();
             PermissionCode permissionCode = PermissionCode.of("VIEW_ACCOUNTS_LIST");
             ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
 
@@ -136,14 +136,14 @@ public class StaffAccountReadRepoTests {
             SqlStatement statement = sqlStatementCaptor.getValue();
 
             assertThat(statement.sql()).isEqualTo("SELECT * FROM staff_account_permissions WHERE staff_account_id = :staffAccountId AND permission_code = :permissionCode");
-            assertThat(statement.params().build().get("staffAccountId")).isEqualTo(staffAccountId.getValue());
+            assertThat(statement.params().build().get("staffAccountId")).isEqualTo(staffAccountId);
             assertThat(statement.params().build().get("permissionCode")).isEqualTo(permissionCode.getValue());
         }
 
         @Test
         void returnsTrue_whenStaffAccountHasPermission() {
             // Given
-            StaffAccountId staffAccountId = StaffAccountId.generate();
+            UUID staffAccountId = UUID.randomUUID();
             PermissionCode permissionCode = PermissionCode.of("VIEW_ACCOUNTS_LIST");
 
             when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), any()))
@@ -159,7 +159,7 @@ public class StaffAccountReadRepoTests {
         @Test
         void returnsFalse_whenStaffAccountDoesNotHavePermission() {
             // Given
-            StaffAccountId staffAccountId = StaffAccountId.generate();
+            UUID staffAccountId = UUID.randomUUID();
             PermissionCode permissionCode = PermissionCode.of("VIEW_ACCOUNTS_LIST");
 
             when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), any()))
@@ -175,7 +175,7 @@ public class StaffAccountReadRepoTests {
         @Test
         void shouldPropagateInfraException_whenJdbcHelperThrows() {
             // Given
-            StaffAccountId staffAccountId = StaffAccountId.generate();
+            UUID staffAccountId = UUID.randomUUID();
             PermissionCode permissionCode = PermissionCode.of("VIEW_ACCOUNTS_LIST");
 
             when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), any()))

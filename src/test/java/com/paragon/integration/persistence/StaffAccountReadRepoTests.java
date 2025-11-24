@@ -88,7 +88,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(insertedStaffAccount);
 
             // When
-            boolean hasPermission = sut.hasPermission(insertedStaffAccount.getId(), permissionCode);
+            boolean hasPermission = sut.hasPermission(insertedStaffAccount.getId().getValue(), permissionCode);
 
             // Then
             assertThat(hasPermission).isTrue();
@@ -105,7 +105,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(insertedStaffAccount);
 
             // When
-            boolean hasPermission = sut.hasPermission(insertedStaffAccount.getId(), permissionCode);
+            boolean hasPermission = sut.hasPermission(insertedStaffAccount.getId().getValue(), permissionCode);
 
             // Then
             assertThat(hasPermission).isFalse();
@@ -118,7 +118,7 @@ public class StaffAccountReadRepoTests {
             PermissionCode permissionCode = PermissionCode.of("VIEW_ACCOUNTS_LIST");
 
             // When
-            boolean hasPermission = sut.hasPermission(nonExistentId, permissionCode);
+            boolean hasPermission = sut.hasPermission(nonExistentId.getValue(), permissionCode);
 
             // Then
             assertThat(hasPermission).isFalse();

@@ -14,7 +14,7 @@ import java.util.UUID;
 
 public interface StaffAccountReadRepo {
     boolean exists(StaffAccountId staffAccountId);
-    boolean hasPermission(StaffAccountId staffAccountId, PermissionCode permissionCode);
+    boolean hasPermission(UUID staffAccountId, PermissionCode permissionCode);
     List<StaffAccountSummaryReadModel> findAllSummaries(StaffAccountStatus status,
                                                         Username enabledBy,
                                                         Username disabledBy,
