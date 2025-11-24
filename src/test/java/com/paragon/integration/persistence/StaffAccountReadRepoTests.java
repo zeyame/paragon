@@ -47,7 +47,7 @@ public class StaffAccountReadRepoTests {
             testJdbcHelper.insertStaffAccount(insertedStaffAccount);
 
             // When
-            boolean exists = sut.exists(insertedStaffAccount.getId());
+            boolean exists = sut.exists(insertedStaffAccount.getId().getValue());
 
             // Then
             assertThat(exists).isTrue();
@@ -59,7 +59,7 @@ public class StaffAccountReadRepoTests {
             StaffAccountId nonExistentId = StaffAccountId.generate();
 
             // When
-            boolean exists = sut.exists(nonExistentId);
+            boolean exists = sut.exists(nonExistentId.getValue());
 
             // Then
             assertThat(exists).isFalse();

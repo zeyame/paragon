@@ -47,7 +47,7 @@ public class StaffAccountReadRepoTests {
         @Test
         void callsJdbcHelper_withExpectedSqlAndParams() {
             // Given
-            StaffAccountId staffAccountId = StaffAccountId.generate();
+            UUID staffAccountId = UUID.randomUUID();
             ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
 
             when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountIdDao.class)))
@@ -62,14 +62,14 @@ public class StaffAccountReadRepoTests {
             SqlStatement statement = sqlStatementCaptor.getValue();
 
             assertThat(statement.sql()).isEqualTo("SELECT id FROM staff_accounts WHERE id = :id");
-            assertThat(statement.params().build().get("id")).isEqualTo(staffAccountId.getValue());
+            assertThat(statement.params().build().get("id")).isEqualTo(staffAccountId);
         }
 
         @Test
         void returnsTrue_whenStaffAccountExists() {
             // Given
-            StaffAccountId staffAccountId = StaffAccountId.generate();
-            StaffAccountIdDao dao = new StaffAccountIdDao(staffAccountId.getValue());
+            UUID staffAccountId = UUID.randomUUID();
+            StaffAccountIdDao dao = new StaffAccountIdDao(staffAccountId);
             when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountIdDao.class)))
                     .thenReturn(Optional.of(dao));
 
@@ -83,7 +83,7 @@ public class StaffAccountReadRepoTests {
         @Test
         void returnsFalse_whenStaffAccountDoesNotExist() {
             // Given
-            StaffAccountId staffAccountId = StaffAccountId.generate();
+            UUID staffAccountId = UUID.randomUUID();
             when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountIdDao.class)))
                     .thenReturn(Optional.empty());
 
@@ -97,7 +97,7 @@ public class StaffAccountReadRepoTests {
         @Test
         void shouldPropagateInfraException_whenJdbcHelperThrows() {
             // Given
-            StaffAccountId staffAccountId = StaffAccountId.generate();
+            UUID staffAccountId = UUID.randomUUID();
             when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountIdDao.class)))
                     .thenThrow(InfraException.class);
 

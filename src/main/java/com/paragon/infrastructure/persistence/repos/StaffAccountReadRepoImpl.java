@@ -4,7 +4,6 @@ import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.models.valueobjects.DateTimeUtc;
 import com.paragon.domain.models.valueobjects.PermissionCode;
-import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.infrastructure.persistence.daos.PermissionCodeDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountDetailedReadModelDao;
@@ -30,9 +29,9 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
     }
 
     @Override
-    public boolean exists(StaffAccountId staffAccountId) {
+    public boolean exists(UUID staffAccountId) {
         String sql = "SELECT id FROM staff_accounts WHERE id = :id";
-        SqlParamsBuilder params = new SqlParamsBuilder().add("id", staffAccountId.getValue());
+        SqlParamsBuilder params = new SqlParamsBuilder().add("id", staffAccountId);
 
         return readJdbcHelper.queryFirstOrDefault(
                 new SqlStatement(sql, params),
