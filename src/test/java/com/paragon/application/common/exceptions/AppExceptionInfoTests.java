@@ -77,4 +77,26 @@ public class AppExceptionInfoTests {
         assertThat(info.getAppErrorCode()).isEqualTo(106);
         assertThat(info.getStatusCode()).isEqualTo(AppExceptionStatusCode.CLIENT_ERROR);
     }
+
+    @Test
+    void staffAccountNotActive_shouldHaveExpectedCodeAndMessage() {
+        // When
+        AppExceptionInfo info = AppExceptionInfo.staffAccountNotActive("staff-1");
+
+        // Then
+        assertThat(info.getMessage()).isEqualTo("Staff account 'staff-1' must be active to perform this action.");
+        assertThat(info.getAppErrorCode()).isEqualTo(107);
+        assertThat(info.getStatusCode()).isEqualTo(AppExceptionStatusCode.PERMISSION_DENIED);
+    }
+
+    @Test
+    void missingRequiredPermission_shouldHaveExpectedCodeAndMessage() {
+        // When
+        AppExceptionInfo info = AppExceptionInfo.missingRequiredPermission("staff-1", "MANAGE_ACCOUNTS");
+
+        // Then
+        assertThat(info.getMessage()).isEqualTo("Staff account 'staff-1' lacks permission 'MANAGE_ACCOUNTS'.");
+        assertThat(info.getAppErrorCode()).isEqualTo(108);
+        assertThat(info.getStatusCode()).isEqualTo(AppExceptionStatusCode.PERMISSION_DENIED);
+    }
 }

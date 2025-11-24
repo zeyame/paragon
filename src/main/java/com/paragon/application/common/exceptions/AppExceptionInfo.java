@@ -61,4 +61,20 @@ public class AppExceptionInfo {
                 AppExceptionStatusCode.CLIENT_ERROR
         );
     }
+
+    public static AppExceptionInfo staffAccountNotActive(String staffAccountId) {
+        return new AppExceptionInfo(
+                String.format("Staff account '%s' must be active to perform this action.", staffAccountId),
+                107,
+                AppExceptionStatusCode.PERMISSION_DENIED
+        );
+    }
+
+    public static AppExceptionInfo missingRequiredPermission(String staffAccountId, String permissionCode) {
+        return new AppExceptionInfo(
+                String.format("Staff account '%s' lacks permission '%s'.", staffAccountId, permissionCode),
+                108,
+                AppExceptionStatusCode.PERMISSION_DENIED
+        );
+    }
 }
