@@ -6,7 +6,7 @@ public enum StaffAccountStatus {
     DISABLED,
     LOCKED;
 
-    // TODO: Add exception handling with a new customer StaffAccountStatusException
+    // TODO: Add exception handling with a new custom StaffAccountStatusException
     public static StaffAccountStatus fromString(String value) {
         if (value == null) {
             return null;

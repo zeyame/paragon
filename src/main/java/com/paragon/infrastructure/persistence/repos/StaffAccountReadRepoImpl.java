@@ -5,10 +5,7 @@ import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.models.valueobjects.DateTimeUtc;
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.Username;
-import com.paragon.infrastructure.persistence.daos.PermissionCodeDao;
-import com.paragon.infrastructure.persistence.daos.StaffAccountDetailedReadModelDao;
-import com.paragon.infrastructure.persistence.daos.StaffAccountIdDao;
-import com.paragon.infrastructure.persistence.daos.StaffAccountPermissionDao;
+import com.paragon.infrastructure.persistence.daos.*;
 import com.paragon.infrastructure.persistence.jdbc.helpers.ReadJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
@@ -143,6 +140,18 @@ public class StaffAccountReadRepoImpl implements StaffAccountReadRepo {
 
         List<String> permissionCodes = getPermissionCodesBy(staffAccountId);
         return Optional.of(StaffAccountDetailedReadModel.from(optionalDao.get(), permissionCodes));
+    }
+
+    @Override
+    public Optional<StaffAccountStatus> findStatusById(UUID staffAccountId) {
+        String sql = """
+                        SELECT status FROM staff_accounts
+                        WHERE id = :id
+                    """;
+        SqlParamsBuilder params = new SqlParamsBuilder().add("id", staffAccountId);
+        return readJdbcHelper
+                .queryFirstOrDefault(new SqlStatement(sql, params), StaffAccountStatusDao.class)
+                .map(StaffAccountStatusDao::toEnum);
     }
 
     private List<String> getPermissionCodesBy(UUID staffAccountId) {

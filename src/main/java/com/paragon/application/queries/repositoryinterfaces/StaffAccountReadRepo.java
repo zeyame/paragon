@@ -21,4 +21,5 @@ public interface StaffAccountReadRepo {
                                                         DateTimeUtc createdAfter);
     Optional<StaffAccountSummaryReadModel> findSummaryByUsername(String username);
     Optional<StaffAccountDetailedReadModel> findDetailedById(UUID staffAccountId);
+    Optional<StaffAccountStatus> findStatusById(UUID staffAccountId);
 }

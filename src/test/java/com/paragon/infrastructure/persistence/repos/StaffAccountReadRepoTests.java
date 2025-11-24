@@ -9,6 +9,7 @@ import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.infrastructure.persistence.daos.PermissionCodeDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountDetailedReadModelDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountIdDao;
+import com.paragon.infrastructure.persistence.daos.StaffAccountStatusDao;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.helpers.ReadJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
@@ -570,6 +571,78 @@ public class StaffAccountReadRepoTests {
 
             // When & Then
             assertThatThrownBy(() -> sut.findDetailedById(UUID.randomUUID()))
+                    .isInstanceOf(InfraException.class);
+        }
+    }
+
+    @Nested
+    class FindStatusById {
+        private final StaffAccountReadRepo sut;
+        private final ReadJdbcHelper readJdbcHelperMock;
+
+        public FindStatusById() {
+            readJdbcHelperMock = mock(ReadJdbcHelper.class);
+            sut = new StaffAccountReadRepoImpl(readJdbcHelperMock);
+        }
+
+        @Test
+        void shouldExecuteQueryWithCorrectSqlAndParams() {
+            // Given
+            UUID staffAccountId = UUID.randomUUID();
+            String expectedSql = """
+                        SELECT status FROM staff_accounts
+                        WHERE id = :id
+                    """;
+
+            // When
+            sut.findStatusById(staffAccountId);
+
+            // Then
+            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
+            verify(readJdbcHelperMock, times(1)).queryFirstOrDefault(sqlStatementCaptor.capture(), eq(StaffAccountStatusDao.class));
+
+            SqlStatement sqlStatement = sqlStatementCaptor.getValue();
+            assertThat(sqlStatement.sql()).isEqualTo(expectedSql);
+            assertThat(sqlStatement.params().get("id")).isEqualTo(staffAccountId);
+        }
+
+        @Test
+        void shouldReturnExpectedStaffAccountStatus() {
+            // Given
+            UUID staffAccountId = UUID.randomUUID();
+
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountStatusDao.class)))
+                    .thenReturn(Optional.of(new StaffAccountStatusDao("ACTIVE")));
+
+            // When
+            Optional<StaffAccountStatus> optionalStaffAccountStatus = sut.findStatusById(staffAccountId);
+
+            // Then
+            assertThat(optionalStaffAccountStatus).isPresent();
+            assertThat(optionalStaffAccountStatus.get()).isEqualTo(StaffAccountStatus.ACTIVE);
+        }
+
+        @Test
+        void returnsEmptyOptional_whenStaffAccountDoesNotExist() {
+            // Given
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountStatusDao.class)))
+                    .thenReturn(Optional.empty());
+
+            // When
+            Optional<StaffAccountStatus> optionalStaffAccountStatus = sut.findStatusById(UUID.randomUUID());
+
+            // Then
+            assertThat(optionalStaffAccountStatus).isEmpty();
+        }
+
+        @Test
+        void shouldPropagateInfraException_whenJdbcHelperThrows() {
+            // Given
+            when(readJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountStatusDao.class)))
+                    .thenThrow(new InfraException());
+
+            // When & Then
+            assertThatThrownBy(() -> sut.findStatusById(UUID.randomUUID()))
                     .isInstanceOf(InfraException.class);
         }
     }

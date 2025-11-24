@@ -9,6 +9,7 @@ import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.helpers.TestJdbcHelper;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
+import com.paragon.infrastructure.persistence.jdbc.helpers.ReadJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountDetailedReadModel;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
@@ -25,7 +26,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class StaffAccountReadRepoTests {
     @Nested
     class Exists extends IntegrationTestBase {
@@ -623,6 +623,35 @@ public class StaffAccountReadRepoTests {
             assertThat(retrievedDetailedModel.status()).isEqualTo(staffAccount.getStatus().toString());
             assertThat(retrievedDetailedModel.createdBy()).isEqualTo(staffAccount.getCreatedBy().getValue());
             assertThat(retrievedDetailedModel.permissionCodes()).isEqualTo(List.of("MANAGE_ACCOUNTS", "VIEW_ACCOUNTS_LIST"));
+        }
+    }
+
+    @Nested
+    class FindStatusById extends IntegrationTestBase {
+        private final StaffAccountReadRepo sut;
+        private final TestJdbcHelper testJdbcHelper;
+
+        @Autowired
+        public FindStatusById(StaffAccountReadRepo staffAccountReadRepo, WriteJdbcHelper writeJdbcHelper) {
+            sut = staffAccountReadRepo;
+            testJdbcHelper = new TestJdbcHelper(writeJdbcHelper);
+        }
+
+        @Test
+        void shouldReturnStaffAccountStatus() {
+            // Given
+            StaffAccount insertedStaffAccount = new StaffAccountFixture()
+                    .withCreatedBy(adminId)
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .build();
+            testJdbcHelper.insertStaffAccount(insertedStaffAccount);
+
+            // When
+            Optional<StaffAccountStatus> optionalStaffAccountStatus = sut.findStatusById(insertedStaffAccount.getId().getValue());
+
+            // Then
+            assertThat(optionalStaffAccountStatus).isPresent();
+            assertThat(optionalStaffAccountStatus.get()).isEqualTo(StaffAccountStatus.ACTIVE);
         }
     }
 }
