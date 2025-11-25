@@ -7,8 +7,6 @@ import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.models.valueobjects.PermissionCode;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 
-import java.util.Optional;
-
 public class StaffAccountAuthorizationServiceImpl implements StaffAccountAuthorizationService {
     private final StaffAccountReadRepo staffAccountReadRepo;
 
