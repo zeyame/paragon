@@ -6,4 +6,5 @@ public interface HttpContextHelper {
     String extractRefreshTokenFromCookie();
     void setJwtHeader(String jwt);
     void setRefreshTokenCookie(String plainRefreshToken);
+    void clearRefreshTokenCookie();
 }

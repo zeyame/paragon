@@ -9,6 +9,8 @@ import com.paragon.api.security.JwtGenerator;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommand;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandHandler;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandResponse;
+import com.paragon.application.commands.logoutstaffaccount.LogoutStaffAccountCommand;
+import com.paragon.application.commands.logoutstaffaccount.LogoutStaffAccountCommandHandler;
 import com.paragon.application.commands.refreshstaffaccounttoken.RefreshStaffAccountTokenCommand;
 import com.paragon.application.commands.refreshstaffaccounttoken.RefreshStaffAccountTokenCommandHandler;
 import com.paragon.application.commands.refreshstaffaccounttoken.RefreshStaffAccountTokenCommandResponse;
@@ -41,12 +43,14 @@ public class AuthControllerTests {
         private final RefreshStaffAccountTokenCommandHandler refreshStaffAccountTokenCommandHandlerMock;
         private final LoginStaffAccountRequestDto requestDto;
         private final LoginStaffAccountCommandResponse commandResponse;
+        private final LogoutStaffAccountCommandHandler logoutStaffAccountCommandHandlerMock;
 
         public Login() {
             loginStaffAccountCommandHandlerMock = mock(LoginStaffAccountCommandHandler.class);
             httpContextHelperMock = mock(HttpContextHelper.class);
             jwtGeneratorMock = mock(JwtGenerator.class);
             refreshStaffAccountTokenCommandHandlerMock = mock(RefreshStaffAccountTokenCommandHandler.class);
+            logoutStaffAccountCommandHandlerMock = mock(LogoutStaffAccountCommandHandler.class);
             TaskExecutor taskExecutor = Runnable::run;
 
             when(httpContextHelperMock.extractIpAddress()).thenReturn("192.168.1.1");
@@ -54,7 +58,8 @@ public class AuthControllerTests {
 
             sut = new AuthController(
                     loginStaffAccountCommandHandlerMock, httpContextHelperMock,
-                    jwtGeneratorMock, taskExecutor, refreshStaffAccountTokenCommandHandlerMock
+                    jwtGeneratorMock, taskExecutor, refreshStaffAccountTokenCommandHandlerMock,
+                    logoutStaffAccountCommandHandlerMock
             );
 
             requestDto = createValidLoginStaffAccountRequestDto();
@@ -165,12 +170,14 @@ public class AuthControllerTests {
         private final HttpContextHelper httpContextHelperMock;
         private final JwtGenerator jwtGeneratorMock;
         private final RefreshStaffAccountTokenCommandResponse commandResponse;
+        private final LogoutStaffAccountCommandHandler logoutStaffAccountCommandHandlerMock;
 
         public Refresh() {
             loginStaffAccountCommandHandlerMock = mock(LoginStaffAccountCommandHandler.class);
             refreshStaffAccountTokenCommandHandlerMock = mock(RefreshStaffAccountTokenCommandHandler.class);
             httpContextHelperMock = mock(HttpContextHelper.class);
             jwtGeneratorMock = mock(JwtGenerator.class);
+            logoutStaffAccountCommandHandlerMock = mock(LogoutStaffAccountCommandHandler.class);
             TaskExecutor taskExecutor = Runnable::run;
 
             when(httpContextHelperMock.extractRefreshTokenFromCookie()).thenReturn("plain-token");
@@ -181,7 +188,8 @@ public class AuthControllerTests {
                     httpContextHelperMock,
                     jwtGeneratorMock,
                     taskExecutor,
-                    refreshStaffAccountTokenCommandHandlerMock
+                    refreshStaffAccountTokenCommandHandlerMock,
+                    logoutStaffAccountCommandHandlerMock
             );
 
             commandResponse = new RefreshStaffAccountTokenCommandResponse(
@@ -257,6 +265,76 @@ public class AuthControllerTests {
                     .thenThrow(AppException.class);
 
             assertThatThrownBy(() -> sut.refresh().join())
+                    .hasCauseInstanceOf(AppException.class);
+        }
+    }
+
+    @Nested
+    class Logout {
+        private final AuthController sut;
+        private final LoginStaffAccountCommandHandler loginStaffAccountCommandHandlerMock;
+        private final RefreshStaffAccountTokenCommandHandler refreshStaffAccountTokenCommandHandlerMock;
+        private final LogoutStaffAccountCommandHandler logoutStaffAccountCommandHandlerMock;
+        private final HttpContextHelper httpContextHelperMock;
+        private final JwtGenerator jwtGeneratorMock;
+
+        public Logout() {
+            loginStaffAccountCommandHandlerMock = mock(LoginStaffAccountCommandHandler.class);
+            refreshStaffAccountTokenCommandHandlerMock = mock(RefreshStaffAccountTokenCommandHandler.class);
+            logoutStaffAccountCommandHandlerMock = mock(LogoutStaffAccountCommandHandler.class);
+            httpContextHelperMock = mock(HttpContextHelper.class);
+            jwtGeneratorMock = mock(JwtGenerator.class);
+
+            when(httpContextHelperMock.extractRefreshTokenFromCookie()).thenReturn("plain-token");
+
+            TaskExecutor taskExecutor = Runnable::run;
+            sut = new AuthController(
+                    loginStaffAccountCommandHandlerMock,
+                    httpContextHelperMock,
+                    jwtGeneratorMock,
+                    taskExecutor,
+                    refreshStaffAccountTokenCommandHandlerMock,
+                    logoutStaffAccountCommandHandlerMock
+            );
+        }
+
+        @Test
+        void shouldReturnOkResponse() {
+            // When
+            CompletableFuture<ResponseEntity<ResponseDto<Void>>> futureDto = sut.logout();
+
+            // Then
+            assertThat(futureDto.join().getStatusCode()).isEqualTo(HttpStatus.OK);
+        }
+
+        @Test
+        void shouldPassPlainTokenFromCookieToCommand() {
+            // When
+            sut.logout();
+
+            // Then
+            ArgumentCaptor<LogoutStaffAccountCommand> commandCaptor = ArgumentCaptor.forClass(LogoutStaffAccountCommand.class);
+            verify(logoutStaffAccountCommandHandlerMock).handle(commandCaptor.capture());
+            assertThat(commandCaptor.getValue().plainToken()).isEqualTo("plain-token");
+        }
+
+        @Test
+        void shouldClearRefreshTokenCookie() {
+            // WHen
+            sut.logout().join();
+
+            // Then
+            verify(httpContextHelperMock, times(1)).clearRefreshTokenCookie();
+        }
+
+        @Test
+        void shouldPropagateAppException_whenHandlerThrows() {
+            // Given
+            when(logoutStaffAccountCommandHandlerMock.handle(any(LogoutStaffAccountCommand.class)))
+                    .thenThrow(AppException.class);
+
+            // When & Then
+            assertThatThrownBy(() -> sut.logout().join())
                     .hasCauseInstanceOf(AppException.class);
         }
     }

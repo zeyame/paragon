@@ -78,6 +78,18 @@ public class HttpContextHelperImpl implements HttpContextHelper {
         response.addCookie(refreshTokenCookie);
     }
 
+    public void clearRefreshTokenCookie() {
+        HttpServletResponse response = getCurrentResponse();
+
+        Cookie refreshTokenCookie = new Cookie("refresh_token", "");
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(0);
+
+        response.addCookie(refreshTokenCookie);
+    }
+
     private HttpServletRequest getCurrentRequest() {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes == null) {

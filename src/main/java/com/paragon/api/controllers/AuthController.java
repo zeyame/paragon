@@ -8,6 +8,8 @@ import com.paragon.api.security.HttpContextHelper;
 import com.paragon.api.security.JwtGenerator;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommand;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandHandler;
+import com.paragon.application.commands.logoutstaffaccount.LogoutStaffAccountCommand;
+import com.paragon.application.commands.logoutstaffaccount.LogoutStaffAccountCommandHandler;
 import com.paragon.application.commands.refreshstaffaccounttoken.RefreshStaffAccountTokenCommand;
 import com.paragon.application.commands.refreshstaffaccounttoken.RefreshStaffAccountTokenCommandHandler;
 import com.paragon.application.commands.refreshstaffaccounttoken.RefreshStaffAccountTokenCommandResponse;
@@ -30,18 +32,21 @@ public class AuthController {
     private final JwtGenerator jwtGenerator;
     private final TaskExecutor taskExecutor;
     private final RefreshStaffAccountTokenCommandHandler refreshStaffAccountTokenCommandHandler;
+    private final LogoutStaffAccountCommandHandler logoutStaffAccountCommandHandler;
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     public AuthController(LoginStaffAccountCommandHandler loginStaffAccountCommandHandler,
                           HttpContextHelper httpContextHelper,
                           JwtGenerator jwtGenerator,
                           TaskExecutor taskExecutor,
-                          RefreshStaffAccountTokenCommandHandler refreshStaffAccountTokenCommandHandler) {
+                          RefreshStaffAccountTokenCommandHandler refreshStaffAccountTokenCommandHandler,
+                          LogoutStaffAccountCommandHandler logoutStaffAccountCommandHandler) {
         this.loginStaffAccountCommandHandler = loginStaffAccountCommandHandler;
         this.httpContextHelper = httpContextHelper;
         this.jwtGenerator = jwtGenerator;
         this.taskExecutor = taskExecutor;
         this.refreshStaffAccountTokenCommandHandler = refreshStaffAccountTokenCommandHandler;
+        this.logoutStaffAccountCommandHandler = logoutStaffAccountCommandHandler;
     }
 
     @PostMapping("/login")
@@ -74,6 +79,21 @@ public class AuthController {
             httpContextHelper.setRefreshTokenCookie(commandResponse.plainRefreshToken());
 
             var responseDto = new ResponseDto<>(createRefreshStaffAccountTokenResponseDto(commandResponse), null);
+            return ResponseEntity.ok(responseDto);
+        }, taskExecutor);
+    }
+
+    @PostMapping("/logout")
+    public CompletableFuture<ResponseEntity<ResponseDto<Void>>> logout() {
+        log.info("Received request to logout a staff account.");
+
+        return CompletableFuture.supplyAsync(() -> {
+            String plainRefreshToken = httpContextHelper.extractRefreshTokenFromCookie();
+            var command = new LogoutStaffAccountCommand(plainRefreshToken);
+            logoutStaffAccountCommandHandler.handle(command);
+            httpContextHelper.clearRefreshTokenCookie();
+
+            var responseDto = new ResponseDto<Void>(null, null);
             return ResponseEntity.ok(responseDto);
         }, taskExecutor);
     }
