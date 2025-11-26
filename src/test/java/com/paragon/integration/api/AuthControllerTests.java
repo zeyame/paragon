@@ -6,12 +6,11 @@ import com.paragon.api.dtos.auth.login.LoginStaffAccountRequestDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountResponseDto;
 import com.paragon.api.dtos.auth.refresh.RefreshStaffAccountTokenResponseDto;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
-import com.paragon.application.common.interfaces.TokenHasher;
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.exceptions.aggregate.StaffAccountExceptionInfo;
+import com.paragon.domain.exceptions.valueobject.PlaintextRefreshTokenExceptionInfo;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.aggregates.StaffAccount;
-import com.paragon.domain.models.valueobjects.PlaintextRefreshToken;
 import com.paragon.helpers.TestJdbcHelper;
 import com.paragon.helpers.TestPasswordHasherHelper;
 import com.paragon.helpers.TestRefreshTokenHasherHelper;
@@ -504,6 +503,125 @@ public class AuthControllerTests {
                     .cookie(cookies)
             ).andReturn();
             return mockMvc.perform(asyncDispatch(mvcResult)).andReturn();
+        }
+    }
+
+    @Nested
+    class Logout extends IntegrationTestBase {
+        private final TestJdbcHelper jdbcHelper;
+
+        @Autowired
+        public Logout(WriteJdbcHelper writeJdbcHelper) {
+            this.jdbcHelper = new TestJdbcHelper(writeJdbcHelper);
+        }
+
+        @Test
+        void shouldLogoutAndRevokeRefreshToken() throws Exception {
+            // Given
+            StaffAccount staffAccount = persistStaffAccount();
+            String plainRefreshToken = "logout-refresh-token";
+
+            RefreshToken refreshToken = new RefreshTokenFixture()
+                    .withStaffAccountId(staffAccount.getId().getValue().toString())
+                    .withTokenHash(hashPlainRefreshToken(plainRefreshToken))
+                    .build();
+            jdbcHelper.insertRefreshToken(refreshToken);
+
+            // When
+            MvcResult mvcResult = sendRequest(new Cookie("refresh_token", plainRefreshToken));
+
+            // Then
+            MockHttpServletResponse response = mvcResult.getResponse();
+            assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+
+            // assert valid response (null)
+            ResponseDto<Object> responseDto = readResponse(response);
+            assertThat(responseDto.result()).isNull();
+            assertThat(responseDto.errorDto()).isNull();
+
+            // assert refresh token was revoked
+            RefreshToken persistedToken = jdbcHelper.getRefreshTokenById(refreshToken.getId())
+                    .orElseThrow();
+            assertThat(persistedToken.isRevoked()).isTrue();
+            assertThat(persistedToken.getRevokedAt()).isNotNull();
+
+            // assert cookie is empty of token
+            Cookie clearedCookie = response.getCookie("refresh_token");
+            assertThat(clearedCookie).isNotNull();
+            assertThat(clearedCookie.getValue()).isEmpty();
+            assertThat(clearedCookie.getMaxAge()).isZero();
+            assertThat(clearedCookie.isHttpOnly()).isTrue();
+            assertThat(clearedCookie.getSecure()).isTrue();
+        }
+
+        @Test
+        void shouldReturnUnauthorized_whenRefreshTokenDoesNotExist() throws Exception {
+            // When
+            MvcResult mvcResult = sendRequest(new Cookie("refresh_token", "missing-refresh-token"));
+
+            // Then
+            MockHttpServletResponse response = mvcResult.getResponse();
+            assertThat(response.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+
+            ResponseDto<Object> responseDto = readResponse(response);
+            assertThat(responseDto.result()).isNull();
+            ErrorDto errorDto = responseDto.errorDto();
+            assertThat(errorDto).isNotNull();
+
+            AppExceptionInfo invalidRefreshTokenInfo = AppExceptionInfo.invalidRefreshToken();
+            assertThat(errorDto.message()).isEqualTo(invalidRefreshTokenInfo.getMessage());
+            assertThat(errorDto.code()).isEqualTo(invalidRefreshTokenInfo.getAppErrorCode());
+        }
+
+        @Test
+        void shouldReturnBadRequest_whenRefreshTokenCookieMissing() throws Exception {
+            // When
+            MvcResult mvcResult = sendRequest();
+
+            // Then
+            MockHttpServletResponse response = mvcResult.getResponse();
+            assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+
+            ResponseDto<Object> responseDto = readResponse(response);
+            assertThat(responseDto.result()).isNull();
+            ErrorDto errorDto = responseDto.errorDto();
+            assertThat(errorDto).isNotNull();
+
+            var missingValueInfo = PlaintextRefreshTokenExceptionInfo.missingValue();
+            assertThat(errorDto.message()).isEqualTo(missingValueInfo.getMessage());
+            assertThat(errorDto.code()).isEqualTo(missingValueInfo.getDomainErrorCode());
+        }
+
+        private StaffAccount persistStaffAccount() {
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withCreatedBy(adminId)
+                    .build();
+            jdbcHelper.insertStaffAccount(staffAccount);
+            return staffAccount;
+        }
+
+        private ResponseDto<Object> readResponse(MockHttpServletResponse response) throws Exception {
+            String responseBody = response.getContentAsString();
+            return objectMapper.readValue(
+                    responseBody,
+                    objectMapper.getTypeFactory().constructParametricType(ResponseDto.class, Object.class)
+            );
+        }
+
+        private MvcResult sendRequest(Cookie... cookies) throws Exception {
+            var requestBuilder = post("/v1/auth/logout")
+                    .contentType(MediaType.APPLICATION_JSON);
+
+            if (cookies != null && cookies.length > 0) {
+                requestBuilder.cookie(cookies);
+            }
+
+            MvcResult mvcResult = mockMvc.perform(requestBuilder).andReturn();
+            return mockMvc.perform(asyncDispatch(mvcResult)).andReturn();
+        }
+
+        private String hashPlainRefreshToken(String plainRefreshToken) {
+            return TestRefreshTokenHasherHelper.hash(plainRefreshToken);
         }
     }
 }
