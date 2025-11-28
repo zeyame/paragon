@@ -21,7 +21,7 @@ public class BCryptPasswordHasher implements PasswordHasher {
     }
 
     @Override
-    public boolean verify(String plaintextPassword, Password hashedPassword) {
-        return encoder.matches(plaintextPassword, hashedPassword.getValue());
+    public boolean verify(PlaintextPassword plaintextPassword, Password hashedPassword) {
+        return encoder.matches(plaintextPassword.getValue(), hashedPassword.getValue());
     }
 }
