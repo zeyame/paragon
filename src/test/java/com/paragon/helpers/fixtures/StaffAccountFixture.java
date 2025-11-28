@@ -144,4 +144,19 @@ public class StaffAccountFixture {
     public static StaffAccount validStaffAccount() {
         return new StaffAccountFixture().build();
     }
+
+    public static StaffAccount disabledStaffAccount() {
+        return new StaffAccountFixture()
+                .withStatus(StaffAccountStatus.DISABLED)
+                .withDisabledBy(UUID.randomUUID().toString())
+                .build();
+    }
+
+    public static StaffAccount lockedStaffAccount() {
+        return new StaffAccountFixture()
+                .withStatus(StaffAccountStatus.LOCKED)
+                .withLockedUntil(Instant.now().plusSeconds(3600))
+                .withFailedLoginAttempts(5)
+                .build();
+    }
 }

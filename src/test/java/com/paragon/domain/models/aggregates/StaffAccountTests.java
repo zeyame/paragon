@@ -520,9 +520,7 @@ public class StaffAccountTests {
         @Test
         void shouldThrow_whenStaffAccountIsDisabled() {
             // Given
-            StaffAccount staffAccount = new StaffAccountFixture()
-                    .withStatus(StaffAccountStatus.DISABLED)
-                    .build();
+            StaffAccount staffAccount = StaffAccountFixture.disabledStaffAccount();
             StaffAccountException expectedException = new StaffAccountException(StaffAccountExceptionInfo.passwordChangeNotAllowedForDisabledAccount());
 
             // When & Then
@@ -531,12 +529,11 @@ public class StaffAccountTests {
                     .extracting("message", "domainErrorCode")
                     .containsExactly(expectedException.getMessage(), expectedException.getDomainErrorCode());
         }
+
         @Test
         void shouldThrow_whenStaffAccountIsLocked() {
             // Given
-            StaffAccount staffAccount = new StaffAccountFixture()
-                    .withStatus(StaffAccountStatus.LOCKED)
-                    .build();
+            StaffAccount staffAccount = StaffAccountFixture.lockedStaffAccount();
             StaffAccountException expectedException = new StaffAccountException(StaffAccountExceptionInfo.passwordChangeNotAllowedForLockedAccount());
 
             // When & Then

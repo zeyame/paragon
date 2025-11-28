@@ -97,7 +97,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
 
     public void login() {
         throwIfAccountIsDisabled(StaffAccountExceptionInfo.loginFailedAccountDisabled());
-        throwIfAccountIsLocked();
+        throwIfAccountIsLocked(StaffAccountExceptionInfo.loginFailedAccountLocked());
 
         failedLoginAttempts = failedLoginAttempts.reset();
         lastLoginAt = Instant.now();
@@ -159,12 +159,8 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     }
 
     public void ensureCanUpdatePassword() {
-        if (status == StaffAccountStatus.DISABLED) {
-            throw new StaffAccountException(StaffAccountExceptionInfo.passwordChangeNotAllowedForDisabledAccount());
-        }
-        if (status == StaffAccountStatus.LOCKED) {
-            throw new StaffAccountException(StaffAccountExceptionInfo.passwordChangeNotAllowedForLockedAccount());
-        }
+        throwIfAccountIsDisabled(StaffAccountExceptionInfo.passwordChangeNotAllowedForDisabledAccount());
+        throwIfAccountIsLocked(StaffAccountExceptionInfo.passwordChangeNotAllowedForLockedAccount());
     }
 
     private static void assertValidRegistration(Username username, Password password, OrderAccessDuration orderAccessDuration,
@@ -191,19 +187,19 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         }
     }
 
-    private void throwIfAccountIsDisabled(StaffAccountExceptionInfo exceptionInfo) {
-        if (status == StaffAccountStatus.DISABLED) {
-            throw new StaffAccountException(exceptionInfo);
-        }
-    }
-
     private void throwIfAccountIsEnabled() {
         if (status != StaffAccountStatus.DISABLED) {
             throw new StaffAccountException(StaffAccountExceptionInfo.accountAlreadyEnabled());
         }
     }
 
-    private void throwIfAccountIsLocked() {
+    private void throwIfAccountIsDisabled(StaffAccountExceptionInfo exceptionInfo) {
+        if (status == StaffAccountStatus.DISABLED) {
+            throw new StaffAccountException(exceptionInfo);
+        }
+    }
+
+    private void throwIfAccountIsLocked(StaffAccountExceptionInfo exceptionInfo) {
         if (status != StaffAccountStatus.LOCKED) {
             return;
         }
@@ -213,7 +209,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
             return;
         }
 
-        throw new StaffAccountException(StaffAccountExceptionInfo.loginFailedAccountLocked());
+        throw new StaffAccountException(exceptionInfo);
     }
 
     private boolean hasLockExpired() {
