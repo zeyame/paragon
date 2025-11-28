@@ -85,4 +85,28 @@ public class StaffAccountExceptionInfoTests {
         assertThat(info.getMessage()).isEqualTo("Staff account is already disabled");
         assertThat(info.getDomainErrorCode()).isEqualTo(10010);
     }
+
+    @Test
+    void accountAlreadyEnabled_shouldHaveExpectedCodeAndMessage() {
+        StaffAccountExceptionInfo info = StaffAccountExceptionInfo.accountAlreadyEnabled();
+
+        assertThat(info.getMessage()).isEqualTo("Staff account is already enabled");
+        assertThat(info.getDomainErrorCode()).isEqualTo(10011);
+    }
+
+    @Test
+    void passwordChangeNotAllowedForDisabledAccount_shouldHaveExpectedCodeAndMessage() {
+        StaffAccountExceptionInfo info = StaffAccountExceptionInfo.passwordChangeNotAllowedForDisabledAccount();
+
+        assertThat(info.getMessage()).isEqualTo("Password cannot be changed while the staff account is disabled.");
+        assertThat(info.getDomainErrorCode()).isEqualTo(10012);
+    }
+
+    @Test
+    void passwordChangeNotAllowedForLockedAccount_shouldHaveExpectedCodeAndMessage() {
+        StaffAccountExceptionInfo info = StaffAccountExceptionInfo.passwordChangeNotAllowedForLockedAccount();
+
+        assertThat(info.getMessage()).isEqualTo("Password cannot be changed while the staff account is locked.");
+        assertThat(info.getDomainErrorCode()).isEqualTo(10013);
+    }
 }
