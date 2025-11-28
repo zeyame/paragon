@@ -1,16 +1,13 @@
 package com.paragon.helpers.fixtures;
 
-import com.paragon.domain.models.valueobjects.DateTimeUtc;
-import com.paragon.domain.models.valueobjects.Password;
-import com.paragon.domain.models.valueobjects.PasswordHistoryEntry;
-import com.paragon.domain.models.valueobjects.StaffAccountId;
+import com.paragon.domain.models.valueobjects.*;
 
 import java.time.Instant;
 import java.util.UUID;
 
 public class PasswordHistoryEntryFixture {
     private String staffAccountId = UUID.randomUUID().toString();
-    private String hashedPassword = "hashed-password";
+    private String hashedPassword = Password.of(PlaintextPassword.generate().getValue()).getValue();
     private boolean isTemporary = false;
     private Instant changedAt = Instant.now();
 
