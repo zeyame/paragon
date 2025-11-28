@@ -6,6 +6,7 @@ import com.paragon.domain.exceptions.aggregate.RefreshTokenException;
 import com.paragon.domain.exceptions.aggregate.StaffAccountException;
 import com.paragon.domain.exceptions.entity.AuditTrailEntryException;
 import com.paragon.domain.exceptions.entity.PermissionException;
+import com.paragon.domain.exceptions.services.StaffAccountPasswordReusePolicyException;
 import com.paragon.domain.exceptions.valueobject.*;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.springframework.stereotype.Component;
@@ -31,6 +32,7 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
             case PlaintextPasswordException plaintextPasswordException -> handlePlaintextPasswordException(plaintextPasswordException);
             case PlaintextRefreshTokenException plaintextRefreshTokenException -> handlePlaintextRefreshTokenException(plaintextRefreshTokenException);
             case PasswordHistoryEntryException passwordHistoryEntryException -> handlePasswordHistoryEntryException(passwordHistoryEntryException);
+            case StaffAccountPasswordReusePolicyException staffAccountPasswordReusePolicyException -> handleStaffAccountPasswordReusePolicyException(staffAccountPasswordReusePolicyException);
             case OrderAccessDurationException orderAccessDurationException -> handleOrderAccessDurationException(orderAccessDurationException);
             case ModmailTranscriptAccessDurationException modmailTranscriptAccessDurationException -> handleModmailTranscriptAccessDurationException(modmailTranscriptAccessDurationException);
             case DateTimeUtcException dateTimeUtcException -> handleDateTimeUtcException(dateTimeUtcException);
@@ -197,6 +199,17 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
         return switch (domainErrorCode) {
             case 116001, 116002, 116003 -> // missing staff account id, hashed password, or timestamp - internal error
                     new AppException(exception, AppExceptionStatusCode.SERVER_ERROR);
+
+            default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);
+        };
+    }
+
+    private AppException handleStaffAccountPasswordReusePolicyException(StaffAccountPasswordReusePolicyException exception) {
+        int domainErrorCode = exception.getDomainErrorCode();
+
+        return switch (domainErrorCode) {
+            case 300001 -> // password reused within restricted window - business rule violation
+                    new AppException(exception, AppExceptionStatusCode.CLIENT_ERROR);
 
             default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);
         };

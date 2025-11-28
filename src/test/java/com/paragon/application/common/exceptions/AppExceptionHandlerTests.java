@@ -9,6 +9,8 @@ import com.paragon.domain.exceptions.entity.AuditTrailEntryException;
 import com.paragon.domain.exceptions.entity.AuditTrailEntryExceptionInfo;
 import com.paragon.domain.exceptions.entity.PermissionException;
 import com.paragon.domain.exceptions.entity.PermissionExceptionInfo;
+import com.paragon.domain.exceptions.services.StaffAccountPasswordReusePolicyException;
+import com.paragon.domain.exceptions.services.StaffAccountPasswordReusePolicyExceptionInfo;
 import com.paragon.domain.exceptions.valueobject.*;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -211,6 +213,12 @@ public class AppExceptionHandlerTests {
                     arguments(
                             new PasswordHistoryEntryException(PasswordHistoryEntryExceptionInfo.missingChangedAtTimestamp()),
                             AppExceptionStatusCode.SERVER_ERROR
+                    ),
+
+                    // StaffAccountPasswordReusePolicyException - business rule (CLIENT_ERROR)
+                    arguments(
+                            new StaffAccountPasswordReusePolicyException(StaffAccountPasswordReusePolicyExceptionInfo.passwordUsedWithinRestrictedWindow()),
+                            AppExceptionStatusCode.CLIENT_ERROR
                     ),
 
                     // PlaintextPasswordException - user input (CLIENT_ERROR)
