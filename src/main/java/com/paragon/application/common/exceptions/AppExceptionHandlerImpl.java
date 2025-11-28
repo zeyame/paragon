@@ -65,6 +65,9 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
             case 10010, 10011 -> // state conflict (account already enabled/disabled)
                     new AppException(exception, AppExceptionStatusCode.INVALID_RESOURCE_STATE);
 
+            case 10012, 10013 -> // password changes blocked for disabled/locked accounts
+                    new AppException(exception, AppExceptionStatusCode.INVALID_RESOURCE_STATE);
+
             default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);
         };
     }

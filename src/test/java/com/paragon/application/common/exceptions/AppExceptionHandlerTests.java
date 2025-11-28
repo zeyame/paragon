@@ -99,6 +99,16 @@ public class AppExceptionHandlerTests {
                             AppExceptionStatusCode.INVALID_RESOURCE_STATE
                     ),
 
+                    arguments(
+                            new StaffAccountException(StaffAccountExceptionInfo.passwordChangeNotAllowedForDisabledAccount()),
+                            AppExceptionStatusCode.INVALID_RESOURCE_STATE
+                    ),
+
+                    arguments(
+                            new StaffAccountException(StaffAccountExceptionInfo.passwordChangeNotAllowedForLockedAccount()),
+                            AppExceptionStatusCode.INVALID_RESOURCE_STATE
+                    ),
+
                     // AuditTrailEntryException - internal errors (SERVER_ERROR)
                     arguments(
                             new AuditTrailEntryException(AuditTrailEntryExceptionInfo.actorIdRequired()),
