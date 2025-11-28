@@ -83,29 +83,6 @@ public class DateTimeUtcTests {
     }
 
     @Nested
-    class FromLocalDate {
-        @Test
-        void shouldCreateValueObject_whenDateProvided() {
-            LocalDate date = LocalDate.of(2024, 1, 1);
-
-            DateTimeUtc dateTimeUtc = DateTimeUtc.from(date);
-
-            assertThat(dateTimeUtc.getValue()).isEqualTo(date.atStartOfDay().toInstant(ZoneOffset.UTC));
-        }
-
-        @Test
-        void shouldThrowException_whenDateIsNull() {
-            assertThatExceptionOfType(DateTimeUtcException.class)
-                    .isThrownBy(() -> DateTimeUtc.from((LocalDate) null))
-                    .extracting("message", "domainErrorCode")
-                    .containsExactly(
-                            DateTimeUtcExceptionInfo.missingValue().getMessage(),
-                            DateTimeUtcExceptionInfo.missingValue().getDomainErrorCode()
-                    );
-        }
-    }
-
-    @Nested
     class Now {
         @Test
         void shouldCreateValueObjectWithCurrentInstant() {

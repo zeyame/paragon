@@ -44,13 +44,6 @@ public class DateTimeUtc extends ValueObject {
         }
     }
 
-    public static DateTimeUtc from(LocalDate date) {
-        if (date == null) {
-            throw new DateTimeUtcException(DateTimeUtcExceptionInfo.missingValue());
-        }
-        return new DateTimeUtc(date.atStartOfDay().toInstant(ZoneOffset.UTC));
-    }
-
     public static DateTimeUtc now() {
         return new DateTimeUtc(Instant.now());
     }
