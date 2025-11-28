@@ -506,6 +506,48 @@ public class StaffAccountTests {
         }
     }
 
+    @Nested
+    class EnsureCanUpdatePassword {
+        @Test
+        void shouldNotThrow_whenStaffAccountIsInAValidState() {
+            // Given
+            StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
+
+            // When & Then
+            assertThatNoException().isThrownBy(staffAccount::ensureCanUpdatePassword);
+        }
+
+        @Test
+        void shouldThrow_whenStaffAccountIsDisabled() {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withStatus(StaffAccountStatus.DISABLED)
+                    .build();
+            StaffAccountException expectedException = new StaffAccountException(StaffAccountExceptionInfo.passwordChangeNotAllowedForDisabledAccount());
+
+            // When & Then
+            assertThatExceptionOfType(StaffAccountException.class)
+                    .isThrownBy(staffAccount::ensureCanUpdatePassword)
+                    .extracting("message", "domainErrorCode")
+                    .containsExactly(expectedException.getMessage(), expectedException.getDomainErrorCode());
+        }
+        @Test
+        void shouldThrow_whenStaffAccountIsLocked() {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withStatus(StaffAccountStatus.LOCKED)
+                    .build();
+            StaffAccountException expectedException = new StaffAccountException(StaffAccountExceptionInfo.passwordChangeNotAllowedForLockedAccount());
+
+            // When & Then
+            assertThatExceptionOfType(StaffAccountException.class)
+                    .isThrownBy(staffAccount::ensureCanUpdatePassword)
+                    .extracting("message", "domainErrorCode")
+                    .containsExactly(expectedException.getMessage(), expectedException.getDomainErrorCode());
+        }
+
+    }
+
     private static void assertThatEventDataIsCorrect(StaffAccountEventBase event, StaffAccount staffAccount) {
         assertThat(event.getStaffAccountId()).isEqualTo(staffAccount.getId());
         assertThat(event.getUsername()).isEqualTo(staffAccount.getUsername());

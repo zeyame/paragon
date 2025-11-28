@@ -158,6 +158,15 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         return isPasswordTemporary;
     }
 
+    public void ensureCanUpdatePassword() {
+        if (status == StaffAccountStatus.DISABLED) {
+            throw new StaffAccountException(StaffAccountExceptionInfo.passwordChangeNotAllowedForDisabledAccount());
+        }
+        if (status == StaffAccountStatus.LOCKED) {
+            throw new StaffAccountException(StaffAccountExceptionInfo.passwordChangeNotAllowedForLockedAccount());
+        }
+    }
+
     private static void assertValidRegistration(Username username, Password password, OrderAccessDuration orderAccessDuration,
                                                 ModmailTranscriptAccessDuration modmailTranscriptAccessDuration, StaffAccountId createdBy,
                                                 List<PermissionCode> permissionCodes)
