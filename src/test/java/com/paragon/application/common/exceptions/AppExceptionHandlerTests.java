@@ -199,6 +199,20 @@ public class AppExceptionHandlerTests {
                             AppExceptionStatusCode.SERVER_ERROR
                     ),
 
+                    // PasswordHistoryEntryException - internal errors (SERVER_ERROR)
+                    arguments(
+                            new PasswordHistoryEntryException(PasswordHistoryEntryExceptionInfo.missingStaffAccountId()),
+                            AppExceptionStatusCode.SERVER_ERROR
+                    ),
+                    arguments(
+                            new PasswordHistoryEntryException(PasswordHistoryEntryExceptionInfo.missingHashedPassword()),
+                            AppExceptionStatusCode.SERVER_ERROR
+                    ),
+                    arguments(
+                            new PasswordHistoryEntryException(PasswordHistoryEntryExceptionInfo.missingChangedAtTimestamp()),
+                            AppExceptionStatusCode.SERVER_ERROR
+                    ),
+
                     // PlaintextPasswordException - user input (CLIENT_ERROR)
                     arguments(
                             new PlaintextPasswordException(PlaintextPasswordExceptionInfo.missingValue()),

@@ -30,6 +30,7 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
             case PasswordException passwordException -> handlePasswordException(passwordException);
             case PlaintextPasswordException plaintextPasswordException -> handlePlaintextPasswordException(plaintextPasswordException);
             case PlaintextRefreshTokenException plaintextRefreshTokenException -> handlePlaintextRefreshTokenException(plaintextRefreshTokenException);
+            case PasswordHistoryEntryException passwordHistoryEntryException -> handlePasswordHistoryEntryException(passwordHistoryEntryException);
             case OrderAccessDurationException orderAccessDurationException -> handleOrderAccessDurationException(orderAccessDurationException);
             case ModmailTranscriptAccessDurationException modmailTranscriptAccessDurationException -> handleModmailTranscriptAccessDurationException(modmailTranscriptAccessDurationException);
             case DateTimeUtcException dateTimeUtcException -> handleDateTimeUtcException(dateTimeUtcException);
@@ -185,6 +186,17 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
         return switch (domainErrorCode) {
             case 114001 ->
                     new AppException(exception, AppExceptionStatusCode.CLIENT_ERROR);
+
+            default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);
+        };
+    }
+
+    private AppException handlePasswordHistoryEntryException(PasswordHistoryEntryException exception) {
+        int domainErrorCode = exception.getDomainErrorCode();
+
+        return switch (domainErrorCode) {
+            case 116001, 116002, 116003 -> // missing staff account id, hashed password, or timestamp - internal error
+                    new AppException(exception, AppExceptionStatusCode.SERVER_ERROR);
 
             default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);
         };
