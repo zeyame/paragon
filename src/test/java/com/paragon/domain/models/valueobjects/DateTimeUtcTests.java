@@ -8,6 +8,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -71,7 +73,30 @@ public class DateTimeUtcTests {
         @Test
         void shouldThrowException_whenIsoStringIsNull() {
             assertThatExceptionOfType(DateTimeUtcException.class)
-                    .isThrownBy(() -> DateTimeUtc.from(null))
+                    .isThrownBy(() -> DateTimeUtc.from((String) null))
+                    .extracting("message", "domainErrorCode")
+                    .containsExactly(
+                            DateTimeUtcExceptionInfo.missingValue().getMessage(),
+                            DateTimeUtcExceptionInfo.missingValue().getDomainErrorCode()
+                    );
+        }
+    }
+
+    @Nested
+    class FromLocalDate {
+        @Test
+        void shouldCreateValueObject_whenDateProvided() {
+            LocalDate date = LocalDate.of(2024, 1, 1);
+
+            DateTimeUtc dateTimeUtc = DateTimeUtc.from(date);
+
+            assertThat(dateTimeUtc.getValue()).isEqualTo(date.atStartOfDay().toInstant(ZoneOffset.UTC));
+        }
+
+        @Test
+        void shouldThrowException_whenDateIsNull() {
+            assertThatExceptionOfType(DateTimeUtcException.class)
+                    .isThrownBy(() -> DateTimeUtc.from((LocalDate) null))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(
                             DateTimeUtcExceptionInfo.missingValue().getMessage(),

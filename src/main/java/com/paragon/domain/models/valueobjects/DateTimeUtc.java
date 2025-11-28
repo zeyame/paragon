@@ -4,6 +4,8 @@ import com.paragon.domain.exceptions.valueobject.DateTimeUtcException;
 import com.paragon.domain.exceptions.valueobject.DateTimeUtcExceptionInfo;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
@@ -40,6 +42,13 @@ public class DateTimeUtc extends ValueObject {
         } catch (DateTimeParseException ex) {
             throw new DateTimeUtcException(DateTimeUtcExceptionInfo.invalidFormat());
         }
+    }
+
+    public static DateTimeUtc from(LocalDate date) {
+        if (date == null) {
+            throw new DateTimeUtcException(DateTimeUtcExceptionInfo.missingValue());
+        }
+        return new DateTimeUtc(date.atStartOfDay().toInstant(ZoneOffset.UTC));
     }
 
     public static DateTimeUtc now() {
