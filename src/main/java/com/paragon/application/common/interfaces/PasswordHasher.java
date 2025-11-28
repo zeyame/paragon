@@ -5,5 +5,5 @@ import com.paragon.domain.models.valueobjects.PlaintextPassword;
 
 public interface PasswordHasher {
     Password hash(PlaintextPassword plaintextPassword);
-    boolean verify(PlaintextPassword enteredPassword, Password hashedPassword);
+    boolean verify(String enteredPassword, Password hashedPassword);
 }
