@@ -39,3 +39,4 @@ build/
 /src/main/resources/db/migration/V6__seed_admin_account.sql
 /src/main/resources/db/migration/V7__create_audit_trail.sql
 /src/main/resources/db/migration/V8__create_refresh_tokens.sql
+/src/main/resources/db/migration/V9_create_staff_accounts_password_history
