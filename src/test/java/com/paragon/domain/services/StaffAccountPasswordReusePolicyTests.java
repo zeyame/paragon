@@ -13,8 +13,8 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,7 +32,11 @@ public class StaffAccountPasswordReusePolicyTests {
     @Test
     void shouldNotThrow_whenEnteredPasswordWasNeverUsed() {
         // Given
-        StaffAccountPasswordHistory passwordHistory = new StaffAccountPasswordHistory(List.of(newEntryWithinRestrictionWindow(), newEntryWithinRestrictionWindow()));
+        String staffAccountId = UUID.randomUUID().toString();
+        StaffAccountPasswordHistory passwordHistory = new StaffAccountPasswordHistory(
+                List.of(newEntryWithinRestrictionWindow(staffAccountId),
+                        newEntryWithinRestrictionWindow(staffAccountId))
+        );
         when(passwordHasherMock.verify(anyString(), any(Password.class)))
                 .thenReturn(false);
 
@@ -45,8 +49,9 @@ public class StaffAccountPasswordReusePolicyTests {
     @Test
     void shouldNotThrow_whenEnteredPasswordWasUsedPriorToRestrictionWindow() {
         // Given
+        String staffAccountId = UUID.randomUUID().toString();
         StaffAccountPasswordHistory passwordHistory = new StaffAccountPasswordHistory(
-                List.of(newEntryPriorToRestrictionWindow(), newEntryPriorToRestrictionWindow())
+                List.of(newEntryPriorToRestrictionWindow(staffAccountId), newEntryPriorToRestrictionWindow(staffAccountId))
         );
 
         when(passwordHasherMock.verify(anyString(), any(Password.class)))
@@ -61,8 +66,9 @@ public class StaffAccountPasswordReusePolicyTests {
     @Test
     void shouldThrow_whenEnteredPasswordWasUsedWithinRestrictionWindow() {
         // Given
+        String staffAccountId = UUID.randomUUID().toString();
         StaffAccountPasswordHistory passwordHistory = new StaffAccountPasswordHistory(
-                List.of(newEntryWithinRestrictionWindow(), newEntryWithinRestrictionWindow())
+                List.of(newEntryWithinRestrictionWindow(staffAccountId), newEntryWithinRestrictionWindow(staffAccountId))
         );
 
         when(passwordHasherMock.verify(anyString(), any(Password.class)))
@@ -78,20 +84,23 @@ public class StaffAccountPasswordReusePolicyTests {
                 .containsExactly(expectedException.getMessage(), expectedException.getDomainErrorCode());
     }
 
-    private static PasswordHistoryEntry newEntryWithinRestrictionWindow() {
+    private static PasswordHistoryEntry newEntryWithinRestrictionWindow(String staffAccountId) {
+        Instant threeMonthsAgo = LocalDateTime.now()
+                .minusMonths(3)
+                .toInstant(ZoneOffset.UTC);
         return new PasswordHistoryEntryFixture()
-                .withChangedAt(LocalDateTime.now()
-                        .minusMonths(2)
-                        .toInstant(ZoneOffset.UTC))
+                .withStaffAccountId(staffAccountId)
+                .withChangedAt(threeMonthsAgo)
                 .build();
     }
 
-    private static PasswordHistoryEntry newEntryPriorToRestrictionWindow() {
+    private static PasswordHistoryEntry newEntryPriorToRestrictionWindow(String staffAccountId) {
         Instant fourMonthsAgo = LocalDateTime.now()
                 .minusMonths(4)
                 .toInstant(ZoneOffset.UTC);
 
         return new PasswordHistoryEntryFixture()
+                .withStaffAccountId(staffAccountId)
                 .withChangedAt(fourMonthsAgo)
                 .build();
     }
