@@ -3,10 +3,7 @@ package com.paragon.domain.services;
 import com.paragon.application.common.interfaces.PasswordHasher;
 import com.paragon.domain.exceptions.services.StaffAccountPasswordReusePolicyException;
 import com.paragon.domain.exceptions.services.StaffAccountPasswordReusePolicyExceptionInfo;
-import com.paragon.domain.models.valueobjects.DateTimeUtc;
-import com.paragon.domain.models.valueobjects.Password;
-import com.paragon.domain.models.valueobjects.PasswordHistoryEntry;
-import com.paragon.domain.models.valueobjects.PlaintextPassword;
+import com.paragon.domain.models.valueobjects.*;
 
 import java.time.Instant;
 import java.time.Period;
@@ -17,7 +14,7 @@ public final class StaffAccountPasswordReusePolicy {
     private static final Period PASSWORD_REUSE_RESTRICTION_WINDOW = Period.ofMonths(3);
 
     public static void ensureNotViolated(PlaintextPassword enteredPassword,
-                                         List<PasswordHistoryEntry> passwordHistory,
+                                         StaffAccountPasswordHistory passwordHistory,
                                          PasswordHasher passwordHasher) {
         DateTimeUtc cutOffDate = DateTimeUtc.of(
                 Instant.now()
@@ -25,9 +22,7 @@ public final class StaffAccountPasswordReusePolicy {
                         .minus(PASSWORD_REUSE_RESTRICTION_WINDOW)
                         .toInstant()
         );
-        List<PasswordHistoryEntry> filteredEntries = passwordHistory.stream()
-                .filter(entry -> entry.changedAt().isAfter(cutOffDate))
-                .toList();
+        List<PasswordHistoryEntry> filteredEntries = passwordHistory.entriesOnOrAfter(cutOffDate);
         for (PasswordHistoryEntry entry : filteredEntries) {
             throwIfPasswordsAreEqual(enteredPassword, entry.hashedPassword(), passwordHasher);
         }

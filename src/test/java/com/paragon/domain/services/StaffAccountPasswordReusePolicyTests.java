@@ -6,6 +6,7 @@ import com.paragon.domain.exceptions.services.StaffAccountPasswordReusePolicyExc
 import com.paragon.domain.models.valueobjects.Password;
 import com.paragon.domain.models.valueobjects.PasswordHistoryEntry;
 import com.paragon.domain.models.valueobjects.PlaintextPassword;
+import com.paragon.domain.models.valueobjects.StaffAccountPasswordHistory;
 import com.paragon.helpers.fixtures.PasswordHistoryEntryFixture;
 import org.junit.jupiter.api.Test;
 
@@ -31,34 +32,39 @@ public class StaffAccountPasswordReusePolicyTests {
     @Test
     void shouldNotThrow_whenEnteredPasswordWasNeverUsed() {
         // Given
-        List<PasswordHistoryEntry> entries = List.of(newEntryWithinRestrictionWindow(), newEntryWithinRestrictionWindow());
+        StaffAccountPasswordHistory passwordHistory = new StaffAccountPasswordHistory(List.of(newEntryWithinRestrictionWindow(), newEntryWithinRestrictionWindow()));
         when(passwordHasherMock.verify(anyString(), any(Password.class)))
                 .thenReturn(false);
 
         // When & Then
         assertThatNoException().isThrownBy(() ->
-                StaffAccountPasswordReusePolicy.ensureNotViolated(PlaintextPassword.generate(), entries, passwordHasherMock)
+                StaffAccountPasswordReusePolicy.ensureNotViolated(PlaintextPassword.generate(), passwordHistory, passwordHasherMock)
         );
     }
 
     @Test
     void shouldNotThrow_whenEnteredPasswordWasUsedPriorToRestrictionWindow() {
         // Given
-        List<PasswordHistoryEntry> entries = List.of(newEntryPriorToRestrictionWindow(), newEntryPriorToRestrictionWindow());
+        StaffAccountPasswordHistory passwordHistory = new StaffAccountPasswordHistory(
+                List.of(newEntryPriorToRestrictionWindow(), newEntryPriorToRestrictionWindow())
+        );
 
         when(passwordHasherMock.verify(anyString(), any(Password.class)))
                 .thenReturn(true);
 
         // When & Then
         assertThatNoException().isThrownBy(() ->
-                StaffAccountPasswordReusePolicy.ensureNotViolated(PlaintextPassword.generate(), entries, passwordHasherMock)
+                StaffAccountPasswordReusePolicy.ensureNotViolated(PlaintextPassword.generate(), passwordHistory, passwordHasherMock)
         );
     }
 
     @Test
     void shouldThrow_whenEnteredPasswordWasUsedWithinRestrictionWindow() {
         // Given
-        List<PasswordHistoryEntry> entries = List.of(newEntryWithinRestrictionWindow(), newEntryWithinRestrictionWindow());
+        StaffAccountPasswordHistory passwordHistory = new StaffAccountPasswordHistory(
+                List.of(newEntryWithinRestrictionWindow(), newEntryWithinRestrictionWindow())
+        );
+
         when(passwordHasherMock.verify(anyString(), any(Password.class)))
                 .thenReturn(true);
         StaffAccountPasswordReusePolicyException expectedException = new StaffAccountPasswordReusePolicyException(
@@ -67,7 +73,7 @@ public class StaffAccountPasswordReusePolicyTests {
 
         // When & Then
         assertThatExceptionOfType(StaffAccountPasswordReusePolicyException.class)
-                .isThrownBy(() -> StaffAccountPasswordReusePolicy.ensureNotViolated(PlaintextPassword.generate(), entries, passwordHasherMock))
+                .isThrownBy(() -> StaffAccountPasswordReusePolicy.ensureNotViolated(PlaintextPassword.generate(), passwordHistory, passwordHasherMock))
                 .extracting("message", "domainErrorCode")
                 .containsExactly(expectedException.getMessage(), expectedException.getDomainErrorCode());
     }
