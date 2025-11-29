@@ -100,12 +100,7 @@ public class AppExceptionHandlerTests {
                     ),
 
                     arguments(
-                            new StaffAccountException(StaffAccountExceptionInfo.passwordChangeNotAllowedForDisabledAccount()),
-                            AppExceptionStatusCode.INVALID_RESOURCE_STATE
-                    ),
-
-                    arguments(
-                            new StaffAccountException(StaffAccountExceptionInfo.passwordChangeNotAllowedForLockedAccount()),
+                            new StaffAccountException(StaffAccountExceptionInfo.passwordChangeRequiresActiveAccount()),
                             AppExceptionStatusCode.INVALID_RESOURCE_STATE
                     ),
 

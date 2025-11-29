@@ -84,17 +84,10 @@ public class StaffAccountExceptionInfo extends DomainExceptionInfo {
         );
     }
 
-    public static StaffAccountExceptionInfo passwordChangeNotAllowedForDisabledAccount() {
+    public static StaffAccountExceptionInfo passwordChangeRequiresActiveAccount() {
         return new StaffAccountExceptionInfo(
-                "Password cannot be changed while the staff account is disabled.",
+                "Password can only be changed while the staff account is active.",
                 10012
-        );
-    }
-
-    public static StaffAccountExceptionInfo passwordChangeNotAllowedForLockedAccount() {
-        return new StaffAccountExceptionInfo(
-                "Password cannot be changed while the staff account is locked.",
-                10013
         );
     }
 

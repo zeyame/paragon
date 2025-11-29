@@ -95,19 +95,11 @@ public class StaffAccountExceptionInfoTests {
     }
 
     @Test
-    void passwordChangeNotAllowedForDisabledAccount_shouldHaveExpectedCodeAndMessage() {
-        StaffAccountExceptionInfo info = StaffAccountExceptionInfo.passwordChangeNotAllowedForDisabledAccount();
+    void passwordChangeRequiresActiveAccount_shouldHaveExpectedCodeAndMessage() {
+        StaffAccountExceptionInfo info = StaffAccountExceptionInfo.passwordChangeRequiresActiveAccount();
 
-        assertThat(info.getMessage()).isEqualTo("Password cannot be changed while the staff account is disabled.");
+        assertThat(info.getMessage()).isEqualTo("Password can only be changed while the staff account is active.");
         assertThat(info.getDomainErrorCode()).isEqualTo(10012);
-    }
-
-    @Test
-    void passwordChangeNotAllowedForLockedAccount_shouldHaveExpectedCodeAndMessage() {
-        StaffAccountExceptionInfo info = StaffAccountExceptionInfo.passwordChangeNotAllowedForLockedAccount();
-
-        assertThat(info.getMessage()).isEqualTo("Password cannot be changed while the staff account is locked.");
-        assertThat(info.getDomainErrorCode()).isEqualTo(10013);
     }
 
     @Test
