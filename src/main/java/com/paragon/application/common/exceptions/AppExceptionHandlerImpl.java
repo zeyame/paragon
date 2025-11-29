@@ -69,6 +69,9 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
             case 10012, 10013 -> // password changes blocked for disabled/locked accounts
                     new AppException(exception, AppExceptionStatusCode.INVALID_RESOURCE_STATE);
 
+            case 10014 -> // temporary password completion requires pending state
+                    new AppException(exception, AppExceptionStatusCode.INVALID_RESOURCE_STATE);
+
             default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);
         };
     }
