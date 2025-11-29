@@ -11,15 +11,19 @@ import com.paragon.helpers.fixtures.StaffAccountFixture;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 public class StaffAccountTests {
     @Nested
@@ -517,11 +521,12 @@ public class StaffAccountTests {
             assertThatNoException().isThrownBy(staffAccount::ensureCanUpdatePassword);
         }
 
-        @Test
-        void shouldThrow_whenStaffAccountIsDisabled() {
+        @ParameterizedTest
+        @MethodSource("provideInvalidStatuses")
+        void shouldThrow_whenStaffAccountIsNotActive() {
             // Given
             StaffAccount staffAccount = StaffAccountFixture.disabledStaffAccount();
-            StaffAccountException expectedException = new StaffAccountException(StaffAccountExceptionInfo.passwordChangeNotAllowedForDisabledAccount());
+            StaffAccountException expectedException = new StaffAccountException(StaffAccountExceptionInfo.passwordChangeRequiresActiveAccount());
 
             // When & Then
             assertThatExceptionOfType(StaffAccountException.class)
@@ -530,19 +535,13 @@ public class StaffAccountTests {
                     .containsExactly(expectedException.getMessage(), expectedException.getDomainErrorCode());
         }
 
-        @Test
-        void shouldThrow_whenStaffAccountIsLocked() {
-            // Given
-            StaffAccount staffAccount = StaffAccountFixture.lockedStaffAccount();
-            StaffAccountException expectedException = new StaffAccountException(StaffAccountExceptionInfo.passwordChangeNotAllowedForLockedAccount());
-
-            // When & Then
-            assertThatExceptionOfType(StaffAccountException.class)
-                    .isThrownBy(staffAccount::ensureCanUpdatePassword)
-                    .extracting("message", "domainErrorCode")
-                    .containsExactly(expectedException.getMessage(), expectedException.getDomainErrorCode());
+        private static Stream<Arguments> provideInvalidStatuses() {
+            return Stream.of(
+                    arguments(StaffAccountStatus.PENDING_PASSWORD_CHANGE),
+                    arguments(StaffAccountStatus.LOCKED),
+                    arguments(StaffAccountStatus.DISABLED)
+            );
         }
-
     }
 
     private static void assertThatEventDataIsCorrect(StaffAccountEventBase event, StaffAccount staffAccount) {
