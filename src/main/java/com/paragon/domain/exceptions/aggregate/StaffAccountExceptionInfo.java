@@ -97,4 +97,11 @@ public class StaffAccountExceptionInfo extends DomainExceptionInfo {
                 10013
         );
     }
+
+    public static StaffAccountExceptionInfo temporaryPasswordChangeRequiresPendingState() {
+        return new StaffAccountExceptionInfo(
+                "Temporary password can only be completed while the account is pending a password change.",
+                10014
+        );
+    }
 }

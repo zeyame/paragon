@@ -109,4 +109,12 @@ public class StaffAccountExceptionInfoTests {
         assertThat(info.getMessage()).isEqualTo("Password cannot be changed while the staff account is locked.");
         assertThat(info.getDomainErrorCode()).isEqualTo(10013);
     }
+
+    @Test
+    void temporaryPasswordChangeRequiresPendingState_shouldHaveExpectedCodeAndMessage() {
+        StaffAccountExceptionInfo info = StaffAccountExceptionInfo.temporaryPasswordChangeRequiresPendingState();
+
+        assertThat(info.getMessage()).isEqualTo("Temporary password can only be completed while the account is pending a password change.");
+        assertThat(info.getDomainErrorCode()).isEqualTo(10014);
+    }
 }
