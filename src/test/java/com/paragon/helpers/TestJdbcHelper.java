@@ -5,10 +5,7 @@ import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.entities.AuditTrailEntry;
 import com.paragon.domain.models.valueobjects.*;
-import com.paragon.infrastructure.persistence.daos.AuditTrailEntryDao;
-import com.paragon.infrastructure.persistence.daos.PermissionCodeDao;
-import com.paragon.infrastructure.persistence.daos.RefreshTokenDao;
-import com.paragon.infrastructure.persistence.daos.StaffAccountDao;
+import com.paragon.infrastructure.persistence.daos.*;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
@@ -215,5 +212,15 @@ public class TestJdbcHelper {
                 RefreshTokenDao.class
         );
         return daos.stream().map(RefreshTokenDao::toRefreshToken).toList();
+    }
+
+    public Optional<PasswordHistoryEntry> getPasswordHistoryEntryByHashedPassword(Password hashedPassword) {
+        String sql = "SELECT * FROM staff_account_password_history WHERE hashed_password = :hashedPassword";
+        SqlParamsBuilder params = new SqlParamsBuilder().add("hashedPassword", hashedPassword.getValue());
+        Optional<PasswordHistoryEntryDao> optionalDao = writeJdbcHelper.queryFirstOrDefault(
+                new SqlStatement(sql, params),
+                PasswordHistoryEntryDao.class
+        );
+        return optionalDao.map(PasswordHistoryEntryDao::toPasswordHistoryEntry);
     }
 }

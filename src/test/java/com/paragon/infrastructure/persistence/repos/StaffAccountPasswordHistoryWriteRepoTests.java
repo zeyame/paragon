@@ -3,7 +3,6 @@ package com.paragon.infrastructure.persistence.repos;
 import com.paragon.domain.interfaces.StaffAccountPasswordHistoryWriteRepo;
 import com.paragon.domain.models.valueobjects.PasswordHistoryEntry;
 import com.paragon.helpers.fixtures.PasswordHistoryEntryFixture;
-import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;

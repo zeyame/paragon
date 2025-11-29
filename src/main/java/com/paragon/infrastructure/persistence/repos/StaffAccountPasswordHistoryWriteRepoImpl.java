@@ -5,9 +5,11 @@ import com.paragon.domain.models.valueobjects.PasswordHistoryEntry;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
+import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
 
+@Repository
 public class StaffAccountPasswordHistoryWriteRepoImpl implements StaffAccountPasswordHistoryWriteRepo {
     private final WriteJdbcHelper writeJdbcHelper;
 
