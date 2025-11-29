@@ -107,6 +107,6 @@ public class StaffAccountExceptionInfoTests {
         StaffAccountExceptionInfo info = StaffAccountExceptionInfo.temporaryPasswordChangeRequiresPendingState();
 
         assertThat(info.getMessage()).isEqualTo("Temporary password can only be completed while the account is pending a password change.");
-        assertThat(info.getDomainErrorCode()).isEqualTo(10014);
+        assertThat(info.getDomainErrorCode()).isEqualTo(10013);
     }
 }
