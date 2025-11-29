@@ -2,15 +2,18 @@ package com.paragon.infrastructure.persistence.repos;
 
 import com.paragon.domain.interfaces.StaffAccountPasswordHistoryWriteRepo;
 import com.paragon.domain.models.valueobjects.PasswordHistoryEntry;
+import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.helpers.fixtures.PasswordHistoryEntryFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
+import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,6 +69,41 @@ public class StaffAccountPasswordHistoryWriteRepoTests {
             // When & Then
             assertThatThrownBy(() -> sut.appendEntry(PasswordHistoryEntryFixture.validEntry()))
                     .isInstanceOf(InfraException.class);
+        }
+    }
+
+    @Nested
+    class GetPasswordHistory {
+        private final StaffAccountPasswordHistoryWriteRepo sut;
+        private final WriteJdbcHelper writeJdbcHelperMock;
+
+        public GetPasswordHistory() {
+            writeJdbcHelperMock = mock(WriteJdbcHelper.class);
+            sut = new StaffAccountPasswordHistoryWriteRepoImpl(writeJdbcHelperMock);
+        }
+
+        @Test
+        void shouldExecuteQueryWithCorrectSqlAndParams() {
+            // Given
+            StaffAccountId staffAccountId = StaffAccountId.generate();
+            String expectedSql = """
+                        SELECT * FROM staff_account_password_history
+                        WHERE staff_account_id = :staffAccountId
+                    """;
+
+            when(writeJdbcHelperMock.query(any(SqlStatement.class), eq(PasswordHistoryEntry.class)))
+                    .thenReturn(List.of(PasswordHistoryEntryFixture.validEntry()));
+
+            // When
+            sut.getPasswordHistory(staffAccountId);
+
+            // Then
+            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
+            verify(writeJdbcHelperMock, times(1)).query(sqlStatementCaptor.capture(), eq(PasswordHistoryEntry.class));
+
+            SqlStatement sqlStatement = sqlStatementCaptor.getValue();
+            assertThat(sqlStatement.sql()).isEqualTo(expectedSql);
+            assertThat(sqlStatement.params().get("staffAccountId")).isEqualTo(staffAccountId.getValue());
         }
     }
 }

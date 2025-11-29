@@ -2,11 +2,14 @@ package com.paragon.infrastructure.persistence.repos;
 
 import com.paragon.domain.interfaces.StaffAccountPasswordHistoryWriteRepo;
 import com.paragon.domain.models.valueobjects.PasswordHistoryEntry;
+import com.paragon.domain.models.valueobjects.StaffAccountId;
+import com.paragon.domain.models.valueobjects.StaffAccountPasswordHistory;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -33,5 +36,20 @@ public class StaffAccountPasswordHistoryWriteRepoImpl implements StaffAccountPas
                 .add("changedAtUtc", entry.changedAt().getValue());
 
         writeJdbcHelper.execute(new SqlStatement(sql, params));
+    }
+
+    @Override
+    public StaffAccountPasswordHistory getPasswordHistory(StaffAccountId staffAccountId) {
+        String sql = """
+                        SELECT * FROM staff_account_password_history
+                        WHERE staff_account_id = :staffAccountId
+                    """;
+        SqlParamsBuilder params = new SqlParamsBuilder().add("staffAccountId", staffAccountId.getValue());
+
+        List<PasswordHistoryEntry> passwordHistoryEntries = writeJdbcHelper.query(
+                new SqlStatement(sql, params),
+                PasswordHistoryEntry.class
+        );
+        return new StaffAccountPasswordHistory(passwordHistoryEntries);
     }
 }
