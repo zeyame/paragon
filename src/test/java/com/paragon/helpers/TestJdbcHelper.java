@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class TestJdbcHelper {
@@ -222,5 +223,22 @@ public class TestJdbcHelper {
                 PasswordHistoryEntryDao.class
         );
         return optionalDao.map(PasswordHistoryEntryDao::toPasswordHistoryEntry);
+    }
+
+    public void insertPasswordHistoryEntry(PasswordHistoryEntry entry) {
+        String sql = """
+                        INSERT INTO staff_account_password_history
+                        (id, staff_account_id, hashed_password, is_temporary, changed_at_utc)
+                        VALUES
+                        (:id, :staffAccountId, :hashedPassword, :isTemporary, :changedAtUtc)
+                    """;
+        SqlParamsBuilder params = new SqlParamsBuilder()
+                .add("id", UUID.randomUUID())
+                .add("staffAccountId", entry.staffAccountId().getValue())
+                .add("hashedPassword", entry.hashedPassword().getValue())
+                .add("isTemporary", entry.isTemporary())
+                .add("changedAtUtc", entry.changedAt().getValue());
+
+        writeJdbcHelper.execute(new SqlStatement(sql, params));
     }
 }

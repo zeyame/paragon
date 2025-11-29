@@ -4,6 +4,7 @@ import com.paragon.domain.interfaces.StaffAccountPasswordHistoryWriteRepo;
 import com.paragon.domain.models.valueobjects.PasswordHistoryEntry;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.domain.models.valueobjects.StaffAccountPasswordHistory;
+import com.paragon.infrastructure.persistence.daos.PasswordHistoryEntryDao;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
@@ -46,10 +47,16 @@ public class StaffAccountPasswordHistoryWriteRepoImpl implements StaffAccountPas
                     """;
         SqlParamsBuilder params = new SqlParamsBuilder().add("staffAccountId", staffAccountId.getValue());
 
-        List<PasswordHistoryEntry> passwordHistoryEntries = writeJdbcHelper.query(
+        List<PasswordHistoryEntryDao> entryDaos = writeJdbcHelper.query(
                 new SqlStatement(sql, params),
-                PasswordHistoryEntry.class
+                PasswordHistoryEntryDao.class
         );
-        return new StaffAccountPasswordHistory(passwordHistoryEntries);
+        return new StaffAccountPasswordHistory(mapDaosToDomainEntries(entryDaos));
+    }
+
+    private static List<PasswordHistoryEntry> mapDaosToDomainEntries(List<PasswordHistoryEntryDao> entryDaos) {
+        return entryDaos.stream()
+                .map(PasswordHistoryEntryDao::toPasswordHistoryEntry)
+                .toList();
     }
 }
