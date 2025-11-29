@@ -6,6 +6,10 @@ import com.paragon.helpers.fixtures.PasswordHistoryEntryFixture;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -93,6 +97,56 @@ public class StaffAccountPasswordHistoryTests {
                     .isThrownBy(() -> new StaffAccountPasswordHistory(mixedEntries))
                     .extracting("message", "domainErrorCode")
                     .containsExactly(expectedException.getMessage(), expectedException.getDomainErrorCode());
+        }
+    }
+
+    @Nested
+    class EntriesOnOrAfter {
+        @Test
+        void shouldReturnEntriesOnOrAfterCutOffDate() {
+            // Given
+            UUID staffAccountId = UUID.randomUUID();
+            List<PasswordHistoryEntry> validEntries = List.of(
+                    newEntryWithinRestrictionWindow(staffAccountId.toString()),
+                    newEntryWithinRestrictionWindow(staffAccountId.toString()),
+                    newEntryPriorToRestrictionWindow(staffAccountId.toString())
+            );
+            StaffAccountPasswordHistory passwordHistory = new StaffAccountPasswordHistory(validEntries);
+            DateTimeUtc cutOffDate = DateTimeUtc.of(
+                    Instant.now()
+                            .atZone(ZoneOffset.UTC)
+                            .minus(Period.ofMonths(3))
+                            .toInstant()
+            );
+
+            // When
+            List<PasswordHistoryEntry> filteredEntries = passwordHistory.entriesOnOrAfter(cutOffDate);
+
+            // Then
+            assertThat(filteredEntries).hasSize(2);
+            assertThat(filteredEntries.contains(validEntries.get(2))).isFalse(); // entry prior to cut off date is not returned
+        }
+
+        private static PasswordHistoryEntry newEntryWithinRestrictionWindow(String staffAccountId) {
+            Instant threeMonthsAgo = LocalDateTime.now()
+                    .minusMonths(3)
+                    .toInstant(ZoneOffset.UTC);
+
+            return new PasswordHistoryEntryFixture()
+                    .withStaffAccountId(staffAccountId)
+                    .withChangedAt(threeMonthsAgo)
+                    .build();
+        }
+
+        private static PasswordHistoryEntry newEntryPriorToRestrictionWindow(String staffAccountId) {
+            Instant fourMonthsAgo = LocalDateTime.now()
+                    .minusMonths(4)
+                    .toInstant(ZoneOffset.UTC);
+
+            return new PasswordHistoryEntryFixture()
+                    .withStaffAccountId(staffAccountId)
+                    .withChangedAt(fourMonthsAgo)
+                    .build();
         }
     }
 }
