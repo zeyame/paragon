@@ -32,6 +32,7 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
             case PlaintextPasswordException plaintextPasswordException -> handlePlaintextPasswordException(plaintextPasswordException);
             case PlaintextRefreshTokenException plaintextRefreshTokenException -> handlePlaintextRefreshTokenException(plaintextRefreshTokenException);
             case PasswordHistoryEntryException passwordHistoryEntryException -> handlePasswordHistoryEntryException(passwordHistoryEntryException);
+            case StaffAccountPasswordHistoryException staffAccountPasswordHistoryException -> handleStaffAccountPasswordHistoryException(staffAccountPasswordHistoryException);
             case StaffAccountPasswordReusePolicyException staffAccountPasswordReusePolicyException -> handleStaffAccountPasswordReusePolicyException(staffAccountPasswordReusePolicyException);
             case OrderAccessDurationException orderAccessDurationException -> handleOrderAccessDurationException(orderAccessDurationException);
             case ModmailTranscriptAccessDurationException modmailTranscriptAccessDurationException -> handleModmailTranscriptAccessDurationException(modmailTranscriptAccessDurationException);
@@ -201,6 +202,17 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
 
         return switch (domainErrorCode) {
             case 116001, 116002, 116003 -> // missing staff account id, hashed password, or timestamp - internal error
+                    new AppException(exception, AppExceptionStatusCode.SERVER_ERROR);
+
+            default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);
+        };
+    }
+
+    private AppException handleStaffAccountPasswordHistoryException(StaffAccountPasswordHistoryException exception) {
+        int domainErrorCode = exception.getDomainErrorCode();
+
+        return switch (domainErrorCode) {
+            case 117001, 117002 -> // missing history entries or mismatched account ids - internal error
                     new AppException(exception, AppExceptionStatusCode.SERVER_ERROR);
 
             default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);

@@ -225,6 +225,16 @@ public class AppExceptionHandlerTests {
                             AppExceptionStatusCode.SERVER_ERROR
                     ),
 
+                    // StaffAccountPasswordHistoryException - internal errors (SERVER_ERROR)
+                    arguments(
+                            new StaffAccountPasswordHistoryException(StaffAccountPasswordHistoryExceptionInfo.mustContainEntries()),
+                            AppExceptionStatusCode.SERVER_ERROR
+                    ),
+                    arguments(
+                            new StaffAccountPasswordHistoryException(StaffAccountPasswordHistoryExceptionInfo.entriesMustBelongToSingleAccount()),
+                            AppExceptionStatusCode.SERVER_ERROR
+                    ),
+
                     // StaffAccountPasswordReusePolicyException - business rule (CLIENT_ERROR)
                     arguments(
                             new StaffAccountPasswordReusePolicyException(StaffAccountPasswordReusePolicyExceptionInfo.passwordUsedWithinRestrictedWindow()),
