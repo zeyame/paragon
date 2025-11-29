@@ -87,12 +87,12 @@ public class StaffAccountPasswordReusePolicyTests {
     }
 
     private static PasswordHistoryEntry newEntryPriorToRestrictionWindow() {
-        Instant threeMonthsAgo = LocalDateTime.now()
+        Instant fourMonthsAgo = LocalDateTime.now()
                 .minusMonths(4)
                 .toInstant(ZoneOffset.UTC);
 
         return new PasswordHistoryEntryFixture()
-                .withChangedAt(threeMonthsAgo)
+                .withChangedAt(fourMonthsAgo)
                 .build();
     }
 }
