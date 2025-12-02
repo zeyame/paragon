@@ -109,4 +109,12 @@ public class StaffAccountExceptionInfoTests {
         assertThat(info.getMessage()).isEqualTo("Temporary password can only be completed while the account is pending a password change.");
         assertThat(info.getDomainErrorCode()).isEqualTo(10013);
     }
+
+    @Test
+    void passwordMustDifferFromCurrent_shouldHaveExpectedCodeAndMessage() {
+        StaffAccountExceptionInfo info = StaffAccountExceptionInfo.passwordMustDifferFromCurrent();
+
+        assertThat(info.getMessage()).isEqualTo("New password must be different from the current password.");
+        assertThat(info.getDomainErrorCode()).isEqualTo(10014);
+    }
 }

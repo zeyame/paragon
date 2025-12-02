@@ -69,7 +69,10 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
             case 10012 -> // password changes require active accounts
                     new AppException(exception, AppExceptionStatusCode.INVALID_RESOURCE_STATE);
 
-            case 10014 -> // temporary password completion requires pending state
+            case 10013 -> // temporary password completion requires pending state
+                    new AppException(exception, AppExceptionStatusCode.INVALID_RESOURCE_STATE);
+
+            case 10014 -> // new password identical to current - resource state issue
                     new AppException(exception, AppExceptionStatusCode.INVALID_RESOURCE_STATE);
 
             default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);
