@@ -513,9 +513,11 @@ public class StaffAccountTests {
     @Nested
     class EnsureCanUpdatePassword {
         @Test
-        void shouldNotThrow_whenStaffAccountIsInAValidState() {
+        void shouldNotThrow_whenStaffAccountIsActive() {
             // Given
-            StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withStatus(StaffAccountStatus.ACTIVE)
+                    .build();
 
             // When & Then
             assertThatNoException().isThrownBy(staffAccount::ensureCanUpdatePassword);
