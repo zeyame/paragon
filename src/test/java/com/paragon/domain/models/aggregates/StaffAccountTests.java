@@ -544,6 +544,125 @@ public class StaffAccountTests {
         }
     }
 
+    @Nested
+    class CompleteTemporaryPasswordChange {
+        @Test
+        void shouldChangeCurrentPasswordToEnteredOne() {
+            // Given
+            StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
+
+            // When
+            staffAccount.completeTemporaryPasswordChange(Password.of("new-password"));
+
+            // Then
+            assertThat(staffAccount.getPassword()).isEqualTo(Password.of("new-password"));
+        }
+
+        @Test
+        void shouldUpdateStatusToActive() {
+            // Given
+            StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
+
+            // When
+            staffAccount.completeTemporaryPasswordChange(Password.of("new-password"));
+
+            // Then
+            assertThat(staffAccount.getStatus()).isEqualTo(StaffAccountStatus.ACTIVE);
+        }
+
+        @Test
+        void shouldResetIsPasswordTemporaryToFalse() {
+            // Given
+            StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
+
+            // When
+            staffAccount.completeTemporaryPasswordChange(Password.of("new-password"));
+
+            // Then
+            assertThat(staffAccount.isPasswordTemporary()).isEqualTo(false);
+
+        }
+
+        @Test
+        void shouldIncreaseVersion() {
+            // Given
+            StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
+
+            // When
+            staffAccount.completeTemporaryPasswordChange(Password.of("new-password"));
+
+            // Then
+            assertThat(staffAccount.getVersion().getValue()).isEqualTo(2);
+        }
+
+        @Test
+        void shouldEnqueueStaffAccountPasswordChangedEvent() {
+            // Given
+            StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
+
+            // When
+            staffAccount.completeTemporaryPasswordChange(Password.of("new-password"));
+
+            // Then
+            List<DomainEvent> queuedEvents = staffAccount.dequeueUncommittedEvents();
+            assertThat(queuedEvents.getFirst()).isInstanceOf(StaffAccountPasswordChangedEvent.class);
+
+            StaffAccountPasswordChangedEvent event = (StaffAccountPasswordChangedEvent) queuedEvents.getFirst();
+            assertThatEventDataIsCorrect(event, staffAccount);
+        }
+
+        @Test
+        void shouldNullifyPasswordIssuedAt() {
+            // Given
+            StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
+
+            // When
+            staffAccount.completeTemporaryPasswordChange(Password.of("new-password"));
+
+            // Then
+            assertThat(staffAccount.getPasswordIssuedAt()).isNull();
+        }
+
+        @Test
+        void shouldThrowIfEnteredPasswordIsTheSameAsCurrentOne() {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withPassword("new-password")
+                    .build();
+            StaffAccountException expectedException = new StaffAccountException(StaffAccountExceptionInfo.passwordMustDifferFromCurrent());
+
+            // When & Then
+            assertThatExceptionOfType(StaffAccountException.class)
+                    .isThrownBy(() -> staffAccount.completeTemporaryPasswordChange(Password.of("new-password")))
+                    .extracting("message", "domainErrorCode")
+                    .containsExactly(expectedException.getMessage(), expectedException.getDomainErrorCode());
+        }
+
+        @ParameterizedTest
+        @MethodSource("provideInvalidStatuses")
+        void shouldThrowIfStatusIsNotPendingPasswordChange(StaffAccountStatus status) {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withStatus(status)
+                    .build();
+            StaffAccountException expectedException = new StaffAccountException(StaffAccountExceptionInfo.temporaryPasswordChangeRequiresPendingState());
+
+            // When
+            assertThatExceptionOfType(StaffAccountException.class)
+                    .isThrownBy(() -> staffAccount.completeTemporaryPasswordChange(Password.of("new-password")))
+                    .extracting("message", "domainErrorCode")
+                    .containsExactly(expectedException.getMessage(), expectedException.getDomainErrorCode());
+        }
+
+        private static Stream<Arguments> provideInvalidStatuses() {
+            return Stream.of(
+                    arguments(StaffAccountStatus.ACTIVE),
+                    arguments(StaffAccountStatus.DISABLED),
+                    arguments(StaffAccountStatus.LOCKED)
+            );
+        }
+    }
+
     private static void assertThatEventDataIsCorrect(StaffAccountEventBase event, StaffAccount staffAccount) {
         assertThat(event.getStaffAccountId()).isEqualTo(staffAccount.getId());
         assertThat(event.getUsername()).isEqualTo(staffAccount.getUsername());
