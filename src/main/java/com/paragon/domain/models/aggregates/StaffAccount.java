@@ -89,9 +89,7 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         failedLoginAttempts = failedLoginAttempts.increment();
         increaseVersion();
         if (failedLoginAttempts.hasReachedMax()) {
-            status = StaffAccountStatus.LOCKED;
-            lockedUntil = Instant.now().plus(Duration.ofMinutes(15));
-            enqueue(new StaffAccountLockedEvent(this));
+            lockAccount();
         }
     }
 
@@ -159,8 +157,9 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
     }
 
     public void ensureCanUpdatePassword() {
-        throwIfAccountIsDisabled(StaffAccountExceptionInfo.passwordChangeNotAllowedForDisabledAccount());
-        throwIfAccountIsLocked(StaffAccountExceptionInfo.passwordChangeNotAllowedForLockedAccount());
+        if (status != StaffAccountStatus.ACTIVE) {
+            throw new StaffAccountException(StaffAccountExceptionInfo.passwordChangeRequiresActiveAccount());
+        }
     }
 
     private static void assertValidRegistration(Username username, Password password, OrderAccessDuration orderAccessDuration,
@@ -216,9 +215,18 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         return Instant.now().isAfter(lockedUntil);
     }
 
+    private void lockAccount() {
+        status = StaffAccountStatus.LOCKED;
+        lockedUntil = Instant.now().plus(Duration.ofMinutes(15));
+        enqueue(new StaffAccountLockedEvent(this));
+    }
+
     private void unlockAccount() {
         status = isPasswordTemporary ? StaffAccountStatus.PENDING_PASSWORD_CHANGE : StaffAccountStatus.ACTIVE;
         lockedUntil = null;
         failedLoginAttempts = failedLoginAttempts.reset();
+    }
+
+    public void completeTemporaryPasswordChange(Password newPassword) {
     }
 }
