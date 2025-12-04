@@ -46,6 +46,8 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandler implement
                     staffAccount.getId(), hashedPassword, false, DateTimeUtc.now()
             );
             staffAccountPasswordHistoryWriteRepo.appendEntry(passwordHistoryEntry);
+
+            unitOfWork.commit();
         } catch (DomainException ex) {
             throw appExceptionHandler.handleDomainException(ex);
         } catch (InfraException ex) {

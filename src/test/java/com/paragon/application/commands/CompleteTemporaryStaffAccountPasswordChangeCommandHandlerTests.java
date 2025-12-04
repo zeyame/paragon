@@ -72,6 +72,15 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
     }
 
     @Test
+    void shouldCommitTransaction() {
+        // When
+        sut.handle(command);
+
+        // Then
+        verify(unitOfWorkMock, times(1)).commit();
+    }
+
+    @Test
     void shouldCompleteTemporaryStaffAccountPasswordChange() {
         // When
         sut.handle(command);
