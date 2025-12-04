@@ -184,7 +184,7 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
     }
 
     @Test
-    void shouldCatchInfraException_andTranslateToAppException() {
+    void whenInfraExceptionIsThrown_shouldRollbackTransaction_andTranslateToAppException() {
         // Given
         doThrow(InfraException.class)
                 .when(staffAccountWriteRepoMock)
@@ -195,5 +195,6 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
         // When & Then
         assertThatExceptionOfType(AppException.class)
                 .isThrownBy(() -> sut.handle(command));
+        verify(unitOfWorkMock, times(1)).rollback();
     }
 }
