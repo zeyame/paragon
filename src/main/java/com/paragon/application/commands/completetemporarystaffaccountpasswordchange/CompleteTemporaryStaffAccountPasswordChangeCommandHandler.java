@@ -33,9 +33,12 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandler implement
             unitOfWork.begin();
             StaffAccount staffAccount = staffAccountWriteRepo.getById(StaffAccountId.from(command.id()))
                     .orElseThrow(() -> new AppException(AppExceptionInfo.staffAccountNotFound(command.id())));
-            if (isTheSamePassword(PlaintextPassword.of(command.newPassword()), staffAccount.getPassword())) {
+            if (passwordsAreEqual(command.newPassword(), staffAccount.getPassword())) {
                 throw new AppException(AppExceptionInfo.newPasswordMatchesCurrentPassword());
             }
+            Password hashedPassword = passwordHasher.hash(PlaintextPassword.of(command.newPassword()));
+            staffAccount.completeTemporaryPasswordChange(hashedPassword);
+            staffAccountWriteRepo.update(staffAccount);
         } catch (DomainException ex) {
             throw appExceptionHandler.handleDomainException(ex);
         } catch (InfraException ex) {
@@ -44,7 +47,7 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandler implement
         return null;
     }
 
-    private boolean isTheSamePassword(PlaintextPassword newPassword, Password currentPassword) {
-        return passwordHasher.verify(newPassword.getValue(), currentPassword);
+    private boolean passwordsAreEqual(String newPassword, Password currentPassword) {
+        return passwordHasher.verify(newPassword, currentPassword);
     }
 }

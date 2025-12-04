@@ -7,6 +7,7 @@ import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.interfaces.PasswordHasher;
 import com.paragon.application.common.interfaces.UnitOfWork;
+import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
@@ -16,19 +17,23 @@ import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.*;
 
 public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
     private final CompleteTemporaryStaffAccountPasswordChangeCommandHandler sut;
-    private final CompleteTemporaryStaffAccountPasswordChangeCommand command;
     private StaffAccountWriteRepo staffAccountWriteRepoMock;
     private UnitOfWork unitOfWorkMock;
     private PasswordHasher passwordHasherMock;
     private AppExceptionHandler appExceptionHandlerMock;
+    private final CompleteTemporaryStaffAccountPasswordChangeCommand command;
+    private final StaffAccount staffAccount;
+    private final Password hashedPassword;
 
     public CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests() {
         staffAccountWriteRepoMock = mock(StaffAccountWriteRepo.class);
@@ -38,7 +43,7 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
         sut = new CompleteTemporaryStaffAccountPasswordChangeCommandHandler(staffAccountWriteRepoMock, unitOfWorkMock, passwordHasherMock, appExceptionHandlerMock);
 
         // set up happy case
-        StaffAccount staffAccount = StaffAccountFixture.validStaffAccount();
+        staffAccount = StaffAccountFixture.validStaffAccount();
         command = new CompleteTemporaryStaffAccountPasswordChangeCommand(
                 staffAccount.getId().getValue().toString(),
                 PlaintextPassword.generate().getValue()
@@ -47,6 +52,10 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
                 .thenReturn(Optional.of(staffAccount));
         when(passwordHasherMock.verify(command.newPassword(), staffAccount.getPassword()))
                 .thenReturn(false);
+
+        hashedPassword = Password.of("hashed-password");
+        when(passwordHasherMock.hash(any(PlaintextPassword.class)))
+                .thenReturn(hashedPassword);
     }
 
     @Test
@@ -56,6 +65,18 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
 
         // Then
         verify(unitOfWorkMock, times(1)).begin();
+    }
+
+    @Test
+    void shouldCompleteTemporaryStaffAccountPasswordChange() {
+        // When
+        sut.handle(command);
+
+        // Then
+        ArgumentCaptor<StaffAccount> staffAccountArgumentCaptor = ArgumentCaptor.forClass(StaffAccount.class);
+        verify(staffAccountWriteRepoMock, times(1)).update(staffAccountArgumentCaptor.capture());
+        StaffAccount capturedStaffAccount = staffAccountArgumentCaptor.getValue();
+        assertThat(capturedStaffAccount.isPasswordTemporary()).isFalse();
     }
 
     @Test
