@@ -77,4 +77,12 @@ public class AppExceptionInfo {
                 AppExceptionStatusCode.PERMISSION_DENIED
         );
     }
+
+    public static AppExceptionInfo newPasswordMatchesCurrentPassword() {
+        return new AppExceptionInfo(
+                "The new password must be different from the current password.",
+                109,
+                AppExceptionStatusCode.INVALID_RESOURCE_STATE
+        );
+    }
 }

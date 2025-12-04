@@ -99,4 +99,15 @@ public class AppExceptionInfoTests {
         assertThat(info.getAppErrorCode()).isEqualTo(108);
         assertThat(info.getStatusCode()).isEqualTo(AppExceptionStatusCode.PERMISSION_DENIED);
     }
+
+    @Test
+    void newPasswordMatchesCurrentPassword_shouldHaveExpectedCodeAndMessage() {
+        // When
+        AppExceptionInfo info = AppExceptionInfo.newPasswordMatchesCurrentPassword();
+
+        // Then
+        assertThat(info.getMessage()).isEqualTo("The new password must be different from the current password.");
+        assertThat(info.getAppErrorCode()).isEqualTo(109);
+        assertThat(info.getStatusCode()).isEqualTo(AppExceptionStatusCode.INVALID_RESOURCE_STATE);
+    }
 }
