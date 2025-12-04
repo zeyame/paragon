@@ -9,9 +9,11 @@ import com.paragon.application.common.interfaces.PasswordHasher;
 import com.paragon.application.common.interfaces.UnitOfWork;
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.exceptions.DomainException;
+import com.paragon.domain.interfaces.StaffAccountPasswordHistoryWriteRepo;
 import com.paragon.domain.interfaces.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.Password;
+import com.paragon.domain.models.valueobjects.PasswordHistoryEntry;
 import com.paragon.domain.models.valueobjects.PlaintextPassword;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
@@ -34,13 +36,15 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
     private final CompleteTemporaryStaffAccountPasswordChangeCommand command;
     private final StaffAccount staffAccount;
     private final Password hashedPassword;
+    private StaffAccountPasswordHistoryWriteRepo staffAccountPasswordHistoryWriteRepoMock;
 
     public CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests() {
         staffAccountWriteRepoMock = mock(StaffAccountWriteRepo.class);
+        staffAccountPasswordHistoryWriteRepoMock = mock(StaffAccountPasswordHistoryWriteRepo.class);
         unitOfWorkMock = mock(UnitOfWork.class);
         passwordHasherMock = mock(PasswordHasher.class);
         appExceptionHandlerMock = mock(AppExceptionHandler.class);
-        sut = new CompleteTemporaryStaffAccountPasswordChangeCommandHandler(staffAccountWriteRepoMock, unitOfWorkMock, passwordHasherMock, appExceptionHandlerMock);
+        sut = new CompleteTemporaryStaffAccountPasswordChangeCommandHandler(staffAccountWriteRepoMock, staffAccountPasswordHistoryWriteRepoMock, unitOfWorkMock, passwordHasherMock, appExceptionHandlerMock);
 
         // set up happy case
         staffAccount = StaffAccountFixture.validStaffAccount();
@@ -77,6 +81,21 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
         verify(staffAccountWriteRepoMock, times(1)).update(staffAccountArgumentCaptor.capture());
         StaffAccount capturedStaffAccount = staffAccountArgumentCaptor.getValue();
         assertThat(capturedStaffAccount.isPasswordTemporary()).isFalse();
+    }
+
+    @Test
+    void shouldAppendNewPasswordToStaffAccountPasswordHistory() {
+        // When
+        sut.handle(command);
+
+        // Then
+        ArgumentCaptor<PasswordHistoryEntry> passwordHistoryEntryCaptor = ArgumentCaptor.forClass(PasswordHistoryEntry.class);
+        verify(staffAccountPasswordHistoryWriteRepoMock, times(1))
+                .appendEntry(passwordHistoryEntryCaptor.capture());
+        PasswordHistoryEntry passwordHistoryEntry = passwordHistoryEntryCaptor.getValue();
+        assertThat(passwordHistoryEntry.staffAccountId()).isEqualTo(staffAccount.getId());
+        assertThat(passwordHistoryEntry.hashedPassword()).isEqualTo(hashedPassword);
+        assertThat(passwordHistoryEntry.isTemporary()).isFalse();
     }
 
     @Test
