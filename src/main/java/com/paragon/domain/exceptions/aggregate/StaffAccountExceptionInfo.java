@@ -97,11 +97,4 @@ public class StaffAccountExceptionInfo extends DomainExceptionInfo {
                 10013
         );
     }
-
-    public static StaffAccountExceptionInfo passwordMustDifferFromCurrent() {
-        return new StaffAccountExceptionInfo(
-                "New password must be different from the current password.",
-                10014
-        );
-    }
 }
