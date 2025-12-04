@@ -13,7 +13,11 @@ import com.paragon.domain.interfaces.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.*;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
+@Component
 public class CompleteTemporaryStaffAccountPasswordChangeCommandHandler implements CommandHandler<CompleteTemporaryStaffAccountPasswordChangeCommand, CompleteTemporaryStaffAccountPasswordChangeCommandResponse> {
     private final StaffAccountWriteRepo staffAccountWriteRepo;
     private final StaffAccountPasswordHistoryWriteRepo staffAccountPasswordHistoryWriteRepo;
@@ -21,6 +25,7 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandler implement
     private final PasswordHasher passwordHasher;
     private final AppExceptionHandler appExceptionHandler;
     private final EventBus eventBus;
+    private static final Logger log = LoggerFactory.getLogger(CompleteTemporaryStaffAccountPasswordChangeCommandHandler.class);
 
     public CompleteTemporaryStaffAccountPasswordChangeCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo,
                                                                      StaffAccountPasswordHistoryWriteRepo staffAccountPasswordHistoryWriteRepo,
@@ -38,10 +43,15 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandler implement
     @Override
     public CompleteTemporaryStaffAccountPasswordChangeCommandResponse handle(CompleteTemporaryStaffAccountPasswordChangeCommand command) {
         try {
+            log.info("Completing temporary password change for staff account ID: {}", command.id());
+
             unitOfWork.begin();
             StaffAccount staffAccount = staffAccountWriteRepo.getById(StaffAccountId.from(command.id()))
                     .orElseThrow(() -> new AppException(AppExceptionInfo.staffAccountNotFound(command.id())));
+
             if (passwordsAreEqual(command.newPassword(), staffAccount.getPassword())) {
+                log.warn("Password change failed for staff account '{}' (ID: {}): new password matches current password",
+                        staffAccount.getUsername().getValue(), staffAccount.getId().getValue());
                 throw new AppException(AppExceptionInfo.newPasswordMatchesCurrentPassword());
             }
 
@@ -57,6 +67,9 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandler implement
             eventBus.publishAll(staffAccount.dequeueUncommittedEvents());
             unitOfWork.commit();
 
+            log.info("Successfully completed temporary password change for staff account '{}' (ID: {})",
+                    staffAccount.getUsername().getValue(), staffAccount.getId().getValue());
+
             return new CompleteTemporaryStaffAccountPasswordChangeCommandResponse(
                     staffAccount.getId().getValue().toString(),
                     staffAccount.getUsername().getValue(),
@@ -64,9 +77,13 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandler implement
                     staffAccount.getVersion().getValue()
             );
         } catch (DomainException ex) {
+            log.error("Failed to complete temporary password change for staff account ID '{}' due to domain rule violation: {}",
+                    command.id(), ex.getMessage(), ex);
             unitOfWork.rollback();
             throw appExceptionHandler.handleDomainException(ex);
         } catch (InfraException ex) {
+            log.error("Failed to complete temporary password change for staff account ID '{}' due to infrastructure error: {}",
+                    command.id(), ex.getMessage(), ex);
             unitOfWork.rollback();
             throw appExceptionHandler.handleInfraException(ex);
         }
