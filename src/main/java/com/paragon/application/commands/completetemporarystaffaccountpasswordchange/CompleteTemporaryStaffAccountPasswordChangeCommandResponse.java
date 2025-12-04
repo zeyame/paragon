@@ -1,6 +1,6 @@
 package com.paragon.application.commands.completetemporarystaffaccountpasswordchange;
 
-public record CompleteTemporaryStaffAccountPasswordChangeResponse(
+public record CompleteTemporaryStaffAccountPasswordChangeCommandResponse(
         String id,
         String username,
         String status,
