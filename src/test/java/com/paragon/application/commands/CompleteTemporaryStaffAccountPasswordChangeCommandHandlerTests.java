@@ -7,7 +7,9 @@ import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.interfaces.PasswordHasher;
 import com.paragon.application.common.interfaces.UnitOfWork;
+import com.paragon.application.events.EventBus;
 import com.paragon.domain.enums.StaffAccountStatus;
+import com.paragon.domain.events.DomainEvent;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.StaffAccountPasswordHistoryWriteRepo;
 import com.paragon.domain.interfaces.StaffAccountWriteRepo;
@@ -21,6 +23,7 @@ import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,6 +36,7 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
     private UnitOfWork unitOfWorkMock;
     private PasswordHasher passwordHasherMock;
     private AppExceptionHandler appExceptionHandlerMock;
+    private EventBus eventBusMock;
     private final CompleteTemporaryStaffAccountPasswordChangeCommand command;
     private final StaffAccount staffAccount;
     private final Password hashedPassword;
@@ -44,7 +48,8 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
         unitOfWorkMock = mock(UnitOfWork.class);
         passwordHasherMock = mock(PasswordHasher.class);
         appExceptionHandlerMock = mock(AppExceptionHandler.class);
-        sut = new CompleteTemporaryStaffAccountPasswordChangeCommandHandler(staffAccountWriteRepoMock, staffAccountPasswordHistoryWriteRepoMock, unitOfWorkMock, passwordHasherMock, appExceptionHandlerMock);
+        eventBusMock = mock(EventBus.class);
+        sut = new CompleteTemporaryStaffAccountPasswordChangeCommandHandler(staffAccountWriteRepoMock, staffAccountPasswordHistoryWriteRepoMock, unitOfWorkMock, passwordHasherMock, appExceptionHandlerMock, eventBusMock);
 
         // set up happy case
         staffAccount = StaffAccountFixture.validStaffAccount();
@@ -105,6 +110,18 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
         assertThat(passwordHistoryEntry.staffAccountId()).isEqualTo(staffAccount.getId());
         assertThat(passwordHistoryEntry.hashedPassword()).isEqualTo(hashedPassword);
         assertThat(passwordHistoryEntry.isTemporary()).isFalse();
+    }
+
+    @Test
+    void shouldPublishDomainEvents() {
+        // When
+        sut.handle(command);
+
+        // Then
+        ArgumentCaptor<List<DomainEvent>> domainEventsCaptor = ArgumentCaptor.forClass(List.class);
+        verify(eventBusMock, times(1)).publishAll(domainEventsCaptor.capture());
+        List<DomainEvent> capturedDomainEvents = domainEventsCaptor.getValue();
+        assertThat(capturedDomainEvents).isNotEmpty();
     }
 
     @Test

@@ -6,6 +6,7 @@ import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.interfaces.PasswordHasher;
 import com.paragon.application.common.interfaces.UnitOfWork;
+import com.paragon.application.events.EventBus;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.StaffAccountPasswordHistoryWriteRepo;
 import com.paragon.domain.interfaces.StaffAccountWriteRepo;
@@ -19,13 +20,19 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandler implement
     private final UnitOfWork unitOfWork;
     private final PasswordHasher passwordHasher;
     private final AppExceptionHandler appExceptionHandler;
+    private final EventBus eventBus;
 
-    public CompleteTemporaryStaffAccountPasswordChangeCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo, StaffAccountPasswordHistoryWriteRepo staffAccountPasswordHistoryWriteRepo, UnitOfWork unitOfWork, PasswordHasher passwordHasher, AppExceptionHandler appExceptionHandler) {
+    public CompleteTemporaryStaffAccountPasswordChangeCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo,
+                                                                     StaffAccountPasswordHistoryWriteRepo staffAccountPasswordHistoryWriteRepo,
+                                                                     UnitOfWork unitOfWork, PasswordHasher passwordHasher,
+                                                                     AppExceptionHandler appExceptionHandler, EventBus eventBus
+    ) {
         this.staffAccountWriteRepo = staffAccountWriteRepo;
         this.staffAccountPasswordHistoryWriteRepo = staffAccountPasswordHistoryWriteRepo;
         this.unitOfWork = unitOfWork;
         this.passwordHasher = passwordHasher;
         this.appExceptionHandler = appExceptionHandler;
+        this.eventBus = eventBus;
     }
 
     @Override
@@ -47,6 +54,7 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandler implement
             );
             staffAccountPasswordHistoryWriteRepo.appendEntry(passwordHistoryEntry);
 
+            eventBus.publishAll(staffAccount.dequeueUncommittedEvents());
             unitOfWork.commit();
         } catch (DomainException ex) {
             throw appExceptionHandler.handleDomainException(ex);
