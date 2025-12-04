@@ -162,6 +162,16 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         }
     }
 
+    public void completeTemporaryPasswordChange(Password newPassword) {
+        throwIfAccountStatusIsNotPending();
+        this.password = newPassword;
+        this.isPasswordTemporary = false;
+        this.passwordIssuedAt = null;
+        this.status = StaffAccountStatus.ACTIVE;
+        increaseVersion();
+        enqueue(new StaffAccountPasswordChangedEvent(this));
+    }
+
     private static void assertValidRegistration(Username username, Password password, OrderAccessDuration orderAccessDuration,
                                                 ModmailTranscriptAccessDuration modmailTranscriptAccessDuration, StaffAccountId createdBy,
                                                 List<PermissionCode> permissionCodes)
@@ -211,6 +221,12 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         throw new StaffAccountException(exceptionInfo);
     }
 
+    private void throwIfAccountStatusIsNotPending() {
+        if (status != StaffAccountStatus.PENDING_PASSWORD_CHANGE) {
+            throw new StaffAccountException(StaffAccountExceptionInfo.temporaryPasswordChangeRequiresPendingState());
+        }
+    }
+
     private boolean hasLockExpired() {
         return Instant.now().isAfter(lockedUntil);
     }
@@ -225,8 +241,5 @@ public class StaffAccount extends EventSourcedAggregate<DomainEvent, StaffAccoun
         status = isPasswordTemporary ? StaffAccountStatus.PENDING_PASSWORD_CHANGE : StaffAccountStatus.ACTIVE;
         lockedUntil = null;
         failedLoginAttempts = failedLoginAttempts.reset();
-    }
-
-    public void completeTemporaryPasswordChange(Password newPassword) {
     }
 }

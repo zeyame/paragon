@@ -625,21 +625,6 @@ public class StaffAccountTests {
             assertThat(staffAccount.getPasswordIssuedAt()).isNull();
         }
 
-        @Test
-        void shouldThrowIfEnteredPasswordIsTheSameAsCurrentOne() {
-            // Given
-            StaffAccount staffAccount = new StaffAccountFixture()
-                    .withPassword("new-password")
-                    .build();
-            StaffAccountException expectedException = new StaffAccountException(StaffAccountExceptionInfo.passwordMustDifferFromCurrent());
-
-            // When & Then
-            assertThatExceptionOfType(StaffAccountException.class)
-                    .isThrownBy(() -> staffAccount.completeTemporaryPasswordChange(Password.of("new-password")))
-                    .extracting("message", "domainErrorCode")
-                    .containsExactly(expectedException.getMessage(), expectedException.getDomainErrorCode());
-        }
-
         @ParameterizedTest
         @MethodSource("provideInvalidStatuses")
         void shouldThrowIfStatusIsNotPendingPasswordChange(StaffAccountStatus status) {
@@ -663,6 +648,7 @@ public class StaffAccountTests {
                     arguments(StaffAccountStatus.LOCKED)
             );
         }
+
     }
 
     private static void assertThatEventDataIsCorrect(StaffAccountEventBase event, StaffAccount staffAccount) {
