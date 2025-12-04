@@ -2,6 +2,7 @@ package com.paragon.application.commands;
 
 import com.paragon.application.commands.completetemporarystaffaccountpasswordchange.CompleteTemporaryStaffAccountPasswordChangeCommand;
 import com.paragon.application.commands.completetemporarystaffaccountpasswordchange.CompleteTemporaryStaffAccountPasswordChangeCommandHandler;
+import com.paragon.application.commands.completetemporarystaffaccountpasswordchange.CompleteTemporaryStaffAccountPasswordChangeCommandResponse;
 import com.paragon.application.common.exceptions.AppException;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
@@ -95,6 +96,18 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
         verify(staffAccountWriteRepoMock, times(1)).update(staffAccountArgumentCaptor.capture());
         StaffAccount capturedStaffAccount = staffAccountArgumentCaptor.getValue();
         assertThat(capturedStaffAccount.isPasswordTemporary()).isFalse();
+    }
+
+    @Test
+    void shouldReturnExpectedCommandResponse() {
+        // When
+        CompleteTemporaryStaffAccountPasswordChangeCommandResponse commandResponse = sut.handle(command);
+
+        // Then
+        assertThat(commandResponse.id()).isEqualTo(staffAccount.getId().getValue().toString());
+        assertThat(commandResponse.username()).isEqualTo(staffAccount.getUsername().getValue());
+        assertThat(commandResponse.status()).isEqualTo("ACTIVE");
+        assertThat(commandResponse.version()).isEqualTo(2);
     }
 
     @Test

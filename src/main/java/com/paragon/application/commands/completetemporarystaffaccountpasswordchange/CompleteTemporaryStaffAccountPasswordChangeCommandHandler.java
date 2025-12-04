@@ -14,7 +14,7 @@ import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.*;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 
-public class CompleteTemporaryStaffAccountPasswordChangeCommandHandler implements CommandHandler<CompleteTemporaryStaffAccountPasswordChangeCommand, CompleteTemporaryStaffAccountPasswordChangeResponse> {
+public class CompleteTemporaryStaffAccountPasswordChangeCommandHandler implements CommandHandler<CompleteTemporaryStaffAccountPasswordChangeCommand, CompleteTemporaryStaffAccountPasswordChangeCommandResponse> {
     private final StaffAccountWriteRepo staffAccountWriteRepo;
     private final StaffAccountPasswordHistoryWriteRepo staffAccountPasswordHistoryWriteRepo;
     private final UnitOfWork unitOfWork;
@@ -36,7 +36,7 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandler implement
     }
 
     @Override
-    public CompleteTemporaryStaffAccountPasswordChangeResponse handle(CompleteTemporaryStaffAccountPasswordChangeCommand command) {
+    public CompleteTemporaryStaffAccountPasswordChangeCommandResponse handle(CompleteTemporaryStaffAccountPasswordChangeCommand command) {
         try {
             unitOfWork.begin();
             StaffAccount staffAccount = staffAccountWriteRepo.getById(StaffAccountId.from(command.id()))
@@ -56,12 +56,18 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandler implement
 
             eventBus.publishAll(staffAccount.dequeueUncommittedEvents());
             unitOfWork.commit();
+
+            return new CompleteTemporaryStaffAccountPasswordChangeCommandResponse(
+                    staffAccount.getId().getValue().toString(),
+                    staffAccount.getUsername().getValue(),
+                    staffAccount.getStatus().toString(),
+                    staffAccount.getVersion().getValue()
+            );
         } catch (DomainException ex) {
             throw appExceptionHandler.handleDomainException(ex);
         } catch (InfraException ex) {
             throw appExceptionHandler.handleInfraException(ex);
         }
-        return null;
     }
 
     private boolean passwordsAreEqual(String newPassword, Password currentPassword) {
