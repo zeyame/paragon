@@ -14,6 +14,7 @@ import com.paragon.domain.models.valueobjects.Password;
 import com.paragon.domain.models.valueobjects.PlaintextPassword;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
+import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -100,5 +101,19 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
         // When & Then
         assertThatExceptionOfType(AppException.class)
                 .isThrownBy(() -> sut.handle(invalidCommand));
+    }
+
+    @Test
+    void shouldCatchInfraException_andTranslateToAppException() {
+        // Given
+        doThrow(InfraException.class)
+                .when(staffAccountWriteRepoMock)
+                .getById(any(StaffAccountId.class));
+        when(appExceptionHandlerMock.handleInfraException(any(InfraException.class)))
+                .thenReturn(mock(AppException.class));
+
+        // When & Then
+        assertThatExceptionOfType(AppException.class)
+                .isThrownBy(() -> sut.handle(command));
     }
 }

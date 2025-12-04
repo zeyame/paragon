@@ -12,6 +12,7 @@ import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.Password;
 import com.paragon.domain.models.valueobjects.PlaintextPassword;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
+import com.paragon.infrastructure.persistence.exceptions.InfraException;
 
 public class CompleteTemporaryStaffAccountPasswordChangeCommandHandler implements CommandHandler<CompleteTemporaryStaffAccountPasswordChangeCommand, CompleteTemporaryStaffAccountPasswordChangeResponse> {
     private final StaffAccountWriteRepo staffAccountWriteRepo;
@@ -37,6 +38,8 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandler implement
             }
         } catch (DomainException ex) {
             throw appExceptionHandler.handleDomainException(ex);
+        } catch (InfraException ex) {
+            throw appExceptionHandler.handleInfraException(ex);
         }
         return null;
     }
