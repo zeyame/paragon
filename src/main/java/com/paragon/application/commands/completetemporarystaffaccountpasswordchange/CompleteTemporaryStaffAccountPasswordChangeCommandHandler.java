@@ -64,6 +64,7 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandler implement
                     staffAccount.getVersion().getValue()
             );
         } catch (DomainException ex) {
+            unitOfWork.rollback();
             throw appExceptionHandler.handleDomainException(ex);
         } catch (InfraException ex) {
             throw appExceptionHandler.handleInfraException(ex);

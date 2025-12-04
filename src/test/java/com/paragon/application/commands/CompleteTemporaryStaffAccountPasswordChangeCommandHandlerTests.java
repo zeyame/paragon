@@ -167,7 +167,7 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
     }
 
     @Test
-    void shouldCatchDomainException_andTranslateToAppException() {
+    void whenDomainExceptionIsThrown_shouldRollbackTransaction_andTranslateToAppException() {
         // Given
         StaffAccountId staffAccountId = StaffAccountId.generate();
         CompleteTemporaryStaffAccountPasswordChangeCommand invalidCommand = new CompleteTemporaryStaffAccountPasswordChangeCommand(
@@ -180,6 +180,7 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
         // When & Then
         assertThatExceptionOfType(AppException.class)
                 .isThrownBy(() -> sut.handle(invalidCommand));
+        verify(unitOfWorkMock, times(1)).rollback();
     }
 
     @Test
