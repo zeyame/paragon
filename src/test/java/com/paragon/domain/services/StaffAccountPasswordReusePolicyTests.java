@@ -3,6 +3,7 @@ package com.paragon.domain.services;
 import com.paragon.application.common.interfaces.PasswordHasher;
 import com.paragon.domain.exceptions.services.StaffAccountPasswordReusePolicyException;
 import com.paragon.domain.exceptions.services.StaffAccountPasswordReusePolicyExceptionInfo;
+import com.paragon.domain.interfaces.StaffAccountPasswordReusePolicy;
 import com.paragon.domain.models.valueobjects.Password;
 import com.paragon.domain.models.valueobjects.PasswordHistoryEntry;
 import com.paragon.domain.models.valueobjects.PlaintextPassword;
@@ -23,10 +24,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class StaffAccountPasswordReusePolicyTests {
+    private final StaffAccountPasswordReusePolicy sut;
     private final PasswordHasher passwordHasherMock;
 
     public StaffAccountPasswordReusePolicyTests() {
         this.passwordHasherMock = mock(PasswordHasher.class);
+        sut = new StaffAccountPasswordReusePolicyImpl(passwordHasherMock);
     }
 
     @Test
@@ -42,7 +45,7 @@ public class StaffAccountPasswordReusePolicyTests {
 
         // When & Then
         assertThatNoException().isThrownBy(() ->
-                StaffAccountPasswordReusePolicy.ensureNotViolated(PlaintextPassword.generate(), passwordHistory, passwordHasherMock)
+                sut.ensureNotViolated(PlaintextPassword.generate(), passwordHistory)
         );
     }
 
@@ -59,7 +62,7 @@ public class StaffAccountPasswordReusePolicyTests {
 
         // When & Then
         assertThatNoException().isThrownBy(() ->
-                StaffAccountPasswordReusePolicy.ensureNotViolated(PlaintextPassword.generate(), passwordHistory, passwordHasherMock)
+                sut.ensureNotViolated(PlaintextPassword.generate(), passwordHistory)
         );
     }
 
@@ -79,7 +82,7 @@ public class StaffAccountPasswordReusePolicyTests {
 
         // When & Then
         assertThatExceptionOfType(StaffAccountPasswordReusePolicyException.class)
-                .isThrownBy(() -> StaffAccountPasswordReusePolicy.ensureNotViolated(PlaintextPassword.generate(), passwordHistory, passwordHasherMock))
+                .isThrownBy(() -> sut.ensureNotViolated(PlaintextPassword.generate(), passwordHistory))
                 .extracting("message", "domainErrorCode")
                 .containsExactly(expectedException.getMessage(), expectedException.getDomainErrorCode());
     }

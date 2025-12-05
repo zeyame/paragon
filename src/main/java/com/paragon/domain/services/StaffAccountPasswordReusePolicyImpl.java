@@ -14,8 +14,8 @@ import java.util.List;
 
 @Service
 public final class StaffAccountPasswordReusePolicyImpl implements StaffAccountPasswordReusePolicy {
-    private static final Period PASSWORD_REUSE_RESTRICTION_WINDOW = Period.ofMonths(3);
     private final PasswordHasher passwordHasher;
+    private static final Period PASSWORD_REUSE_RESTRICTION_WINDOW = Period.ofMonths(3);
 
     public StaffAccountPasswordReusePolicyImpl(PasswordHasher passwordHasher) {
         this.passwordHasher = passwordHasher;
@@ -31,11 +31,11 @@ public final class StaffAccountPasswordReusePolicyImpl implements StaffAccountPa
         );
         List<PasswordHistoryEntry> filteredEntries = passwordHistory.entriesOnOrAfter(cutOffDate);
         for (PasswordHistoryEntry entry : filteredEntries) {
-            throwIfPasswordsAreEqual(enteredPassword, entry.hashedPassword(), passwordHasher);
+            throwIfPasswordsAreEqual(enteredPassword, entry.hashedPassword());
         }
     }
 
-    private static void throwIfPasswordsAreEqual(PlaintextPassword enteredPassword, Password hashedPassword, PasswordHasher passwordHasher) {
+    private void throwIfPasswordsAreEqual(PlaintextPassword enteredPassword, Password hashedPassword) {
         if (passwordHasher.verify(enteredPassword.getValue(), hashedPassword)) {
             throw new StaffAccountPasswordReusePolicyException(StaffAccountPasswordReusePolicyExceptionInfo.passwordUsedWithinRestrictedWindow());
         }
