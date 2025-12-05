@@ -13,4 +13,11 @@ public class StaffAccountRequestIdExceptionInfo extends DomainExceptionInfo {
                 118001
         );
     }
+
+    public static StaffAccountRequestIdExceptionInfo invalidFormat() {
+        return new StaffAccountRequestIdExceptionInfo(
+                "Staff account request ID must be a valid UUID.",
+                118002
+        );
+    }
 }

@@ -12,6 +12,16 @@ public class StaffAccountRequestIdExceptionInfoTests {
 
         // Then
         assertThat(exceptionInfo.getMessage()).isEqualTo("Staff account request ID cannot be null or empty.");
-        assertThat(exceptionInfo.getDomainErrorCode()).isEqualTo(102001);
+        assertThat(exceptionInfo.getDomainErrorCode()).isEqualTo(118001);
+    }
+
+    @Test
+    void invalidFormat_shouldHaveExpectedMessageAndCode() {
+        // When
+        StaffAccountRequestIdExceptionInfo exceptionInfo = StaffAccountRequestIdExceptionInfo.invalidFormat();
+
+        // Then
+        assertThat(exceptionInfo.getMessage()).isEqualTo("Staff account request ID must be a valid UUID.");
+        assertThat(exceptionInfo.getDomainErrorCode()).isEqualTo(118002);
     }
 }
