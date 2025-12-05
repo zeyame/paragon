@@ -90,7 +90,8 @@ public class StaffAccountEventAuditTrailHandlerTests {
                 arguments(new StaffAccountEnabledEvent(new StaffAccountFixture()
                         .withEnabledBy(UUID.randomUUID().toString())
                         .build()
-                ))
+                )),
+                arguments(new StaffAccountPasswordChangedEvent(StaffAccountFixture.validStaffAccount()))
         );
     }
 }

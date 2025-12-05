@@ -19,6 +19,7 @@ public final class AuditTrailEntryFactory {
             case EventNames.STAFF_ACCOUNT_DISABLED -> fromStaffAccountDisabledEvent((StaffAccountDisabledEvent) event);
             case EventNames.STAFF_ACCOUNT_ENABLED -> fromStaffAccountEnabledEvent((StaffAccountEnabledEvent) event);
             case EventNames.STAFF_ACCOUNT_PASSWORD_RESET -> fromStaffAccountPasswordResetEvent((StaffAccountPasswordResetEvent) event);
+            case EventNames.STAFF_ACCOUNT_PASSWORD_CHANGED -> fromStaffAccountPasswordChangedEvent((StaffAccountPasswordChangedEvent) event);
             default -> throw new IllegalArgumentException("Unsupported event type: " + event.getEventName());
         };
     }
@@ -63,6 +64,15 @@ public final class AuditTrailEntryFactory {
         return AuditTrailEntry.create(
                 event.getStaffAccountPasswordResetBy(),
                 AuditEntryActionType.RESET_ACCOUNT_PASSWORD,
+                AuditEntryTargetId.of(event.getStaffAccountId().getValue().toString()),
+                AuditEntryTargetType.ACCOUNT
+        );
+    }
+
+    private static AuditTrailEntry fromStaffAccountPasswordChangedEvent(StaffAccountPasswordChangedEvent event) {
+        return AuditTrailEntry.create(
+                event.getStaffAccountId(),
+                AuditEntryActionType.CHANGE_PASSWORD,
                 AuditEntryTargetId.of(event.getStaffAccountId().getValue().toString()),
                 AuditEntryTargetType.ACCOUNT
         );

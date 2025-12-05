@@ -50,7 +50,8 @@ public class StaffAccountEventAuditTrailHandler implements EventHandler<StaffAcc
                 EventNames.STAFF_ACCOUNT_LOCKED,
                 EventNames.STAFF_ACCOUNT_DISABLED,
                 EventNames.STAFF_ACCOUNT_ENABLED,
-                EventNames.STAFF_ACCOUNT_PASSWORD_RESET
+                EventNames.STAFF_ACCOUNT_PASSWORD_RESET,
+                EventNames.STAFF_ACCOUNT_PASSWORD_CHANGED
         );
     }
 }
