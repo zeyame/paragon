@@ -107,6 +107,23 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
     }
 
     @Test
+    void shouldAppendNewEntryToStaffAccountPasswordHistory() {
+        // When
+        sut.handle(command);
+
+        // Then
+
+        ArgumentCaptor<PasswordHistoryEntry> passwordHistoryEntryCaptor = ArgumentCaptor.forClass(PasswordHistoryEntry.class);
+        verify(staffAccountPasswordHistoryWriteRepoMock, times(1))
+                .appendEntry(passwordHistoryEntryCaptor.capture());
+        PasswordHistoryEntry passwordHistoryEntry = passwordHistoryEntryCaptor.getValue();
+        assertThat(passwordHistoryEntry.staffAccountId()).isEqualTo(staffAccount.getId());
+        assertThat(passwordHistoryEntry.hashedPassword()).isEqualTo(hashedPassword);
+        assertThat(passwordHistoryEntry.isTemporary()).isFalse();
+        assertThat(passwordHistoryEntry.changedAt()).isNotNull();
+    }
+
+    @Test
     void shouldReturnExpectedCommandResponse() {
         // When
         CompleteTemporaryStaffAccountPasswordChangeCommandResponse commandResponse = sut.handle(command);
