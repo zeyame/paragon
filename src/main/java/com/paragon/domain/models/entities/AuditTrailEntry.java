@@ -5,7 +5,7 @@ import com.paragon.domain.enums.AuditEntryTargetType;
 import com.paragon.domain.exceptions.entity.AuditTrailEntryException;
 import com.paragon.domain.exceptions.entity.AuditTrailEntryExceptionInfo;
 import com.paragon.domain.models.valueobjects.AuditEntryId;
-import com.paragon.domain.models.valueobjects.AuditEntryTargetId;
+import com.paragon.domain.models.valueobjects.TargetId;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import lombok.Getter;
 
@@ -13,10 +13,10 @@ import lombok.Getter;
 public class AuditTrailEntry extends Entity<AuditEntryId> {
     private final StaffAccountId actorId;
     private final AuditEntryActionType actionType;
-    private final AuditEntryTargetId targetId;
+    private final TargetId targetId;
     private final AuditEntryTargetType targetType;
 
-    private AuditTrailEntry(AuditEntryId id, StaffAccountId actorId, AuditEntryActionType actionType, AuditEntryTargetId targetId, AuditEntryTargetType targetType) {
+    private AuditTrailEntry(AuditEntryId id, StaffAccountId actorId, AuditEntryActionType actionType, TargetId targetId, AuditEntryTargetType targetType) {
         super(id);
         this.actorId = actorId;
         this.actionType = actionType;
@@ -24,7 +24,7 @@ public class AuditTrailEntry extends Entity<AuditEntryId> {
         this.targetType = targetType;
     }
 
-    public static AuditTrailEntry create(StaffAccountId actorId, AuditEntryActionType actionType, AuditEntryTargetId targetId,
+    public static AuditTrailEntry create(StaffAccountId actorId, AuditEntryActionType actionType, TargetId targetId,
                                          AuditEntryTargetType targetType
     ) {
         assertValidAuditTrailEntry(actorId, actionType);
@@ -38,7 +38,7 @@ public class AuditTrailEntry extends Entity<AuditEntryId> {
     }
 
     public static AuditTrailEntry createFrom(AuditEntryId id, StaffAccountId actorId, AuditEntryActionType actionType,
-                                             AuditEntryTargetId targetId, AuditEntryTargetType targetType
+                                             TargetId targetId, AuditEntryTargetType targetType
     ) {
         return new AuditTrailEntry(
                 id,

@@ -5,7 +5,7 @@ import com.paragon.domain.enums.AuditEntryTargetType;
 import com.paragon.domain.exceptions.entity.AuditTrailEntryException;
 import com.paragon.domain.exceptions.entity.AuditTrailEntryExceptionInfo;
 import com.paragon.domain.models.entities.AuditTrailEntry;
-import com.paragon.domain.models.valueobjects.AuditEntryTargetId;
+import com.paragon.domain.models.valueobjects.TargetId;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -16,13 +16,13 @@ public class AuditTrailEntryTests {
     class Create {
         private final StaffAccountId actorId;
         private final AuditEntryActionType actionType;
-        private final AuditEntryTargetId targetId;
+        private final TargetId targetId;
         private final AuditEntryTargetType targetType;
 
         Create() {
             actorId = StaffAccountId.generate();
             actionType = AuditEntryActionType.REGISTER_ACCOUNT;
-            targetId = AuditEntryTargetId.of("target-id");
+            targetId = TargetId.of("target-id");
             targetType = AuditEntryTargetType.ACCOUNT;
         }
 

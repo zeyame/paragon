@@ -1,22 +1,22 @@
 package com.paragon.domain.models.valueobjects;
 
-import com.paragon.domain.exceptions.valueobject.AuditEntryTargetIdException;
-import com.paragon.domain.exceptions.valueobject.AuditEntryTargetIdExceptionInfo;
+import com.paragon.domain.exceptions.valueobject.TargetIdException;
+import com.paragon.domain.exceptions.valueobject.TargetIdExceptionInfo;
 import lombok.Getter;
 
 import java.util.List;
 
 @Getter
-public class AuditEntryTargetId extends ValueObject {
+public class TargetId extends ValueObject {
     private final String value;
 
-    private AuditEntryTargetId(String value) {
+    private TargetId(String value) {
         this.value = value;
     }
 
-    public static AuditEntryTargetId of(String value) {
+    public static TargetId of(String value) {
         assertValidAuditTrailTargetId(value);
-        return new AuditEntryTargetId(value);
+        return new TargetId(value);
     }
 
     @Override
@@ -26,7 +26,7 @@ public class AuditEntryTargetId extends ValueObject {
 
     private static void assertValidAuditTrailTargetId(String value) {
         if (value == null || value.isBlank()) {
-            throw new AuditEntryTargetIdException(AuditEntryTargetIdExceptionInfo.missingValue());
+            throw new TargetIdException(TargetIdExceptionInfo.missingValue());
         }
     }
 }

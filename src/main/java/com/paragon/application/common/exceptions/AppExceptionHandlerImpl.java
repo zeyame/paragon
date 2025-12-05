@@ -41,7 +41,7 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
             case PermissionIdException permissionIdException -> handlePermissionIdException(permissionIdException);
             case PermissionCodeException permissionCodeException -> handlePermissionCodeException(permissionCodeException);
             case AuditEntryIdException auditEntryIdException -> handleAuditEntryIdException(auditEntryIdException);
-            case AuditEntryTargetIdException auditEntryTargetIdException -> handleAuditEntryTargetIdException(auditEntryTargetIdException);
+            case TargetIdException targetIdException -> handleTargetIdException(targetIdException);
 
             default -> new AppException(domainException, AppExceptionStatusCode.UNHANDLED_ERROR);
         };
@@ -313,7 +313,7 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
         };
     }
 
-    private AppException handleAuditEntryTargetIdException(AuditEntryTargetIdException exception) {
+    private AppException handleTargetIdException(TargetIdException exception) {
         int domainErrorCode = exception.getDomainErrorCode();
 
         return switch (domainErrorCode) {

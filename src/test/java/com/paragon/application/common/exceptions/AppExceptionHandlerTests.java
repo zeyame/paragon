@@ -367,7 +367,7 @@ public class AppExceptionHandlerTests {
 
                     // AuditEntryTargetIdException - internal error (SERVER_ERROR)
                     arguments(
-                            new AuditEntryTargetIdException(AuditEntryTargetIdExceptionInfo.missingValue()),
+                            new TargetIdException(TargetIdExceptionInfo.missingValue()),
                             AppExceptionStatusCode.SERVER_ERROR
                     )
             );

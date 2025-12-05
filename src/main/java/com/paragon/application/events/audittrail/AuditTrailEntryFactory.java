@@ -5,7 +5,7 @@ import com.paragon.domain.enums.AuditEntryTargetType;
 import com.paragon.domain.events.EventNames;
 import com.paragon.domain.events.staffaccountevents.*;
 import com.paragon.domain.models.entities.AuditTrailEntry;
-import com.paragon.domain.models.valueobjects.AuditEntryTargetId;
+import com.paragon.domain.models.valueobjects.TargetId;
 
 public final class AuditTrailEntryFactory {
 
@@ -28,7 +28,7 @@ public final class AuditTrailEntryFactory {
         return AuditTrailEntry.create(
                 event.getStaffAccountCreatedBy(),
                 AuditEntryActionType.REGISTER_ACCOUNT,
-                AuditEntryTargetId.of(event.getStaffAccountId().getValue().toString()),
+                TargetId.of(event.getStaffAccountId().getValue().toString()),
                 AuditEntryTargetType.ACCOUNT
         );
     }
@@ -37,7 +37,7 @@ public final class AuditTrailEntryFactory {
         return AuditTrailEntry.create(
                 event.getStaffAccountId(),
                 AuditEntryActionType.ACCOUNT_LOCKED,
-                AuditEntryTargetId.of(event.getStaffAccountId().getValue().toString()),
+                TargetId.of(event.getStaffAccountId().getValue().toString()),
                 AuditEntryTargetType.ACCOUNT
         );
     }
@@ -46,7 +46,7 @@ public final class AuditTrailEntryFactory {
         return AuditTrailEntry.create(
                 event.getStaffAccountId(),
                 AuditEntryActionType.LOGIN,
-                AuditEntryTargetId.of(event.getStaffAccountId().getValue().toString()),
+                TargetId.of(event.getStaffAccountId().getValue().toString()),
                 AuditEntryTargetType.ACCOUNT
         );
     }
@@ -55,7 +55,7 @@ public final class AuditTrailEntryFactory {
         return AuditTrailEntry.create(
                 event.getStaffAccountDisabledBy(),
                 AuditEntryActionType.DISABLE_ACCOUNT,
-                AuditEntryTargetId.of(event.getStaffAccountId().getValue().toString()),
+                TargetId.of(event.getStaffAccountId().getValue().toString()),
                 AuditEntryTargetType.ACCOUNT
         );
     }
@@ -64,7 +64,7 @@ public final class AuditTrailEntryFactory {
         return AuditTrailEntry.create(
                 event.getStaffAccountPasswordResetBy(),
                 AuditEntryActionType.RESET_ACCOUNT_PASSWORD,
-                AuditEntryTargetId.of(event.getStaffAccountId().getValue().toString()),
+                TargetId.of(event.getStaffAccountId().getValue().toString()),
                 AuditEntryTargetType.ACCOUNT
         );
     }
@@ -73,7 +73,7 @@ public final class AuditTrailEntryFactory {
         return AuditTrailEntry.create(
                 event.getStaffAccountId(),
                 AuditEntryActionType.CHANGE_PASSWORD,
-                AuditEntryTargetId.of(event.getStaffAccountId().getValue().toString()),
+                TargetId.of(event.getStaffAccountId().getValue().toString()),
                 AuditEntryTargetType.ACCOUNT
         );
     }
@@ -82,7 +82,7 @@ public final class AuditTrailEntryFactory {
         return AuditTrailEntry.create(
                 event.getStaffAccountEnabledBy(),
                 AuditEntryActionType.ENABLE_ACCOUNT,
-                AuditEntryTargetId.of(event.getStaffAccountId().getValue().toString()),
+                TargetId.of(event.getStaffAccountId().getValue().toString()),
                 AuditEntryTargetType.ACCOUNT
         );
     }

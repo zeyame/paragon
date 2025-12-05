@@ -3,7 +3,7 @@ package com.paragon.helpers.fixtures;
 import com.paragon.domain.enums.AuditEntryActionType;
 import com.paragon.domain.enums.AuditEntryTargetType;
 import com.paragon.domain.models.entities.AuditTrailEntry;
-import com.paragon.domain.models.valueobjects.AuditEntryTargetId;
+import com.paragon.domain.models.valueobjects.TargetId;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 
 import java.util.UUID;
@@ -38,7 +38,7 @@ public class AuditTrailEntryFixture {
         return AuditTrailEntry.create(
                 StaffAccountId.from(actorId),
                 actionType,
-                targetId != null ? AuditEntryTargetId.of(targetId) : null,
+                targetId != null ? TargetId.of(targetId) : null,
                 targetType
         );
     }

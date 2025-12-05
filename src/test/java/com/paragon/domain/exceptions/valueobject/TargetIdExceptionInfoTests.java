@@ -4,11 +4,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class AuditEntryTargetIdExceptionInfoTests {
+public class TargetIdExceptionInfoTests {
     @Test
     void missingValue_shouldHaveExpectedCodeAndMessage() {
         // When
-        AuditEntryTargetIdExceptionInfo exceptionInfo = AuditEntryTargetIdExceptionInfo.missingValue();
+        TargetIdExceptionInfo exceptionInfo = TargetIdExceptionInfo.missingValue();
 
         // Then
         assertThat(exceptionInfo.getMessage()).isEqualTo("Audit entry target ID cannot be null or empty.");
