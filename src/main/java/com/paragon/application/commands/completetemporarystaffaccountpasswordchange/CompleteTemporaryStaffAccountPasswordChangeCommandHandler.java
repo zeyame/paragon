@@ -13,7 +13,6 @@ import com.paragon.domain.interfaces.StaffAccountPasswordReusePolicy;
 import com.paragon.domain.interfaces.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.*;
-import com.paragon.domain.services.StaffAccountPasswordReusePolicyImpl;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,14 +52,11 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandler implement
             StaffAccount staffAccount = staffAccountWriteRepo.getById(StaffAccountId.from(command.id()))
                     .orElseThrow(() -> new AppException(AppExceptionInfo.staffAccountNotFound(command.id())));
 
-            if (passwordsAreEqual(command.newPassword(), staffAccount.getPassword())) {
-                log.warn("Password change failed for staff account '{}' (ID: {}): new password matches current password",
-                        staffAccount.getUsername().getValue(), staffAccount.getId().getValue());
-                throw new AppException(AppExceptionInfo.newPasswordMatchesCurrentPassword());
-            }
+            PlaintextPassword enteredPassword = PlaintextPassword.of(command.newPassword());
+            assertNewPasswordIsNotEqualToCurrent(enteredPassword, staffAccount.getPassword());
 
             StaffAccountPasswordHistory passwordHistory = staffAccountPasswordHistoryWriteRepo.getPasswordHistory(staffAccount.getId());
-            staffAccountPasswordReusePolicy.ensureNotViolated(PlaintextPassword.of(command.newPassword()), passwordHistory);
+            staffAccountPasswordReusePolicy.ensureNotViolated(enteredPassword, passwordHistory);
 
             Password hashedPassword = passwordHasher.hash(PlaintextPassword.of(command.newPassword()));
             staffAccount.completeTemporaryPasswordChange(hashedPassword);
@@ -96,7 +92,9 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandler implement
         }
     }
 
-    private boolean passwordsAreEqual(String newPassword, Password currentPassword) {
-        return passwordHasher.verify(newPassword, currentPassword);
+    private void assertNewPasswordIsNotEqualToCurrent(PlaintextPassword newPassword, Password currentPassword) {
+        if (passwordHasher.verify(newPassword.getValue(), currentPassword)) {
+            throw new AppException(AppExceptionInfo.newPasswordMatchesCurrentPassword());
+        }
     }
 }

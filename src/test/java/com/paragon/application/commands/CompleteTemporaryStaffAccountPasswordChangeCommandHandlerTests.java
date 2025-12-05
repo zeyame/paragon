@@ -9,17 +9,13 @@ import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.interfaces.PasswordHasher;
 import com.paragon.application.common.interfaces.UnitOfWork;
 import com.paragon.application.events.EventBus;
-import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.events.DomainEvent;
 import com.paragon.domain.exceptions.DomainException;
-import com.paragon.domain.exceptions.services.StaffAccountPasswordReusePolicyException;
-import com.paragon.domain.exceptions.services.StaffAccountPasswordReusePolicyExceptionInfo;
 import com.paragon.domain.interfaces.StaffAccountPasswordHistoryWriteRepo;
 import com.paragon.domain.interfaces.StaffAccountPasswordReusePolicy;
 import com.paragon.domain.interfaces.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.*;
-import com.paragon.helpers.fixtures.PasswordHistoryEntryFixture;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.helpers.fixtures.StaffAccountPasswordHistoryFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
@@ -112,7 +108,6 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
         sut.handle(command);
 
         // Then
-
         ArgumentCaptor<PasswordHistoryEntry> passwordHistoryEntryCaptor = ArgumentCaptor.forClass(PasswordHistoryEntry.class);
         verify(staffAccountPasswordHistoryWriteRepoMock, times(1))
                 .appendEntry(passwordHistoryEntryCaptor.capture());
