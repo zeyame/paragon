@@ -12,4 +12,13 @@ public record RefreshStaffAccountTokenResponseDto(
         boolean requiresPasswordReset,
         @JsonProperty("version")
         int version
-) {}
+) {
+        public static RefreshStaffAccountTokenResponseDto fromCommandResponse(RefreshStaffAccountTokenCommandResponse commandResponse) {
+                return new RefreshStaffAccountTokenResponseDto(
+                        commandResponse.staffAccountId(),
+                        commandResponse.username(),
+                        commandResponse.requiresPasswordReset(),
+                        commandResponse.version()
+                );
+        }
+}
