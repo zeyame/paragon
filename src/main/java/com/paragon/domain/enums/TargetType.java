@@ -1,6 +1,6 @@
 package com.paragon.domain.enums;
 
-public enum AuditEntryTargetType {
+public enum TargetType {
     ACCOUNT,
     PASSWORD,
     LOGIN_LOG,

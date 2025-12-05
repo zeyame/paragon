@@ -1,7 +1,7 @@
 package com.paragon.domain.models.entities;
 
 import com.paragon.domain.enums.AuditEntryActionType;
-import com.paragon.domain.enums.AuditEntryTargetType;
+import com.paragon.domain.enums.TargetType;
 import com.paragon.domain.exceptions.entity.AuditTrailEntryException;
 import com.paragon.domain.exceptions.entity.AuditTrailEntryExceptionInfo;
 import com.paragon.domain.models.valueobjects.AuditEntryId;
@@ -14,9 +14,9 @@ public class AuditTrailEntry extends Entity<AuditEntryId> {
     private final StaffAccountId actorId;
     private final AuditEntryActionType actionType;
     private final TargetId targetId;
-    private final AuditEntryTargetType targetType;
+    private final TargetType targetType;
 
-    private AuditTrailEntry(AuditEntryId id, StaffAccountId actorId, AuditEntryActionType actionType, TargetId targetId, AuditEntryTargetType targetType) {
+    private AuditTrailEntry(AuditEntryId id, StaffAccountId actorId, AuditEntryActionType actionType, TargetId targetId, TargetType targetType) {
         super(id);
         this.actorId = actorId;
         this.actionType = actionType;
@@ -25,7 +25,7 @@ public class AuditTrailEntry extends Entity<AuditEntryId> {
     }
 
     public static AuditTrailEntry create(StaffAccountId actorId, AuditEntryActionType actionType, TargetId targetId,
-                                         AuditEntryTargetType targetType
+                                         TargetType targetType
     ) {
         assertValidAuditTrailEntry(actorId, actionType);
         return new AuditTrailEntry(
@@ -38,7 +38,7 @@ public class AuditTrailEntry extends Entity<AuditEntryId> {
     }
 
     public static AuditTrailEntry createFrom(AuditEntryId id, StaffAccountId actorId, AuditEntryActionType actionType,
-                                             TargetId targetId, AuditEntryTargetType targetType
+                                             TargetId targetId, TargetType targetType
     ) {
         return new AuditTrailEntry(
                 id,

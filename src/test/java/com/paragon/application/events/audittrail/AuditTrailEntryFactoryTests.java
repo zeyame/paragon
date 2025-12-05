@@ -1,7 +1,7 @@
 package com.paragon.application.events.audittrail;
 
 import com.paragon.domain.enums.AuditEntryActionType;
-import com.paragon.domain.enums.AuditEntryTargetType;
+import com.paragon.domain.enums.TargetType;
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.events.staffaccountevents.*;
 import com.paragon.domain.models.aggregates.StaffAccount;
@@ -35,7 +35,7 @@ public class AuditTrailEntryFactoryTests {
         assertThat(result.getActorId().getValue().toString()).isEqualTo(creatorId);
         assertThat(result.getActionType()).isEqualTo(AuditEntryActionType.REGISTER_ACCOUNT);
         assertThat(result.getTargetId().getValue()).isEqualTo(accountId);
-        assertThat(result.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
+        assertThat(result.getTargetType()).isEqualTo(TargetType.ACCOUNT);
     }
 
     @Test
@@ -56,7 +56,7 @@ public class AuditTrailEntryFactoryTests {
         assertThat(result.getActorId().getValue().toString()).isEqualTo(accountId);
         assertThat(result.getActionType()).isEqualTo(AuditEntryActionType.ACCOUNT_LOCKED);
         assertThat(result.getTargetId().getValue()).isEqualTo(accountId);
-        assertThat(result.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
+        assertThat(result.getTargetType()).isEqualTo(TargetType.ACCOUNT);
     }
 
     @Test
@@ -77,7 +77,7 @@ public class AuditTrailEntryFactoryTests {
         assertThat(result.getActorId().getValue().toString()).isEqualTo(accountId);
         assertThat(result.getActionType()).isEqualTo(AuditEntryActionType.LOGIN);
         assertThat(result.getTargetId().getValue()).isEqualTo(accountId);
-        assertThat(result.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
+        assertThat(result.getTargetType()).isEqualTo(TargetType.ACCOUNT);
     }
 
     @Test
@@ -101,7 +101,7 @@ public class AuditTrailEntryFactoryTests {
         assertThat(result.getActorId().getValue().toString()).isEqualTo(disablerId);
         assertThat(result.getActionType()).isEqualTo(AuditEntryActionType.DISABLE_ACCOUNT);
         assertThat(result.getTargetId().getValue()).isEqualTo(accountId);
-        assertThat(result.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
+        assertThat(result.getTargetType()).isEqualTo(TargetType.ACCOUNT);
     }
 
     @Test
@@ -124,7 +124,7 @@ public class AuditTrailEntryFactoryTests {
         assertThat(result.getActorId().getValue().toString()).isEqualTo(resetById);
         assertThat(result.getActionType()).isEqualTo(AuditEntryActionType.RESET_ACCOUNT_PASSWORD);
         assertThat(result.getTargetId().getValue()).isEqualTo(accountId);
-        assertThat(result.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
+        assertThat(result.getTargetType()).isEqualTo(TargetType.ACCOUNT);
     }
 
     @Test
@@ -147,6 +147,6 @@ public class AuditTrailEntryFactoryTests {
         assertThat(auditTrailEntry.getActorId().getValue().toString()).isEqualTo(enabledById);
         assertThat(auditTrailEntry.getActionType()).isEqualTo(AuditEntryActionType.ENABLE_ACCOUNT);
         assertThat(auditTrailEntry.getTargetId().getValue()).isEqualTo(accountId);
-        assertThat(auditTrailEntry.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
+        assertThat(auditTrailEntry.getTargetType()).isEqualTo(TargetType.ACCOUNT);
     }
 }

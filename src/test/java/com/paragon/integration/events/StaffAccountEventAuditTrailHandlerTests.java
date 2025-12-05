@@ -2,7 +2,7 @@ package com.paragon.integration.events;
 
 import com.paragon.application.events.EventBusImpl;
 import com.paragon.domain.enums.AuditEntryActionType;
-import com.paragon.domain.enums.AuditEntryTargetType;
+import com.paragon.domain.enums.TargetType;
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.events.staffaccountevents.*;
 import com.paragon.domain.models.aggregates.StaffAccount;
@@ -50,7 +50,7 @@ public class StaffAccountEventAuditTrailHandlerTests extends IntegrationTestBase
         assertThat(staffAccountRegisteredEntry.getActorId()).isEqualTo(staffAccountRegisteredEvent.getStaffAccountCreatedBy());
         assertThat(staffAccountRegisteredEntry.getActionType()).isEqualTo(AuditEntryActionType.REGISTER_ACCOUNT);
         assertThat(staffAccountRegisteredEntry.getTargetId()).isEqualTo(TargetId.of(staffAccountRegisteredEvent.getStaffAccountId().getValue().toString()));
-        assertThat(staffAccountRegisteredEntry.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
+        assertThat(staffAccountRegisteredEntry.getTargetType()).isEqualTo(TargetType.ACCOUNT);
     }
 
     @Test
@@ -73,7 +73,7 @@ public class StaffAccountEventAuditTrailHandlerTests extends IntegrationTestBase
         assertThat(staffAccountLockedEntry.getActorId()).isEqualTo(staffAccountLockedEvent.getStaffAccountId());
         assertThat(staffAccountLockedEntry.getActionType()).isEqualTo(AuditEntryActionType.ACCOUNT_LOCKED);
         assertThat(staffAccountLockedEntry.getTargetId()).isEqualTo(TargetId.of(staffAccountLockedEvent.getStaffAccountId().getValue().toString()));
-        assertThat(staffAccountLockedEntry.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
+        assertThat(staffAccountLockedEntry.getTargetType()).isEqualTo(TargetType.ACCOUNT);
     }
 
     @Test
@@ -96,7 +96,7 @@ public class StaffAccountEventAuditTrailHandlerTests extends IntegrationTestBase
         assertThat(staffAccountLoggedInEntry.getActorId()).isEqualTo(staffAccountLoggedInEvent.getStaffAccountId());
         assertThat(staffAccountLoggedInEntry.getActionType()).isEqualTo(AuditEntryActionType.LOGIN);
         assertThat(staffAccountLoggedInEntry.getTargetId()).isEqualTo(TargetId.of(staffAccountLoggedInEvent.getStaffAccountId().getValue().toString()));
-        assertThat(staffAccountLoggedInEntry.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
+        assertThat(staffAccountLoggedInEntry.getTargetType()).isEqualTo(TargetType.ACCOUNT);
     }
 
     @Test
@@ -122,7 +122,7 @@ public class StaffAccountEventAuditTrailHandlerTests extends IntegrationTestBase
         assertThat(disabledEntry.getActorId()).isEqualTo(staffAccountDisabledEvent.getStaffAccountDisabledBy());
         assertThat(disabledEntry.getActionType()).isEqualTo(AuditEntryActionType.DISABLE_ACCOUNT);
         assertThat(disabledEntry.getTargetId()).isEqualTo(TargetId.of(staffAccountDisabledEvent.getStaffAccountId().getValue().toString()));
-        assertThat(disabledEntry.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
+        assertThat(disabledEntry.getTargetType()).isEqualTo(TargetType.ACCOUNT);
     }
 
     @Test
@@ -146,7 +146,7 @@ public class StaffAccountEventAuditTrailHandlerTests extends IntegrationTestBase
         assertThat(passwordResetEntry.getActorId()).isEqualTo(passwordResetEvent.getStaffAccountPasswordResetBy());
         assertThat(passwordResetEntry.getActionType()).isEqualTo(AuditEntryActionType.RESET_ACCOUNT_PASSWORD);
         assertThat(passwordResetEntry.getTargetId()).isEqualTo(TargetId.of(passwordResetEvent.getStaffAccountId().getValue().toString()));
-        assertThat(passwordResetEntry.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
+        assertThat(passwordResetEntry.getTargetType()).isEqualTo(TargetType.ACCOUNT);
     }
 
     @Test
@@ -170,7 +170,7 @@ public class StaffAccountEventAuditTrailHandlerTests extends IntegrationTestBase
         assertThat(auditTrailEntry.getActorId()).isEqualTo(enabledEvent.getStaffAccountEnabledBy());
         assertThat(auditTrailEntry.getActionType()).isEqualTo(AuditEntryActionType.ENABLE_ACCOUNT);
         assertThat(auditTrailEntry.getTargetId()).isEqualTo(TargetId.of(enabledEvent.getStaffAccountId().getValue().toString()));
-        assertThat(auditTrailEntry.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
+        assertThat(auditTrailEntry.getTargetType()).isEqualTo(TargetType.ACCOUNT);
     }
 
     @Test
@@ -194,6 +194,6 @@ public class StaffAccountEventAuditTrailHandlerTests extends IntegrationTestBase
         assertThat(auditTrailEntry.getActorId()).isEqualTo(staffAccount.getId());
         assertThat(auditTrailEntry.getActionType()).isEqualTo(AuditEntryActionType.CHANGE_PASSWORD);
         assertThat(auditTrailEntry.getTargetId()).isEqualTo(TargetId.of(staffAccount.getId().getValue().toString()));
-        assertThat(auditTrailEntry.getTargetType()).isEqualTo(AuditEntryTargetType.ACCOUNT);
+        assertThat(auditTrailEntry.getTargetType()).isEqualTo(TargetType.ACCOUNT);
     }
 }

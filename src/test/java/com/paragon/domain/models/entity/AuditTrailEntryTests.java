@@ -1,7 +1,7 @@
 package com.paragon.domain.models.entity;
 
 import com.paragon.domain.enums.AuditEntryActionType;
-import com.paragon.domain.enums.AuditEntryTargetType;
+import com.paragon.domain.enums.TargetType;
 import com.paragon.domain.exceptions.entity.AuditTrailEntryException;
 import com.paragon.domain.exceptions.entity.AuditTrailEntryExceptionInfo;
 import com.paragon.domain.models.entities.AuditTrailEntry;
@@ -17,13 +17,13 @@ public class AuditTrailEntryTests {
         private final StaffAccountId actorId;
         private final AuditEntryActionType actionType;
         private final TargetId targetId;
-        private final AuditEntryTargetType targetType;
+        private final TargetType targetType;
 
         Create() {
             actorId = StaffAccountId.generate();
             actionType = AuditEntryActionType.REGISTER_ACCOUNT;
             targetId = TargetId.of("target-id");
-            targetType = AuditEntryTargetType.ACCOUNT;
+            targetType = TargetType.ACCOUNT;
         }
 
         @Test

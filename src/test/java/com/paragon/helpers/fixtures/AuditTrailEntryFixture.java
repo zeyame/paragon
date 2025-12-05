@@ -1,7 +1,7 @@
 package com.paragon.helpers.fixtures;
 
 import com.paragon.domain.enums.AuditEntryActionType;
-import com.paragon.domain.enums.AuditEntryTargetType;
+import com.paragon.domain.enums.TargetType;
 import com.paragon.domain.models.entities.AuditTrailEntry;
 import com.paragon.domain.models.valueobjects.TargetId;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
@@ -12,7 +12,7 @@ public class AuditTrailEntryFixture {
     private String actorId = UUID.randomUUID().toString();
     private AuditEntryActionType actionType = AuditEntryActionType.REGISTER_ACCOUNT;
     private String targetId = UUID.randomUUID().toString();
-    private AuditEntryTargetType targetType = AuditEntryTargetType.ACCOUNT;
+    private TargetType targetType = TargetType.ACCOUNT;
 
     public AuditTrailEntryFixture withActorId(String value) {
         this.actorId = value;
@@ -29,7 +29,7 @@ public class AuditTrailEntryFixture {
         return this;
     }
 
-    public AuditTrailEntryFixture withTargetType(AuditEntryTargetType value) {
+    public AuditTrailEntryFixture withTargetType(TargetType value) {
         this.targetType = value;
         return this;
     }
