@@ -3,19 +3,26 @@ package com.paragon.domain.services;
 import com.paragon.application.common.interfaces.PasswordHasher;
 import com.paragon.domain.exceptions.services.StaffAccountPasswordReusePolicyException;
 import com.paragon.domain.exceptions.services.StaffAccountPasswordReusePolicyExceptionInfo;
+import com.paragon.domain.interfaces.StaffAccountPasswordReusePolicy;
 import com.paragon.domain.models.valueobjects.*;
+import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.Period;
 import java.time.ZoneOffset;
 import java.util.List;
 
-public final class StaffAccountPasswordReusePolicy {
+@Service
+public final class StaffAccountPasswordReusePolicyImpl implements StaffAccountPasswordReusePolicy {
     private static final Period PASSWORD_REUSE_RESTRICTION_WINDOW = Period.ofMonths(3);
+    private final PasswordHasher passwordHasher;
 
-    public static void ensureNotViolated(PlaintextPassword enteredPassword,
-                                         StaffAccountPasswordHistory passwordHistory,
-                                         PasswordHasher passwordHasher) {
+    public StaffAccountPasswordReusePolicyImpl(PasswordHasher passwordHasher) {
+        this.passwordHasher = passwordHasher;
+    }
+
+    @Override
+    public void ensureNotViolated(PlaintextPassword enteredPassword, StaffAccountPasswordHistory passwordHistory) {
         DateTimeUtc cutOffDate = DateTimeUtc.of(
                 Instant.now()
                         .atZone(ZoneOffset.UTC)
