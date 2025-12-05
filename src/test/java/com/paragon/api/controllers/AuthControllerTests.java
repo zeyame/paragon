@@ -1,11 +1,16 @@
 package com.paragon.api.controllers;
 
 import com.paragon.api.dtos.ResponseDto;
+import com.paragon.api.dtos.auth.completetemporarypassword.CompleteTemporaryPasswordRequestDto;
+import com.paragon.api.dtos.auth.completetemporarypassword.CompleteTemporaryPasswordResponseDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountRequestDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountResponseDto;
 import com.paragon.api.dtos.auth.refresh.RefreshStaffAccountTokenResponseDto;
 import com.paragon.api.security.HttpContextHelper;
 import com.paragon.api.security.JwtGenerator;
+import com.paragon.application.commands.completetemporarystaffaccountpasswordchange.CompleteTemporaryStaffAccountPasswordChangeCommand;
+import com.paragon.application.commands.completetemporarystaffaccountpasswordchange.CompleteTemporaryStaffAccountPasswordChangeCommandHandler;
+import com.paragon.application.commands.completetemporarystaffaccountpasswordchange.CompleteTemporaryStaffAccountPasswordChangeCommandResponse;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommand;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandHandler;
 import com.paragon.application.commands.loginstaffaccount.LoginStaffAccountCommandResponse;
@@ -44,6 +49,7 @@ public class AuthControllerTests {
         private final LoginStaffAccountRequestDto requestDto;
         private final LoginStaffAccountCommandResponse commandResponse;
         private final LogoutStaffAccountCommandHandler logoutStaffAccountCommandHandlerMock;
+        private final CompleteTemporaryStaffAccountPasswordChangeCommandHandler completeTemporaryPasswordCommandHandlerMock;
 
         public Login() {
             loginStaffAccountCommandHandlerMock = mock(LoginStaffAccountCommandHandler.class);
@@ -51,6 +57,7 @@ public class AuthControllerTests {
             jwtGeneratorMock = mock(JwtGenerator.class);
             refreshStaffAccountTokenCommandHandlerMock = mock(RefreshStaffAccountTokenCommandHandler.class);
             logoutStaffAccountCommandHandlerMock = mock(LogoutStaffAccountCommandHandler.class);
+            completeTemporaryPasswordCommandHandlerMock = mock(CompleteTemporaryStaffAccountPasswordChangeCommandHandler.class);
             TaskExecutor taskExecutor = Runnable::run;
 
             when(httpContextHelperMock.extractIpAddress()).thenReturn("192.168.1.1");
@@ -59,7 +66,7 @@ public class AuthControllerTests {
             sut = new AuthController(
                     loginStaffAccountCommandHandlerMock, httpContextHelperMock,
                     jwtGeneratorMock, taskExecutor, refreshStaffAccountTokenCommandHandlerMock,
-                    logoutStaffAccountCommandHandlerMock
+                    logoutStaffAccountCommandHandlerMock, completeTemporaryPasswordCommandHandlerMock
             );
 
             requestDto = createValidLoginStaffAccountRequestDto();
@@ -171,6 +178,7 @@ public class AuthControllerTests {
         private final JwtGenerator jwtGeneratorMock;
         private final RefreshStaffAccountTokenCommandResponse commandResponse;
         private final LogoutStaffAccountCommandHandler logoutStaffAccountCommandHandlerMock;
+        private final CompleteTemporaryStaffAccountPasswordChangeCommandHandler completeTemporaryPasswordCommandHandlerMock;
 
         public Refresh() {
             loginStaffAccountCommandHandlerMock = mock(LoginStaffAccountCommandHandler.class);
@@ -178,6 +186,7 @@ public class AuthControllerTests {
             httpContextHelperMock = mock(HttpContextHelper.class);
             jwtGeneratorMock = mock(JwtGenerator.class);
             logoutStaffAccountCommandHandlerMock = mock(LogoutStaffAccountCommandHandler.class);
+            completeTemporaryPasswordCommandHandlerMock = mock(CompleteTemporaryStaffAccountPasswordChangeCommandHandler.class);
             TaskExecutor taskExecutor = Runnable::run;
 
             when(httpContextHelperMock.extractRefreshTokenFromCookie()).thenReturn("plain-token");
@@ -189,7 +198,8 @@ public class AuthControllerTests {
                     jwtGeneratorMock,
                     taskExecutor,
                     refreshStaffAccountTokenCommandHandlerMock,
-                    logoutStaffAccountCommandHandlerMock
+                    logoutStaffAccountCommandHandlerMock,
+                    completeTemporaryPasswordCommandHandlerMock
             );
 
             commandResponse = new RefreshStaffAccountTokenCommandResponse(
@@ -277,6 +287,7 @@ public class AuthControllerTests {
         private final LogoutStaffAccountCommandHandler logoutStaffAccountCommandHandlerMock;
         private final HttpContextHelper httpContextHelperMock;
         private final JwtGenerator jwtGeneratorMock;
+        private final CompleteTemporaryStaffAccountPasswordChangeCommandHandler completeTemporaryPasswordCommandHandlerMock;
 
         public Logout() {
             loginStaffAccountCommandHandlerMock = mock(LoginStaffAccountCommandHandler.class);
@@ -284,6 +295,7 @@ public class AuthControllerTests {
             logoutStaffAccountCommandHandlerMock = mock(LogoutStaffAccountCommandHandler.class);
             httpContextHelperMock = mock(HttpContextHelper.class);
             jwtGeneratorMock = mock(JwtGenerator.class);
+            completeTemporaryPasswordCommandHandlerMock = mock(CompleteTemporaryStaffAccountPasswordChangeCommandHandler.class);
 
             when(httpContextHelperMock.extractRefreshTokenFromCookie()).thenReturn("plain-token");
 
@@ -294,7 +306,8 @@ public class AuthControllerTests {
                     jwtGeneratorMock,
                     taskExecutor,
                     refreshStaffAccountTokenCommandHandlerMock,
-                    logoutStaffAccountCommandHandlerMock
+                    logoutStaffAccountCommandHandlerMock,
+                    completeTemporaryPasswordCommandHandlerMock
             );
         }
 
@@ -335,6 +348,105 @@ public class AuthControllerTests {
 
             // When & Then
             assertThatThrownBy(() -> sut.logout().join())
+                    .hasCauseInstanceOf(AppException.class);
+        }
+    }
+
+    @Nested
+    class CompleteTemporaryPassword {
+        private final AuthController sut;
+        private final LoginStaffAccountCommandHandler loginStaffAccountCommandHandlerMock;
+        private final RefreshStaffAccountTokenCommandHandler refreshStaffAccountTokenCommandHandlerMock;
+        private final LogoutStaffAccountCommandHandler logoutStaffAccountCommandHandlerMock;
+        private final CompleteTemporaryStaffAccountPasswordChangeCommandHandler completeTemporaryPasswordCommandHandlerMock;
+        private final HttpContextHelper httpContextHelperMock;
+        private final JwtGenerator jwtGeneratorMock;
+        private final CompleteTemporaryPasswordRequestDto requestDto;
+        private final CompleteTemporaryStaffAccountPasswordChangeCommandResponse commandResponse;
+
+        public CompleteTemporaryPassword() {
+            loginStaffAccountCommandHandlerMock = mock(LoginStaffAccountCommandHandler.class);
+            refreshStaffAccountTokenCommandHandlerMock = mock(RefreshStaffAccountTokenCommandHandler.class);
+            logoutStaffAccountCommandHandlerMock = mock(LogoutStaffAccountCommandHandler.class);
+            completeTemporaryPasswordCommandHandlerMock = mock(CompleteTemporaryStaffAccountPasswordChangeCommandHandler.class);
+            httpContextHelperMock = mock(HttpContextHelper.class);
+            jwtGeneratorMock = mock(JwtGenerator.class);
+
+            TaskExecutor taskExecutor = Runnable::run;
+            sut = new AuthController(
+                    loginStaffAccountCommandHandlerMock,
+                    httpContextHelperMock,
+                    jwtGeneratorMock,
+                    taskExecutor,
+                    refreshStaffAccountTokenCommandHandlerMock,
+                    logoutStaffAccountCommandHandlerMock,
+                    completeTemporaryPasswordCommandHandlerMock
+            );
+
+            String staffAccountId = UUID.randomUUID().toString();
+            requestDto = new CompleteTemporaryPasswordRequestDto(
+                    staffAccountId,
+                    "NewSecurePassword123!"
+            );
+
+            commandResponse = new CompleteTemporaryStaffAccountPasswordChangeCommandResponse(
+                    staffAccountId,
+                    "john_doe",
+                    "ACTIVE",
+                    2
+            );
+
+            when(completeTemporaryPasswordCommandHandlerMock.handle(any(CompleteTemporaryStaffAccountPasswordChangeCommand.class)))
+                    .thenReturn(commandResponse);
+        }
+
+        @Test
+        void shouldReturnOkResponse() {
+            // When
+            CompletableFuture<ResponseEntity<ResponseDto<CompleteTemporaryPasswordResponseDto>>> futureDto = sut.completeTemporaryPassword(requestDto);
+
+            // Then
+            assertThat(futureDto.join().getStatusCode()).isEqualTo(HttpStatus.OK);
+        }
+
+        @Test
+        void shouldPassCorrectCommandToHandler() {
+            // When
+            sut.completeTemporaryPassword(requestDto);
+
+            // Then
+            ArgumentCaptor<CompleteTemporaryStaffAccountPasswordChangeCommand> commandCaptor =
+                    ArgumentCaptor.forClass(CompleteTemporaryStaffAccountPasswordChangeCommand.class);
+            verify(completeTemporaryPasswordCommandHandlerMock).handle(commandCaptor.capture());
+
+            CompleteTemporaryStaffAccountPasswordChangeCommand capturedCommand = commandCaptor.getValue();
+            assertThat(capturedCommand.id()).isEqualTo(requestDto.id());
+            assertThat(capturedCommand.newPassword()).isEqualTo(requestDto.newPassword());
+        }
+
+        @Test
+        void shouldReturnExpectedResponseDto() {
+            // When
+            ResponseDto<CompleteTemporaryPasswordResponseDto> responseDto = sut.completeTemporaryPassword(requestDto).join().getBody();
+
+            // Then
+            assertThat(responseDto.errorDto()).isNull();
+
+            CompleteTemporaryPasswordResponseDto result = responseDto.result();
+            assertThat(result.id()).isEqualTo(commandResponse.id());
+            assertThat(result.username()).isEqualTo(commandResponse.username());
+            assertThat(result.status()).isEqualTo(commandResponse.status());
+            assertThat(result.version()).isEqualTo(commandResponse.version());
+        }
+
+        @Test
+        void shouldPropagateAppException_whenHandlerThrows() {
+            // Given
+            when(completeTemporaryPasswordCommandHandlerMock.handle(any(CompleteTemporaryStaffAccountPasswordChangeCommand.class)))
+                    .thenThrow(AppException.class);
+
+            // When & Then
+            assertThatThrownBy(() -> sut.completeTemporaryPassword(requestDto).join())
                     .hasCauseInstanceOf(AppException.class);
         }
     }
