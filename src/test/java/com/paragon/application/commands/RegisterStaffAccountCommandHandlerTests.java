@@ -8,14 +8,13 @@ import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.common.interfaces.UnitOfWork;
 import com.paragon.application.events.EventBus;
+import com.paragon.domain.events.DomainEvent;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.application.common.interfaces.PasswordHasher;
+import com.paragon.domain.interfaces.StaffAccountPasswordHistoryWriteRepo;
 import com.paragon.domain.interfaces.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
-import com.paragon.domain.models.valueobjects.Password;
-import com.paragon.domain.models.valueobjects.PermissionCode;
-import com.paragon.domain.models.valueobjects.PlaintextPassword;
-import com.paragon.domain.models.valueobjects.Username;
+import com.paragon.domain.models.valueobjects.*;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.junit.jupiter.api.Test;
@@ -25,13 +24,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 public class RegisterStaffAccountCommandHandlerTests {
     private final RegisterStaffAccountCommandHandler sut;
     private final StaffAccountWriteRepo staffAccountWriteRepoMock;
+    private StaffAccountPasswordHistoryWriteRepo staffAccountPasswordHistoryWriteRepoMock;
     private final UnitOfWork uowMock;
     private final EventBus eventBusMock;
     private final AppExceptionHandler appExceptionHandlerMock;
@@ -41,13 +41,14 @@ public class RegisterStaffAccountCommandHandlerTests {
 
     public RegisterStaffAccountCommandHandlerTests() {
         staffAccountWriteRepoMock = mock(StaffAccountWriteRepo.class);
+        staffAccountPasswordHistoryWriteRepoMock = mock(StaffAccountPasswordHistoryWriteRepo.class);
         uowMock = mock(UnitOfWork.class);
         eventBusMock = mock(EventBus.class);
         appExceptionHandlerMock = mock(AppExceptionHandler.class);
         passwordHasherMock = mock(PasswordHasher.class);
 
         sut = new RegisterStaffAccountCommandHandler(
-                staffAccountWriteRepoMock, uowMock, eventBusMock,
+                staffAccountWriteRepoMock, staffAccountPasswordHistoryWriteRepoMock, uowMock, eventBusMock,
                 appExceptionHandlerMock, passwordHasherMock
         );
 
@@ -67,16 +68,33 @@ public class RegisterStaffAccountCommandHandlerTests {
     }
 
     @Test
-    void shouldRegisterSuccessfully() {
-        // Given
-        ArgumentCaptor<StaffAccount> accountCaptor = ArgumentCaptor.forClass(StaffAccount.class);
+    void shouldCommitTransaction() {
+        // When
+        sut.handle(command);
 
+        // Then
+        verify(uowMock, times(1)).commit();
+    }
+
+    @Test
+    void shouldCreateNewStaffAccount() {
+        // When
+        sut.handle(command);
+
+        // Then
+        ArgumentCaptor<StaffAccount> accountCaptor = ArgumentCaptor.forClass(StaffAccount.class);
+        verify(staffAccountWriteRepoMock, times(1)).create(accountCaptor.capture());
+        StaffAccount staffAccount = accountCaptor.getValue();
+        assertThat(staffAccount.getUsername().getValue()).isEqualTo(command.username());
+    }
+
+    @Test
+    void shouldReturnExpectedCommandResponse() {
         // When
         RegisterStaffAccountCommandResponse commandResponse = sut.handle(command);
 
         // Then
-        verify(uowMock, times(1)).commit();
-
+        ArgumentCaptor<StaffAccount> accountCaptor = ArgumentCaptor.forClass(StaffAccount.class);
         verify(staffAccountWriteRepoMock).create(accountCaptor.capture());
         StaffAccount registeredAccount = accountCaptor.getValue();
 
@@ -84,28 +102,24 @@ public class RegisterStaffAccountCommandHandlerTests {
         assertThat(commandResponse.id()).isEqualTo(registeredAccount.getId().getValue().toString());
         assertThat(commandResponse.username()).isEqualTo(registeredAccount.getUsername().getValue());
         assertThat(commandResponse.tempPassword()).isNotNull();
-        assertThat(commandResponse.status()).isEqualTo(registeredAccount.getStatus().toString());
-        assertThat(commandResponse.version()).isEqualTo(registeredAccount.getVersion().getValue());
+        assertThat(commandResponse.status()).isEqualTo("PENDING_PASSWORD_CHANGE");
+        assertThat(commandResponse.version()).isEqualTo(1);
     }
 
     @Test
-    void shouldPassCorrectArgumentsToRepoCreateMethod() {
-        // Given
-        ArgumentCaptor<StaffAccount> accountCaptor = ArgumentCaptor.forClass(StaffAccount.class);
-
+    void shouldAppendTemporaryPasswordToStaffAccountPasswordHistory() {
         // When
         sut.handle(command);
 
         // Then
-        verify(staffAccountWriteRepoMock, times(1)).create(accountCaptor.capture());
-        StaffAccount staffAccount = accountCaptor.getValue();
-
-        assertThat(staffAccount.getUsername().getValue()).isEqualTo(command.username());
-        assertThat(staffAccount.getEmail().getValue()).isEqualTo(command.email());
-        assertThat(staffAccount.getPassword().getValue()).isEqualTo(hashedPassword);
-        assertThat(staffAccount.getOrderAccessDuration().getValueInDays()).isEqualTo(command.orderAccessDuration());
-        assertThat(staffAccount.getModmailTranscriptAccessDuration().getValueInDays()).isEqualTo(command.modmailTranscriptAccessDuration());
-        assertThat(staffAccount.getPermissionCodes().stream().map(PermissionCode::getValue).toList()).isEqualTo(command.permissionCodes());
+        ArgumentCaptor<PasswordHistoryEntry> passwordHistoryEntryCaptor = ArgumentCaptor.forClass(PasswordHistoryEntry.class);
+        verify(staffAccountPasswordHistoryWriteRepoMock, times(1))
+                .appendEntry(passwordHistoryEntryCaptor.capture());
+        PasswordHistoryEntry capturedEntry = passwordHistoryEntryCaptor.getValue();
+        assertThat(capturedEntry.staffAccountId()).isNotNull();
+        assertThat(capturedEntry.hashedPassword()).isEqualTo(Password.of(hashedPassword));
+        assertThat(capturedEntry.isTemporary()).isTrue();
+        assertThat(capturedEntry.changedAt()).isNotNull();
     }
 
     @Test
@@ -114,7 +128,9 @@ public class RegisterStaffAccountCommandHandlerTests {
         sut.handle(command);
 
         // Then
-        verify(eventBusMock, times(1)).publishAll(anyList());
+        ArgumentCaptor<List<DomainEvent>> domainEventsCaptor = ArgumentCaptor.forClass(List.class);
+        verify(eventBusMock, times(1)).publishAll(domainEventsCaptor.capture());
+        assertThat(domainEventsCaptor.getValue()).isNotEmpty();
     }
 
     @Test

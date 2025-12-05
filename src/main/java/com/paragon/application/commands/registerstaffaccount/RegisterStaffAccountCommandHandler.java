@@ -8,6 +8,7 @@ import com.paragon.application.common.interfaces.UnitOfWork;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.application.common.interfaces.PasswordHasher;
+import com.paragon.domain.interfaces.StaffAccountPasswordHistoryWriteRepo;
 import com.paragon.domain.interfaces.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.*;
@@ -22,17 +23,19 @@ import java.util.stream.Collectors;
 public class RegisterStaffAccountCommandHandler implements CommandHandler<RegisterStaffAccountCommand, RegisterStaffAccountCommandResponse> {
 
     private final StaffAccountWriteRepo staffAccountWriteRepo;
+    private final StaffAccountPasswordHistoryWriteRepo staffAccountPasswordHistoryWriteRepo;
     private final UnitOfWork uow;
     private final EventBus eventBus;
     private final AppExceptionHandler appExceptionHandler;
     private final PasswordHasher passwordHasher;
     private static final Logger log = LoggerFactory.getLogger(RegisterStaffAccountCommandHandler.class);
 
-    public RegisterStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo, UnitOfWork uow,
-                                              EventBus eventBus, AppExceptionHandler appExceptionHandler,
+    public RegisterStaffAccountCommandHandler(StaffAccountWriteRepo staffAccountWriteRepo, StaffAccountPasswordHistoryWriteRepo staffAccountPasswordHistoryWriteRepo,
+                                              UnitOfWork uow, EventBus eventBus, AppExceptionHandler appExceptionHandler,
                                               PasswordHasher passwordHasher
     ) {
         this.staffAccountWriteRepo = staffAccountWriteRepo;
+        this.staffAccountPasswordHistoryWriteRepo = staffAccountPasswordHistoryWriteRepo;
         this.uow = uow;
         this.eventBus = eventBus;
         this.appExceptionHandler = appExceptionHandler;
@@ -41,8 +44,8 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
 
     @Override
     public RegisterStaffAccountCommandResponse handle(RegisterStaffAccountCommand command) {
-        uow.begin();
         try {
+            uow.begin();
             assertUniqueUsername(command.username());
 
             PlaintextPassword plaintextTempPassword = PlaintextPassword.generate();
@@ -59,8 +62,12 @@ public class RegisterStaffAccountCommandHandler implements CommandHandler<Regist
             );
             staffAccountWriteRepo.create(staffAccount);
 
-            eventBus.publishAll(staffAccount.dequeueUncommittedEvents());
+            PasswordHistoryEntry passwordHistoryEntry = new PasswordHistoryEntry(
+                    staffAccount.getId(), hashedTempPassword, true, DateTimeUtc.now()
+            );
+            staffAccountPasswordHistoryWriteRepo.appendEntry(passwordHistoryEntry);
 
+            eventBus.publishAll(staffAccount.dequeueUncommittedEvents());
             uow.commit();
 
             log.info(
