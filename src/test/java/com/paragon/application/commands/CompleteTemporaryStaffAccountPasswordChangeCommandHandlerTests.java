@@ -12,14 +12,16 @@ import com.paragon.application.events.EventBus;
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.events.DomainEvent;
 import com.paragon.domain.exceptions.DomainException;
+import com.paragon.domain.exceptions.services.StaffAccountPasswordReusePolicyException;
+import com.paragon.domain.exceptions.services.StaffAccountPasswordReusePolicyExceptionInfo;
 import com.paragon.domain.interfaces.StaffAccountPasswordHistoryWriteRepo;
+import com.paragon.domain.interfaces.StaffAccountPasswordReusePolicy;
 import com.paragon.domain.interfaces.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
-import com.paragon.domain.models.valueobjects.Password;
-import com.paragon.domain.models.valueobjects.PasswordHistoryEntry;
-import com.paragon.domain.models.valueobjects.PlaintextPassword;
-import com.paragon.domain.models.valueobjects.StaffAccountId;
+import com.paragon.domain.models.valueobjects.*;
+import com.paragon.helpers.fixtures.PasswordHistoryEntryFixture;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
+import com.paragon.helpers.fixtures.StaffAccountPasswordHistoryFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -27,8 +29,7 @@ import org.mockito.ArgumentCaptor;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
@@ -42,6 +43,7 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
     private final StaffAccount staffAccount;
     private final Password hashedPassword;
     private StaffAccountPasswordHistoryWriteRepo staffAccountPasswordHistoryWriteRepoMock;
+    private StaffAccountPasswordReusePolicy staffAccountPasswordReusePolicyMock;
 
     public CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests() {
         staffAccountWriteRepoMock = mock(StaffAccountWriteRepo.class);
@@ -50,7 +52,10 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
         passwordHasherMock = mock(PasswordHasher.class);
         appExceptionHandlerMock = mock(AppExceptionHandler.class);
         eventBusMock = mock(EventBus.class);
-        sut = new CompleteTemporaryStaffAccountPasswordChangeCommandHandler(staffAccountWriteRepoMock, staffAccountPasswordHistoryWriteRepoMock, unitOfWorkMock, passwordHasherMock, appExceptionHandlerMock, eventBusMock);
+        staffAccountPasswordReusePolicyMock = mock(StaffAccountPasswordReusePolicy.class);
+        sut = new CompleteTemporaryStaffAccountPasswordChangeCommandHandler(
+                staffAccountWriteRepoMock, staffAccountPasswordHistoryWriteRepoMock, unitOfWorkMock,
+                passwordHasherMock, appExceptionHandlerMock, eventBusMock, staffAccountPasswordReusePolicyMock);
 
         // set up happy case
         staffAccount = StaffAccountFixture.validStaffAccount();
@@ -66,6 +71,9 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
         hashedPassword = Password.of("hashed-password");
         when(passwordHasherMock.hash(any(PlaintextPassword.class)))
                 .thenReturn(hashedPassword);
+
+        when(staffAccountPasswordHistoryWriteRepoMock.getPasswordHistory(any(StaffAccountId.class)))
+                .thenReturn(StaffAccountPasswordHistoryFixture.validHistoryForStaffAccount(staffAccount.getId()));
     }
 
     @Test
@@ -108,6 +116,24 @@ public class CompleteTemporaryStaffAccountPasswordChangeCommandHandlerTests {
         assertThat(commandResponse.username()).isEqualTo(staffAccount.getUsername().getValue());
         assertThat(commandResponse.status()).isEqualTo("ACTIVE");
         assertThat(commandResponse.version()).isEqualTo(2);
+    }
+
+    @Test
+    void shouldCheckPasswordReusePolicy() {
+        // When
+        sut.handle(command);
+
+        // Then
+        ArgumentCaptor<PlaintextPassword> passwordCaptor = ArgumentCaptor.forClass(PlaintextPassword.class);
+        ArgumentCaptor<StaffAccountPasswordHistory> passwordHistoryCaptor = ArgumentCaptor.forClass(StaffAccountPasswordHistory.class);
+        verify(staffAccountPasswordReusePolicyMock, times(1))
+                .ensureNotViolated(passwordCaptor.capture(), passwordHistoryCaptor.capture());
+
+        PlaintextPassword plaintextPassword = passwordCaptor.getValue();
+        StaffAccountPasswordHistory passwordHistory = passwordHistoryCaptor.getValue();
+        assertThat(plaintextPassword.getValue()).isEqualTo(command.newPassword());
+        assertThat(passwordHistory).isNotNull();
+        assertThat(passwordHistory.entries()).isNotEmpty();
     }
 
     @Test
