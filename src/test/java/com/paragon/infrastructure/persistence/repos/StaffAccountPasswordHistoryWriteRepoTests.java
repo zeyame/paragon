@@ -4,6 +4,7 @@ import com.paragon.domain.interfaces.StaffAccountPasswordHistoryWriteRepo;
 import com.paragon.domain.models.valueobjects.PasswordHistoryEntry;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.helpers.fixtures.PasswordHistoryEntryFixture;
+import com.paragon.infrastructure.persistence.daos.PasswordHistoryEntryDao;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -91,19 +93,27 @@ public class StaffAccountPasswordHistoryWriteRepoTests {
                         WHERE staff_account_id = :staffAccountId
                     """;
 
-            when(writeJdbcHelperMock.query(any(SqlStatement.class), eq(PasswordHistoryEntry.class)))
-                    .thenReturn(List.of(PasswordHistoryEntryFixture.validEntry()));
+            when(writeJdbcHelperMock.query(any(SqlStatement.class), eq(PasswordHistoryEntryDao.class)))
+                    .thenReturn(List.of(createPasswordHistoryEntryDao(staffAccountId)));
 
             // When
             sut.getPasswordHistory(staffAccountId);
 
             // Then
             ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
-            verify(writeJdbcHelperMock, times(1)).query(sqlStatementCaptor.capture(), eq(PasswordHistoryEntry.class));
+            verify(writeJdbcHelperMock, times(1))
+                    .query(sqlStatementCaptor.capture(), eq(PasswordHistoryEntryDao.class));
 
             SqlStatement sqlStatement = sqlStatementCaptor.getValue();
             assertThat(sqlStatement.sql()).isEqualTo(expectedSql);
             assertThat(sqlStatement.params().get("staffAccountId")).isEqualTo(staffAccountId.getValue());
+        }
+
+        private PasswordHistoryEntryDao createPasswordHistoryEntryDao(StaffAccountId staffAccountId) {
+            return new PasswordHistoryEntryDao(
+                    UUID.randomUUID(), staffAccountId.getValue(),
+                    "hashed-password", false, Instant.now()
+            );
         }
     }
 }
