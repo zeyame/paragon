@@ -2,6 +2,8 @@ package com.paragon.integration.api;
 
 import com.paragon.api.dtos.ErrorDto;
 import com.paragon.api.dtos.ResponseDto;
+import com.paragon.api.dtos.auth.completetemporarypassword.CompleteTemporaryPasswordRequestDto;
+import com.paragon.api.dtos.auth.completetemporarypassword.CompleteTemporaryPasswordResponseDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountRequestDto;
 import com.paragon.api.dtos.auth.login.LoginStaffAccountResponseDto;
 import com.paragon.api.dtos.auth.refresh.RefreshStaffAccountTokenResponseDto;
@@ -11,9 +13,12 @@ import com.paragon.domain.exceptions.aggregate.StaffAccountExceptionInfo;
 import com.paragon.domain.exceptions.valueobject.PlaintextRefreshTokenExceptionInfo;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.aggregates.StaffAccount;
+import com.paragon.domain.models.valueobjects.DateTimeUtc;
+import com.paragon.domain.models.valueobjects.PasswordHistoryEntry;
 import com.paragon.helpers.TestJdbcHelper;
 import com.paragon.helpers.TestPasswordHasherHelper;
 import com.paragon.helpers.TestRefreshTokenHasherHelper;
+import com.paragon.helpers.fixtures.PasswordHistoryEntryFixture;
 import com.paragon.helpers.fixtures.RefreshTokenFixture;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
@@ -34,6 +39,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 public class AuthControllerTests {
     @Nested
@@ -622,6 +628,199 @@ public class AuthControllerTests {
 
         private String hashPlainRefreshToken(String plainRefreshToken) {
             return TestRefreshTokenHasherHelper.hash(plainRefreshToken);
+        }
+    }
+
+    @Nested
+    class CompleteTemporaryPassword extends IntegrationTestBase {
+        private final TestJdbcHelper jdbcHelper;
+
+        @Autowired
+        public CompleteTemporaryPassword(WriteJdbcHelper writeJdbcHelper) {
+            this.jdbcHelper = new TestJdbcHelper(writeJdbcHelper);
+        }
+
+        @Test
+        void shouldReturnOkWithExpectedResponse() throws Exception {
+            // Given
+            String plaintextPassword = "TemporaryPass123!";
+            String hashedPassword = TestPasswordHasherHelper.hash(plaintextPassword);
+
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withCreatedBy(adminId)
+                    .withPassword(hashedPassword)
+                    .withStatus(StaffAccountStatus.PENDING_PASSWORD_CHANGE)
+                    .withPasswordTemporary(true)
+                    .build();
+            jdbcHelper.insertStaffAccount(staffAccount);
+
+            PasswordHistoryEntry initialPasswordEntry = new PasswordHistoryEntryFixture()
+                    .withStaffAccountId(staffAccount.getId().getValue().toString())
+                    .withHashedPassword(staffAccount.getPassword().getValue())
+                    .withTemporary(true)
+                    .withChangedAt(Instant.now())
+                    .build();
+            jdbcHelper.insertPasswordHistoryEntry(initialPasswordEntry);
+
+            String newPassword = "NewSecurePassword123!";
+            CompleteTemporaryPasswordRequestDto requestDto = new CompleteTemporaryPasswordRequestDto(
+                    staffAccount.getId().getValue().toString(),
+                    newPassword
+            );
+
+            // When
+            MvcResult mvcResult = sendRequest(requestDto);
+
+            // Then
+            MockHttpServletResponse response = mvcResult.getResponse();
+            assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+
+            ResponseDto<CompleteTemporaryPasswordResponseDto> responseDto = readResponse(response);
+            CompleteTemporaryPasswordResponseDto result = responseDto.result();
+            ErrorDto errorDto = responseDto.errorDto();
+
+            assertThat(result).isNotNull();
+            assertThat(errorDto).isNull();
+            assertThat(result.id()).isEqualTo(staffAccount.getId().getValue().toString());
+            assertThat(result.username()).isEqualTo(staffAccount.getUsername().getValue());
+            assertThat(result.status()).isEqualTo("ACTIVE");
+            assertThat(result.version()).isEqualTo(2);
+        }
+
+        @Test
+        void shouldReturnNotFound_whenStaffAccountDoesNotExist() throws Exception {
+            // Given
+            String nonExistentId = "00000000-0000-0000-0000-000000000999";
+            CompleteTemporaryPasswordRequestDto requestDto = new CompleteTemporaryPasswordRequestDto(
+                    nonExistentId,
+                    "NewSecurePassword123!"
+            );
+
+            // When
+            MvcResult mvcResult = sendRequest(requestDto);
+
+            // Then
+            MockHttpServletResponse response = mvcResult.getResponse();
+            assertThat(response.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+
+            ResponseDto<CompleteTemporaryPasswordResponseDto> responseDto = readResponse(response);
+            CompleteTemporaryPasswordResponseDto result = responseDto.result();
+            ErrorDto errorDto = responseDto.errorDto();
+
+            assertThat(result).isNull();
+            assertThat(errorDto).isNotNull();
+
+            AppExceptionInfo staffAccountNotFoundInfo = AppExceptionInfo.staffAccountNotFound(nonExistentId);
+            assertThat(errorDto.message()).isEqualTo(staffAccountNotFoundInfo.getMessage());
+            assertThat(errorDto.code()).isEqualTo(staffAccountNotFoundInfo.getAppErrorCode());
+        }
+
+        @Test
+        void shouldReturnConflict_whenPasswordMatchesCurrentPassword() throws Exception {
+            // Given
+            String plaintextPassword = "CurrentPassword123!";
+            String hashedPassword = TestPasswordHasherHelper.hash(plaintextPassword);
+
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withCreatedBy(adminId)
+                    .withPassword(hashedPassword)
+                    .withStatus(StaffAccountStatus.PENDING_PASSWORD_CHANGE)
+                    .withPasswordTemporary(true)
+                    .build();
+            jdbcHelper.insertStaffAccount(staffAccount);
+
+            // Insert initial password history entry
+            PasswordHistoryEntry initialPasswordEntry = new PasswordHistoryEntryFixture()
+                    .withStaffAccountId(staffAccount.getId().getValue().toString())
+                    .withHashedPassword(staffAccount.getPassword().getValue())
+                    .withTemporary(true)
+                    .withChangedAt(Instant.now())
+                    .build();
+            jdbcHelper.insertPasswordHistoryEntry(initialPasswordEntry);
+
+            CompleteTemporaryPasswordRequestDto requestDto = new CompleteTemporaryPasswordRequestDto(
+                    staffAccount.getId().getValue().toString(),
+                    plaintextPassword  // Same as current password
+            );
+
+            // When
+            MvcResult mvcResult = sendRequest(requestDto);
+
+            // Then
+            MockHttpServletResponse response = mvcResult.getResponse();
+            assertThat(response.getStatus()).isEqualTo(HttpStatus.CONFLICT.value());
+
+            ResponseDto<CompleteTemporaryPasswordResponseDto> responseDto = readResponse(response);
+            CompleteTemporaryPasswordResponseDto result = responseDto.result();
+            ErrorDto errorDto = responseDto.errorDto();
+
+            assertThat(result).isNull();
+            assertThat(errorDto).isNotNull();
+
+            AppExceptionInfo newPasswordMatchesCurrentInfo = AppExceptionInfo.newPasswordMatchesCurrentPassword();
+            assertThat(errorDto.message()).isEqualTo(newPasswordMatchesCurrentInfo.getMessage());
+            assertThat(errorDto.code()).isEqualTo(newPasswordMatchesCurrentInfo.getAppErrorCode());
+        }
+
+        @Test
+        void shouldReturnConflict_whenAccountStatusIsNotPending() throws Exception {
+            // Given
+            StaffAccount staffAccount = new StaffAccountFixture()
+                    .withCreatedBy(adminId)
+                    .withStatus(StaffAccountStatus.ACTIVE)  // Already active
+                    .withPasswordTemporary(false)
+                    .build();
+            jdbcHelper.insertStaffAccount(staffAccount);
+
+            // Insert initial password history entry
+            PasswordHistoryEntry initialPasswordEntry = new PasswordHistoryEntry(
+                    staffAccount.getId(),
+                    staffAccount.getPassword(),
+                    false,
+                    DateTimeUtc.now()
+            );
+            jdbcHelper.insertPasswordHistoryEntry(initialPasswordEntry);
+
+            CompleteTemporaryPasswordRequestDto requestDto = new CompleteTemporaryPasswordRequestDto(
+                    staffAccount.getId().getValue().toString(),
+                    "NewSecurePassword123!"
+            );
+
+            // When
+            MvcResult mvcResult = sendRequest(requestDto);
+
+            // Then
+            MockHttpServletResponse response = mvcResult.getResponse();
+            assertThat(response.getStatus()).isEqualTo(HttpStatus.CONFLICT.value());
+
+            ResponseDto<CompleteTemporaryPasswordResponseDto> responseDto = readResponse(response);
+            CompleteTemporaryPasswordResponseDto result = responseDto.result();
+            ErrorDto errorDto = responseDto.errorDto();
+
+            assertThat(result).isNull();
+            assertThat(errorDto).isNotNull();
+
+            StaffAccountExceptionInfo temporaryPasswordChangeRequiresPendingStateInfo =
+                    StaffAccountExceptionInfo.temporaryPasswordChangeRequiresPendingState();
+            assertThat(errorDto.message()).isEqualTo(temporaryPasswordChangeRequiresPendingStateInfo.getMessage());
+            assertThat(errorDto.code()).isEqualTo(temporaryPasswordChangeRequiresPendingStateInfo.getDomainErrorCode());
+        }
+
+        private ResponseDto<CompleteTemporaryPasswordResponseDto> readResponse(MockHttpServletResponse response) throws Exception {
+            String responseBody = response.getContentAsString();
+            return objectMapper.readValue(
+                    responseBody,
+                    objectMapper.getTypeFactory().constructParametricType(ResponseDto.class, CompleteTemporaryPasswordResponseDto.class)
+            );
+        }
+
+        private MvcResult sendRequest(CompleteTemporaryPasswordRequestDto requestDto) throws Exception {
+            MvcResult mvcResult = mockMvc.perform(
+                    put("/v1/auth/complete-temporary-password")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(requestDto))
+            ).andReturn();
+            return mockMvc.perform(asyncDispatch(mvcResult)).andReturn();
         }
     }
 }
