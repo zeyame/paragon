@@ -3,8 +3,10 @@ package com.paragon.application.common.exceptions;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.exceptions.aggregate.RefreshTokenException;
 import com.paragon.domain.exceptions.aggregate.StaffAccountException;
+import com.paragon.domain.exceptions.aggregate.StaffAccountRequestException;
 import com.paragon.domain.exceptions.aggregate.RefreshTokenExceptionInfo;
 import com.paragon.domain.exceptions.aggregate.StaffAccountExceptionInfo;
+import com.paragon.domain.exceptions.aggregate.StaffAccountRequestExceptionInfo;
 import com.paragon.domain.exceptions.entity.AuditTrailEntryException;
 import com.paragon.domain.exceptions.entity.AuditTrailEntryExceptionInfo;
 import com.paragon.domain.exceptions.entity.PermissionException;
@@ -368,6 +370,20 @@ public class AppExceptionHandlerTests {
                     // AuditEntryTargetIdException - internal error (SERVER_ERROR)
                     arguments(
                             new TargetIdException(TargetIdExceptionInfo.missingValue()),
+                            AppExceptionStatusCode.SERVER_ERROR
+                    ),
+
+                    // StaffAccountRequestException - validation errors (SERVER_ERROR)
+                    arguments(
+                            new StaffAccountRequestException(StaffAccountRequestExceptionInfo.submittedByRequired()),
+                            AppExceptionStatusCode.SERVER_ERROR
+                    ),
+                    arguments(
+                            new StaffAccountRequestException(StaffAccountRequestExceptionInfo.requestTypeRequired()),
+                            AppExceptionStatusCode.SERVER_ERROR
+                    ),
+                    arguments(
+                            new StaffAccountRequestException(StaffAccountRequestExceptionInfo.targetIdAndTypeMustBeBothProvidedOrBothNull()),
                             AppExceptionStatusCode.SERVER_ERROR
                     )
             );

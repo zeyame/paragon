@@ -4,6 +4,7 @@ import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.exceptions.aggregate.RefreshTokenException;
 import com.paragon.domain.exceptions.aggregate.StaffAccountException;
+import com.paragon.domain.exceptions.aggregate.StaffAccountRequestException;
 import com.paragon.domain.exceptions.entity.AuditTrailEntryException;
 import com.paragon.domain.exceptions.entity.PermissionException;
 import com.paragon.domain.exceptions.services.StaffAccountPasswordReusePolicyException;
@@ -19,6 +20,7 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
         return switch (domainException) {
             case StaffAccountException staffAccountException -> handleStaffAccountException(staffAccountException);
             case RefreshTokenException refreshTokenException -> handleRefreshTokenException(refreshTokenException);
+            case StaffAccountRequestException staffAccountRequestException -> handleStaffAccountRequestException(staffAccountRequestException);
             case AuditTrailEntryException auditTrailEntryException -> handleAuditTrailEntryException(auditTrailEntryException);
             case PermissionException permissionException -> handlePermissionException(permissionException);
 
@@ -85,6 +87,17 @@ public class AppExceptionHandlerImpl implements AppExceptionHandler {
 
             case 20003 -> // token already revoked - invalid state
                     new AppException(exception, AppExceptionStatusCode.INVALID_RESOURCE_STATE);
+
+            default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);
+        };
+    }
+
+    private AppException handleStaffAccountRequestException(StaffAccountRequestException exception) {
+        int domainErrorCode = exception.getDomainErrorCode();
+
+        return switch (domainErrorCode) {
+            case 30001, 30002, 30003 -> 
+                    new AppException(exception, AppExceptionStatusCode.SERVER_ERROR);
 
             default -> new AppException(exception, AppExceptionStatusCode.UNHANDLED_ERROR);
         };
