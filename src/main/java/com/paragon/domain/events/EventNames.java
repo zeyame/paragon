@@ -11,4 +11,6 @@ public final class EventNames {
     public static final String STAFF_ACCOUNT_ENABLED = "staff_account_enabled";
     public static final String STAFF_ACCOUNT_PASSWORD_RESET = "staff_account_password_reset";
     public static final String STAFF_ACCOUNT_PASSWORD_CHANGED = "staff_account_password_changed";
+
+    public static final String STAFF_ACCOUNT_REQUEST_SUBMITTED = "staff_account_request_submitted";
 }
