@@ -1,6 +1,6 @@
 package com.paragon.integration.persistence;
 
-import com.paragon.domain.interfaces.StaffAccountPasswordHistoryWriteRepo;
+import com.paragon.domain.interfaces.repositories.StaffAccountPasswordHistoryWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.PasswordHistoryEntry;
 import com.paragon.domain.models.valueobjects.StaffAccountPasswordHistory;

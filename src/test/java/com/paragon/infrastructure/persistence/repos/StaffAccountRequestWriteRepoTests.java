@@ -1,6 +1,6 @@
 package com.paragon.infrastructure.persistence.repos;
 
-import com.paragon.domain.interfaces.StaffAccountRequestWriteRepo;
+import com.paragon.domain.interfaces.repositories.StaffAccountRequestWriteRepo;
 import com.paragon.helpers.fixtures.StaffAccountRequestFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;

@@ -6,7 +6,7 @@ import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.exceptions.aggregate.RefreshTokenException;
 import com.paragon.domain.exceptions.aggregate.RefreshTokenExceptionInfo;
-import com.paragon.domain.interfaces.RefreshTokenWriteRepo;
+import com.paragon.domain.interfaces.repositories.RefreshTokenWriteRepo;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.helpers.fixtures.RefreshTokenFixture;

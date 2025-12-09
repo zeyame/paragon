@@ -1,13 +1,12 @@
 package com.paragon.infrastructure.persistence.repos;
 
-import com.paragon.domain.interfaces.StaffAccountPasswordHistoryWriteRepo;
+import com.paragon.domain.interfaces.repositories.StaffAccountPasswordHistoryWriteRepo;
 import com.paragon.domain.models.valueobjects.PasswordHistoryEntry;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.helpers.fixtures.PasswordHistoryEntryFixture;
 import com.paragon.infrastructure.persistence.daos.PasswordHistoryEntryDao;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
-import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

@@ -1,12 +1,11 @@
 package com.paragon.infrastructure.persistence.repos;
 
-import com.paragon.domain.interfaces.RefreshTokenWriteRepo;
+import com.paragon.domain.interfaces.repositories.RefreshTokenWriteRepo;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.valueobjects.RefreshTokenHash;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.helpers.fixtures.RefreshTokenDaoFixture;
 import com.paragon.helpers.fixtures.RefreshTokenFixture;
-import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.daos.RefreshTokenDao;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;

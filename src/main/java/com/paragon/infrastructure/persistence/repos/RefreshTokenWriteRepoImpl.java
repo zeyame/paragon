@@ -1,6 +1,6 @@
 package com.paragon.infrastructure.persistence.repos;
 
-import com.paragon.domain.interfaces.RefreshTokenWriteRepo;
+import com.paragon.domain.interfaces.repositories.RefreshTokenWriteRepo;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.valueobjects.RefreshTokenHash;
 import com.paragon.domain.models.valueobjects.StaffAccountId;

@@ -5,8 +5,6 @@ import com.paragon.application.services.StaffAccountRefreshTokenRevocationServic
 import com.paragon.domain.events.EventNames;
 import com.paragon.domain.events.staffaccountevents.StaffAccountEventBase;
 import com.paragon.domain.exceptions.DomainException;
-import com.paragon.domain.interfaces.RefreshTokenWriteRepo;
-import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

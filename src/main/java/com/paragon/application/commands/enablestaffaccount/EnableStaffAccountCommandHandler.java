@@ -7,7 +7,7 @@ import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.interfaces.UnitOfWork;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.exceptions.DomainException;
-import com.paragon.domain.interfaces.StaffAccountWriteRepo;
+import com.paragon.domain.interfaces.repositories.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;

@@ -4,7 +4,7 @@ import com.paragon.application.events.EventHandler;
 import com.paragon.domain.events.EventNames;
 import com.paragon.domain.events.staffaccountevents.StaffAccountEventBase;
 import com.paragon.domain.exceptions.DomainException;
-import com.paragon.domain.interfaces.AuditTrailWriteRepo;
+import com.paragon.domain.interfaces.repositories.AuditTrailWriteRepo;
 import com.paragon.domain.models.entities.AuditTrailEntry;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import org.slf4j.Logger;

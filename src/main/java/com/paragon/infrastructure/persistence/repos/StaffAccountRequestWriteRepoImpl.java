@@ -1,6 +1,6 @@
 package com.paragon.infrastructure.persistence.repos;
 
-import com.paragon.domain.interfaces.StaffAccountRequestWriteRepo;
+import com.paragon.domain.interfaces.repositories.StaffAccountRequestWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccountRequest;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;

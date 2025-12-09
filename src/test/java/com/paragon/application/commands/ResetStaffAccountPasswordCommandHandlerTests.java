@@ -11,7 +11,7 @@ import com.paragon.application.events.EventBus;
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.PasswordHasher;
-import com.paragon.domain.interfaces.StaffAccountWriteRepo;
+import com.paragon.domain.interfaces.repositories.StaffAccountWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccount;
 import com.paragon.domain.models.valueobjects.Password;
 import com.paragon.domain.models.valueobjects.PlaintextPassword;
