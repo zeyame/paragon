@@ -7,7 +7,7 @@ import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.common.interfaces.UnitOfWork;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.exceptions.DomainException;
-import com.paragon.application.common.interfaces.PasswordHasher;
+import com.paragon.domain.interfaces.PasswordHasher;
 import com.paragon.application.common.interfaces.TokenHasher;
 import com.paragon.domain.interfaces.RefreshTokenWriteRepo;
 import com.paragon.domain.interfaces.StaffAccountWriteRepo;

@@ -2,7 +2,6 @@ package com.paragon.domain.models.valueobjects;
 
 import com.paragon.domain.exceptions.valueobject.PasswordException;
 import com.paragon.domain.exceptions.valueobject.PasswordExceptionInfo;
-import com.paragon.application.common.interfaces.PasswordHasher;
 import lombok.Getter;
 
 import java.util.List;

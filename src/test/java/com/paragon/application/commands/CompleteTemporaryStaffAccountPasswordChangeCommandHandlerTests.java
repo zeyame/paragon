@@ -6,7 +6,7 @@ import com.paragon.application.commands.completetemporarystaffaccountpasswordcha
 import com.paragon.application.common.exceptions.AppException;
 import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
-import com.paragon.application.common.interfaces.PasswordHasher;
+import com.paragon.domain.interfaces.PasswordHasher;
 import com.paragon.application.common.interfaces.UnitOfWork;
 import com.paragon.application.events.EventBus;
 import com.paragon.domain.events.DomainEvent;

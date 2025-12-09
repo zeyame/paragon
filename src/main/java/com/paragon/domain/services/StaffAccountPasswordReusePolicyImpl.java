@@ -1,6 +1,6 @@
 package com.paragon.domain.services;
 
-import com.paragon.application.common.interfaces.PasswordHasher;
+import com.paragon.domain.interfaces.PasswordHasher;
 import com.paragon.domain.exceptions.services.StaffAccountPasswordReusePolicyException;
 import com.paragon.domain.exceptions.services.StaffAccountPasswordReusePolicyExceptionInfo;
 import com.paragon.domain.interfaces.StaffAccountPasswordReusePolicy;
