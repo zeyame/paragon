@@ -6,7 +6,7 @@ import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.interfaces.TokenHasher;
 import com.paragon.application.common.interfaces.UnitOfWork;
-import com.paragon.application.services.StaffAccountRefreshTokenRevocationService;
+import com.paragon.application.common.interfaces.StaffAccountRefreshTokenRevocationService;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.repositories.RefreshTokenWriteRepo;
 import com.paragon.domain.interfaces.repositories.StaffAccountWriteRepo;

@@ -1,6 +1,7 @@
 package com.paragon.application.services;
 
 import com.paragon.application.common.interfaces.AppExceptionHandler;
+import com.paragon.application.common.interfaces.StaffAccountRefreshTokenRevocationService;
 import com.paragon.domain.exceptions.DomainException;
 import com.paragon.domain.interfaces.repositories.RefreshTokenWriteRepo;
 import com.paragon.domain.models.aggregates.RefreshToken;

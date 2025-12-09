@@ -1,4 +1,4 @@
-package com.paragon.application.services;
+package com.paragon.application.common.interfaces;
 
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 

@@ -1,6 +1,6 @@
 package com.paragon.application.events.refreshtokens;
 
-import com.paragon.application.services.StaffAccountRefreshTokenRevocationService;
+import com.paragon.application.common.interfaces.StaffAccountRefreshTokenRevocationService;
 import com.paragon.domain.events.staffaccountevents.StaffAccountDisabledEvent;
 import com.paragon.domain.events.staffaccountevents.StaffAccountEventBase;
 import com.paragon.domain.events.staffaccountevents.StaffAccountLockedEvent;
