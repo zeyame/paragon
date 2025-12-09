@@ -1,4 +1,4 @@
-package com.paragon.domain.interfaces;
+package com.paragon.domain.interfaces.services;
 
 import com.paragon.domain.models.valueobjects.PlaintextPassword;
 import com.paragon.domain.models.valueobjects.StaffAccountPasswordHistory;

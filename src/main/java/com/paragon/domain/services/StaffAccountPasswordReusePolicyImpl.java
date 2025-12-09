@@ -1,9 +1,9 @@
 package com.paragon.domain.services;
 
-import com.paragon.domain.interfaces.PasswordHasher;
+import com.paragon.domain.interfaces.services.PasswordHasher;
 import com.paragon.domain.exceptions.services.StaffAccountPasswordReusePolicyException;
 import com.paragon.domain.exceptions.services.StaffAccountPasswordReusePolicyExceptionInfo;
-import com.paragon.domain.interfaces.StaffAccountPasswordReusePolicy;
+import com.paragon.domain.interfaces.services.StaffAccountPasswordReusePolicy;
 import com.paragon.domain.models.valueobjects.*;
 import org.springframework.stereotype.Service;
 

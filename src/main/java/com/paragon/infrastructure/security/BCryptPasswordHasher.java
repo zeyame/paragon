@@ -1,6 +1,6 @@
 package com.paragon.infrastructure.security;
 
-import com.paragon.domain.interfaces.PasswordHasher;
+import com.paragon.domain.interfaces.services.PasswordHasher;
 import com.paragon.domain.models.valueobjects.Password;
 import com.paragon.domain.models.valueobjects.PlaintextPassword;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
