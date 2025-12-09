@@ -3,6 +3,7 @@ package com.paragon.helpers;
 import com.paragon.domain.enums.AuditEntryActionType;
 import com.paragon.domain.models.aggregates.RefreshToken;
 import com.paragon.domain.models.aggregates.StaffAccount;
+import com.paragon.domain.models.aggregates.StaffAccountRequest;
 import com.paragon.domain.models.entities.AuditTrailEntry;
 import com.paragon.domain.models.valueobjects.*;
 import com.paragon.infrastructure.persistence.daos.*;
@@ -240,5 +241,48 @@ public class TestJdbcHelper {
                 .add("changedAtUtc", entry.changedAt().getValue());
 
         writeJdbcHelper.execute(new SqlStatement(sql, params));
+    }
+
+    public void insertStaffAccountRequest(StaffAccountRequest request) {
+        String sql = """
+            INSERT INTO staff_account_requests
+            (id, submitted_by, request_type, target_id, target_type, status, submitted_at_utc,
+             expires_at_utc, approved_by, approved_at_utc, rejected_by, rejected_at_utc,
+             version, updated_at_utc)
+            VALUES
+            (:id, :submittedBy, :requestType, :targetId, :targetType, :status, :submittedAtUtc,
+             :expiresAtUtc, :approvedBy, :approvedAtUtc, :rejectedBy, :rejectedAtUtc,
+             :version, :updatedAtUtc)
+        """;
+
+        SqlParamsBuilder params = new SqlParamsBuilder()
+                .add("id", request.getId().getValue())
+                .add("submittedBy", request.getSubmittedBy().getValue())
+                .add("requestType", request.getRequestType().toString())
+                .add("targetId", request.getTargetId() != null ? request.getTargetId().getValue() : null)
+                .add("targetType", request.getTargetType() != null ? request.getTargetType().toString() : null)
+                .add("status", request.getStatus().toString())
+                .add("submittedAtUtc", request.getSubmittedAt().getValue())
+                .add("expiresAtUtc", request.getExpiresAt().getValue())
+                .add("approvedBy", request.getApprovedBy() != null ? request.getApprovedBy().getValue() : null)
+                .add("approvedAtUtc", request.getApprovedAt() != null ? request.getApprovedAt().getValue() : null)
+                .add("rejectedBy", request.getRejectedBy() != null ? request.getRejectedBy().getValue() : null)
+                .add("rejectedAtUtc", request.getRejectedAt() != null ? request.getRejectedAt().getValue() : null)
+                .add("version", request.getVersion().getValue())
+                .add("updatedAtUtc", Instant.now());
+
+        writeJdbcHelper.execute(new SqlStatement(sql, params));
+    }
+
+    public Optional<StaffAccountRequest> getStaffAccountRequestById(StaffAccountRequestId requestId) {
+        String sql = "SELECT * FROM staff_account_requests WHERE id = :id";
+        SqlParamsBuilder params = new SqlParamsBuilder().add("id", requestId.getValue());
+
+        Optional<StaffAccountRequestDao> optionalDao = writeJdbcHelper.queryFirstOrDefault(
+                new SqlStatement(sql, params),
+                StaffAccountRequestDao.class
+        );
+
+        return optionalDao.map(StaffAccountRequestDao::toStaffAccountRequest);
     }
 }
