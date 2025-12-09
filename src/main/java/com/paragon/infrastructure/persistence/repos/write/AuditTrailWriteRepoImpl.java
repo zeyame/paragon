@@ -1,4 +1,4 @@
-package com.paragon.infrastructure.persistence.repos;
+package com.paragon.infrastructure.persistence.repos.write;
 
 import com.paragon.domain.interfaces.repositories.AuditTrailWriteRepo;
 import com.paragon.domain.models.entities.AuditTrailEntry;

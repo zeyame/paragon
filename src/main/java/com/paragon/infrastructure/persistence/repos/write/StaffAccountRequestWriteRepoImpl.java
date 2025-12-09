@@ -1,4 +1,4 @@
-package com.paragon.infrastructure.persistence.repos;
+package com.paragon.infrastructure.persistence.repos.write;
 
 import com.paragon.domain.interfaces.repositories.StaffAccountRequestWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccountRequest;

@@ -1,4 +1,4 @@
-package com.paragon.infrastructure.persistence.repos;
+package com.paragon.infrastructure.persistence.repos.write;
 
 import com.paragon.domain.interfaces.repositories.RefreshTokenWriteRepo;
 import com.paragon.domain.models.aggregates.RefreshToken;

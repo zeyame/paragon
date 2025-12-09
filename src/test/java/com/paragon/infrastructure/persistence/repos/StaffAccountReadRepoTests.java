@@ -4,7 +4,6 @@ import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo
 import com.paragon.domain.enums.StaffAccountStatus;
 import com.paragon.domain.models.valueobjects.DateTimeUtc;
 import com.paragon.domain.models.valueobjects.PermissionCode;
-import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.domain.models.valueobjects.Username;
 import com.paragon.infrastructure.persistence.daos.PermissionCodeDao;
 import com.paragon.infrastructure.persistence.daos.StaffAccountDetailedReadModelDao;
@@ -16,6 +15,7 @@ import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountDetailedReadModel;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountSummaryReadModel;
+import com.paragon.infrastructure.persistence.repos.read.StaffAccountReadRepoImpl;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

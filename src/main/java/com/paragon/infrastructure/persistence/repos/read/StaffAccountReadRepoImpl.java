@@ -1,4 +1,4 @@
-package com.paragon.infrastructure.persistence.repos;
+package com.paragon.infrastructure.persistence.repos.read;
 
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountReadRepo;
 import com.paragon.domain.enums.StaffAccountStatus;

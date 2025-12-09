@@ -7,7 +7,7 @@ import com.paragon.helpers.TestJdbcHelper;
 import com.paragon.helpers.fixtures.AuditTrailEntryFixture;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
-import com.paragon.infrastructure.persistence.repos.AuditTrailWriteRepoImpl;
+import com.paragon.infrastructure.persistence.repos.write.AuditTrailWriteRepoImpl;
 import com.paragon.integration.IntegrationTestBase;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

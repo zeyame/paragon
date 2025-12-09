@@ -6,7 +6,7 @@ import com.paragon.helpers.TestJdbcHelper;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.helpers.fixtures.StaffAccountRequestFixture;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
-import com.paragon.infrastructure.persistence.repos.StaffAccountRequestWriteRepoImpl;
+import com.paragon.infrastructure.persistence.repos.write.StaffAccountRequestWriteRepoImpl;
 import com.paragon.integration.IntegrationTestBase;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

@@ -8,7 +8,7 @@ import com.paragon.helpers.TestJdbcHelper;
 import com.paragon.helpers.fixtures.PasswordHistoryEntryFixture;
 import com.paragon.helpers.fixtures.StaffAccountFixture;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
-import com.paragon.infrastructure.persistence.repos.StaffAccountPasswordHistoryWriteRepoImpl;
+import com.paragon.infrastructure.persistence.repos.write.StaffAccountPasswordHistoryWriteRepoImpl;
 import com.paragon.integration.IntegrationTestBase;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
