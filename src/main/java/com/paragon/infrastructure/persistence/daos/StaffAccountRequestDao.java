@@ -23,7 +23,6 @@ public record StaffAccountRequestDao(
         UUID rejectedBy,
         Instant rejectedAtUtc,
         int version,
-        Instant createdAtUtc,
         Instant updatedAtUtc
 ) {
     public StaffAccountRequest toStaffAccountRequest() {
