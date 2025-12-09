@@ -58,6 +58,27 @@ public class StaffAccountRequest extends EventSourcedAggregate<DomainEvent, Staf
         return request;
     }
 
+    public static StaffAccountRequest createFrom(
+            StaffAccountRequestId id,
+            StaffAccountId submittedBy,
+            StaffAccountRequestType requestType,
+            TargetId targetId,
+            TargetType targetType,
+            StaffAccountRequestStatus status,
+            DateTimeUtc submittedAt,
+            DateTimeUtc expiresAt,
+            StaffAccountId approvedBy,
+            DateTimeUtc approvedAt,
+            StaffAccountId rejectedBy,
+            DateTimeUtc rejectedAt,
+            Version version
+    ) {
+        return new StaffAccountRequest(
+                id, submittedBy, requestType, targetId, targetType, status,
+                submittedAt, expiresAt, approvedBy, approvedAt, rejectedBy, rejectedAt, version
+        );
+    }
+
     private static void assertValidRequestSubmission(StaffAccountId submittedBy, StaffAccountRequestType requestType,
                                                      TargetId targetId, TargetType targetType) {
         if (submittedBy == null) {
