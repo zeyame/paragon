@@ -15,7 +15,6 @@ CREATE TABLE IF NOT EXISTS staff_account_requests (
 
     version                     INTEGER NOT NULL DEFAULT 1,
 
-    created_at_utc              TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at_utc              TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
 
     CONSTRAINT fk_staff_account_requests_submitted_by
