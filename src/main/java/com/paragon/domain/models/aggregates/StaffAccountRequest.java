@@ -7,10 +7,7 @@ import com.paragon.domain.events.DomainEvent;
 import com.paragon.domain.events.staffaccountrequestevents.StaffAccountRequestSubmittedEvent;
 import com.paragon.domain.exceptions.aggregate.StaffAccountRequestException;
 import com.paragon.domain.exceptions.aggregate.StaffAccountRequestExceptionInfo;
-import com.paragon.domain.models.valueobjects.DateTimeUtc;
-import com.paragon.domain.models.valueobjects.StaffAccountId;
-import com.paragon.domain.models.valueobjects.StaffAccountRequestId;
-import com.paragon.domain.models.valueobjects.TargetId;
+import com.paragon.domain.models.valueobjects.*;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -34,7 +31,7 @@ public class StaffAccountRequest extends EventSourcedAggregate<DomainEvent, Staf
     private StaffAccountRequest(StaffAccountRequestId id, StaffAccountId submittedBy, StaffAccountRequestType requestType,
                                 TargetId targetId, TargetType targetType, StaffAccountRequestStatus status, DateTimeUtc submittedAt,
                                 DateTimeUtc expiresAt, StaffAccountId approvedBy, DateTimeUtc approvedAt, StaffAccountId rejectedBy,
-                                DateTimeUtc rejectedAt) {
+                                DateTimeUtc rejectedAt, Version version) {
         super(id);
         this.submittedBy = submittedBy;
         this.requestType = requestType;
@@ -47,6 +44,7 @@ public class StaffAccountRequest extends EventSourcedAggregate<DomainEvent, Staf
         this.approvedAt = approvedAt;
         this.rejectedBy = rejectedBy;
         this.rejectedAt = rejectedAt;
+        this.version = version;
     }
 
     public static StaffAccountRequest submit(StaffAccountId submittedBy, StaffAccountRequestType requestType, TargetId targetId, TargetType targetType) {
@@ -54,7 +52,7 @@ public class StaffAccountRequest extends EventSourcedAggregate<DomainEvent, Staf
         StaffAccountRequest request = new StaffAccountRequest(
                 StaffAccountRequestId.generate(), submittedBy, requestType, targetId,
                 targetType, StaffAccountRequestStatus.PENDING, DateTimeUtc.now(), DateTimeUtc.of(Instant.now().plus(EXPIRY_DURATION)),
-                null, null, null, null
+                null, null, null, null, Version.initial()
         );
         request.enqueue(new StaffAccountRequestSubmittedEvent(request));
         return request;

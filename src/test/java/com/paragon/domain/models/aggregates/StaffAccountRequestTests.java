@@ -56,6 +56,7 @@ public class StaffAccountRequestTests {
             assertThat(request.getApprovedAt()).isNull();
             assertThat(request.getRejectedBy()).isNull();
             assertThat(request.getRejectedAt()).isNull();
+            assertThat(request.getVersion().getValue()).isEqualTo(1);
         }
 
         @Test
@@ -72,6 +73,11 @@ public class StaffAccountRequestTests {
             assertThat(request.getStatus()).isEqualTo(StaffAccountRequestStatus.PENDING);
             assertThat(request.getSubmittedAt()).isNotNull();
             assertThat(request.getExpiresAt().getValue()).isAfterOrEqualTo(expiresAt.getValue());
+            assertThat(request.getApprovedBy()).isNull();
+            assertThat(request.getApprovedAt()).isNull();
+            assertThat(request.getRejectedBy()).isNull();
+            assertThat(request.getRejectedAt()).isNull();
+            assertThat(request.getVersion().getValue()).isEqualTo(1);
         }
 
         @Test
