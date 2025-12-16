@@ -1,6 +1,7 @@
 package com.paragon.application.services;
 
 import com.paragon.application.common.exceptions.AppException;
+import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.interfaces.CheckPendingStaffAccountRequestService;
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountRequestReadRepo;
@@ -15,8 +16,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class CheckPendingStaffAccountRequestServiceTests {
@@ -39,7 +39,7 @@ public class CheckPendingStaffAccountRequestServiceTests {
             StaffAccountRequestType requestType = StaffAccountRequestType.PASSWORD_CHANGE;
 
             // When
-            sut.hasPendingRequest(staffAccountId, requestType);
+            sut.ensureNoPendingRequest(staffAccountId, requestType);
 
             // Then
             ArgumentCaptor<StaffAccountId> staffAccountIdCaptor = ArgumentCaptor.forClass(StaffAccountId.class);
@@ -53,29 +53,33 @@ public class CheckPendingStaffAccountRequestServiceTests {
         }
 
         @Test
-        void shouldReturnTrue_whenPendingRequestExists() {
-            // Given
-            when(staffAccountRequestReadRepoMock.getPendingRequestBySubmitterAndType(any(StaffAccountId.class), any(StaffAccountRequestType.class)))
-                    .thenReturn(Optional.of(StaffAccountRequestReadModelFixture.validPendingRequest()));
-
-            // When
-            boolean hasPendingRequest = sut.hasPendingRequest(StaffAccountId.generate(), StaffAccountRequestType.CENSORED_ORDER_CONTENT);
-
-            // Then
-            assertThat(hasPendingRequest).isTrue();
-        }
-
-        @Test
-        void shouldReturnFalse_whenPendingRequestDoesNotExist() {
+        void shouldNotThrow_whenPendingRequestDoesNotExist() {
             // Given
             when(staffAccountRequestReadRepoMock.getPendingRequestBySubmitterAndType(any(StaffAccountId.class), any(StaffAccountRequestType.class)))
                     .thenReturn(Optional.empty());
 
-            // When
-            boolean hasPendingRequest = sut.hasPendingRequest(StaffAccountId.generate(), StaffAccountRequestType.CENSORED_ORDER_CONTENT);
+            // When & Then
+            assertThatNoException().isThrownBy(() ->
+                    sut.ensureNoPendingRequest(StaffAccountId.generate(), StaffAccountRequestType.CENSORED_ORDER_CONTENT)
+            );
+        }
 
-            // Then
-            assertThat(hasPendingRequest).isFalse();
+        @Test
+        void shouldThrow_whenPendingRequestExists() {
+            // Given
+            StaffAccountRequestReadModel existingRequest = StaffAccountRequestReadModelFixture.validPendingRequest();
+            when(staffAccountRequestReadRepoMock.getPendingRequestBySubmitterAndType(any(StaffAccountId.class), any(StaffAccountRequestType.class)))
+                    .thenReturn(Optional.of(existingRequest));
+            AppException expectedException = new AppException(AppExceptionInfo.pendingStaffAccountRequestAlreadyExists(
+                    existingRequest.submittedByUsername(),
+                    existingRequest.requestType().toString()
+            ));
+
+            // When & Then
+            assertThatExceptionOfType(AppException.class)
+                    .isThrownBy(() -> sut.ensureNoPendingRequest(StaffAccountId.of(existingRequest.submittedBy()), existingRequest.requestType()))
+                    .extracting("message", "errorCode", "statusCode")
+                    .containsExactly(expectedException.getMessage(), expectedException.getErrorCode(), expectedException.getStatusCode());
         }
 
         @Test
@@ -90,7 +94,7 @@ public class CheckPendingStaffAccountRequestServiceTests {
 
             // When & Then
             assertThatExceptionOfType(AppException.class)
-                    .isThrownBy(() -> sut.hasPendingRequest(StaffAccountId.generate(), StaffAccountRequestType.CENSORED_ORDER_CONTENT));
+                    .isThrownBy(() -> sut.ensureNoPendingRequest(StaffAccountId.generate(), StaffAccountRequestType.CENSORED_ORDER_CONTENT));
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.paragon.application.services;
 
+import com.paragon.application.common.exceptions.AppException;
+import com.paragon.application.common.exceptions.AppExceptionInfo;
 import com.paragon.application.common.interfaces.AppExceptionHandler;
 import com.paragon.application.common.interfaces.CheckPendingStaffAccountRequestService;
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountRequestReadRepo;
@@ -22,11 +24,16 @@ public class CheckPendingStaffAccountRequestServiceImpl implements CheckPendingS
     }
 
     @Override
-    public boolean hasPendingRequest(StaffAccountId staffAccountId, StaffAccountRequestType requestType) {
+    public void ensureNoPendingRequest(StaffAccountId staffAccountId, StaffAccountRequestType requestType) {
         try {
-            return staffAccountRequestReadRepo
+            staffAccountRequestReadRepo
                     .getPendingRequestBySubmitterAndType(staffAccountId, requestType)
-                    .isPresent();
+                    .ifPresent(requestReadModel -> {
+                        throw new AppException(AppExceptionInfo.pendingStaffAccountRequestAlreadyExists(
+                                requestReadModel.submittedByUsername(),
+                                requestType.toString()
+                        ));
+                    });
         } catch (InfraException ex) {
             log.error("Failed to check for pending request for staffAccountId: {} and requestType: {}. Error: {}",
                     staffAccountId.getValue(), requestType, ex.getMessage(), ex);

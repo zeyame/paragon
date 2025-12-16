@@ -4,5 +4,5 @@ import com.paragon.domain.enums.StaffAccountRequestType;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 
 public interface CheckPendingStaffAccountRequestService {
-    boolean hasPendingRequest(StaffAccountId staffAccountId, StaffAccountRequestType requestType);
+    void ensureNoPendingRequest(StaffAccountId staffAccountId, StaffAccountRequestType requestType);
 }

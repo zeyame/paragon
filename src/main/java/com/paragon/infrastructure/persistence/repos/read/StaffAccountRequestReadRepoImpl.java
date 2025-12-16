@@ -3,15 +3,16 @@ package com.paragon.infrastructure.persistence.repos.read;
 import com.paragon.application.queries.repositoryinterfaces.StaffAccountRequestReadRepo;
 import com.paragon.domain.enums.StaffAccountRequestStatus;
 import com.paragon.domain.enums.StaffAccountRequestType;
-import com.paragon.domain.models.aggregates.StaffAccountRequest;
 import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.infrastructure.persistence.jdbc.helpers.ReadJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
 import com.paragon.infrastructure.persistence.readmodels.StaffAccountRequestReadModel;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+@Repository
 public class StaffAccountRequestReadRepoImpl implements StaffAccountRequestReadRepo {
     private final ReadJdbcHelper readJdbcHelper;
 
