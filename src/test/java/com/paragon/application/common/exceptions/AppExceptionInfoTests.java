@@ -114,14 +114,14 @@ public class AppExceptionInfoTests {
     @Test
     void pendingStaffAccountRequestAlreadyExists_shouldHaveExpectedCodeAndMessage() {
         // Given
-        String staffAccountId = "staff-123";
+        String staffAccountUsername = "john_doe";
         String requestType = "PASSWORD_CHANGE";
 
         // When
-        AppExceptionInfo info = AppExceptionInfo.pendingStaffAccountRequestAlreadyExists(staffAccountId, requestType);
+        AppExceptionInfo info = AppExceptionInfo.pendingStaffAccountRequestAlreadyExists(staffAccountUsername, requestType);
 
         // Then
-        assertThat(info.getMessage()).isEqualTo("Staff account 'staff-123' already has a pending request of type 'PASSWORD_CHANGE'.");
+        assertThat(info.getMessage()).isEqualTo("Staff account 'john_doe' already has a pending request of type 'PASSWORD_CHANGE'.");
         assertThat(info.getAppErrorCode()).isEqualTo(110);
         assertThat(info.getStatusCode()).isEqualTo(AppExceptionStatusCode.RESOURCE_UNIQUENESS_VIOLATION);
     }

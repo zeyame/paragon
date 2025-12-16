@@ -86,9 +86,9 @@ public class AppExceptionInfo {
         );
     }
 
-    public static AppExceptionInfo pendingStaffAccountRequestAlreadyExists(String staffAccountId, String requestType) {
+    public static AppExceptionInfo pendingStaffAccountRequestAlreadyExists(String staffAccountUsername, String requestType) {
         return new AppExceptionInfo(
-                String.format("Staff account '%s' already has a pending request of type '%s'.", staffAccountId, requestType),
+                String.format("Staff account '%s' already has a pending request of type '%s'.", staffAccountUsername, requestType),
                 110,
                 AppExceptionStatusCode.RESOURCE_UNIQUENESS_VIOLATION
         );
