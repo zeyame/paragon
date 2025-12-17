@@ -1,7 +1,11 @@
 package com.paragon.infrastructure.persistence.repos.write;
 
+import com.paragon.domain.enums.StaffAccountRequestStatus;
+import com.paragon.domain.enums.StaffAccountRequestType;
 import com.paragon.domain.interfaces.repositories.StaffAccountRequestWriteRepo;
 import com.paragon.domain.models.aggregates.StaffAccountRequest;
+import com.paragon.domain.models.valueobjects.StaffAccountId;
+import com.paragon.infrastructure.persistence.daos.StaffAccountRequestIdDao;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlParamsBuilder;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
@@ -47,5 +51,25 @@ public class StaffAccountRequestWriteRepoImpl implements StaffAccountRequestWrit
                 .add("updatedAtUtc", Instant.now());
 
         writeJdbcHelper.execute(new SqlStatement(sql, params));
+    }
+
+    @Override
+    public boolean existsPendingRequestBySubmitterAndType(StaffAccountId submitter, StaffAccountRequestType requestType) {
+        String sql = """
+            SELECT id FROM staff_account_requests
+            WHERE submitted_by = :submittedBy
+            AND request_type = :requestType
+            AND status = :status
+        """;
+
+        SqlParamsBuilder params = new SqlParamsBuilder()
+                .add("submittedBy", submitter.getValue())
+                .add("requestType", requestType.toString())
+                .add("status", StaffAccountRequestStatus.PENDING.toString());
+
+        return writeJdbcHelper.queryFirstOrDefault(
+                new SqlStatement(sql, params),
+                StaffAccountRequestIdDao.class
+        ).isPresent();
     }
 }

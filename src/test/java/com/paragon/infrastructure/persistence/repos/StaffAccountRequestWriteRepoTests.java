@@ -1,7 +1,10 @@
 package com.paragon.infrastructure.persistence.repos;
 
+import com.paragon.domain.enums.StaffAccountRequestType;
 import com.paragon.domain.interfaces.repositories.StaffAccountRequestWriteRepo;
+import com.paragon.domain.models.valueobjects.StaffAccountId;
 import com.paragon.helpers.fixtures.StaffAccountRequestFixture;
+import com.paragon.infrastructure.persistence.daos.StaffAccountRequestIdDao;
 import com.paragon.infrastructure.persistence.exceptions.InfraException;
 import com.paragon.infrastructure.persistence.jdbc.helpers.WriteJdbcHelper;
 import com.paragon.infrastructure.persistence.jdbc.sql.SqlStatement;
@@ -11,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.sql.Timestamp;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -78,6 +83,98 @@ public class StaffAccountRequestWriteRepoTests {
 
             // When & Then
             assertThatThrownBy(() -> sut.create(StaffAccountRequestFixture.validStaffAccountRequest()))
+                    .isInstanceOf(InfraException.class);
+        }
+    }
+
+    @Nested
+    class ExistsPendingRequestBySubmitterAndType {
+        private final StaffAccountRequestWriteRepo sut;
+        private final WriteJdbcHelper writeJdbcHelperMock;
+
+        public ExistsPendingRequestBySubmitterAndType() {
+            writeJdbcHelperMock = mock(WriteJdbcHelper.class);
+            sut = new StaffAccountRequestWriteRepoImpl(writeJdbcHelperMock);
+        }
+
+        @Test
+        void shouldExecuteWithCorrectSqlAndParams() {
+            // Given
+            StaffAccountId submitter = StaffAccountId.generate();
+            StaffAccountRequestType requestType = StaffAccountRequestType.PASSWORD_CHANGE;
+            ArgumentCaptor<SqlStatement> sqlStatementCaptor = ArgumentCaptor.forClass(SqlStatement.class);
+
+            String expectedSql = """
+                SELECT id FROM staff_account_requests
+                WHERE submitted_by = :submittedBy
+                AND request_type = :requestType
+                AND status = :status
+            """;
+
+            when(writeJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountRequestIdDao.class)))
+                    .thenReturn(Optional.empty());
+
+            // When
+            sut.existsPendingRequestBySubmitterAndType(submitter, requestType);
+
+            // Then
+            verify(writeJdbcHelperMock, times(1))
+                    .queryFirstOrDefault(sqlStatementCaptor.capture(), eq(StaffAccountRequestIdDao.class));
+
+            SqlStatement queryStatement = sqlStatementCaptor.getValue();
+            var params = queryStatement.params().build();
+
+            assertThat(queryStatement.sql()).isEqualToIgnoringWhitespace(expectedSql);
+            assertThat(params.get("submittedBy")).isEqualTo(submitter.getValue());
+            assertThat(params.get("requestType")).isEqualTo(requestType.toString());
+            assertThat(params.get("status")).isEqualTo("PENDING");
+        }
+
+        @Test
+        void shouldReturnTrue_whenPendingRequestExists() {
+            // Given
+            StaffAccountId submitter = StaffAccountId.generate();
+            StaffAccountRequestType requestType = StaffAccountRequestType.PASSWORD_CHANGE;
+            StaffAccountRequestIdDao dao = new StaffAccountRequestIdDao(UUID.randomUUID());
+
+            when(writeJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountRequestIdDao.class)))
+                    .thenReturn(Optional.of(dao));
+
+            // When
+            boolean result = sut.existsPendingRequestBySubmitterAndType(submitter, requestType);
+
+            // Then
+            assertThat(result).isTrue();
+        }
+
+        @Test
+        void shouldReturnFalse_whenPendingRequestDoesNotExist() {
+            // Given
+            StaffAccountId submitter = StaffAccountId.generate();
+            StaffAccountRequestType requestType = StaffAccountRequestType.PASSWORD_CHANGE;
+
+            when(writeJdbcHelperMock.queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountRequestIdDao.class)))
+                    .thenReturn(Optional.empty());
+
+            // When
+            boolean result = sut.existsPendingRequestBySubmitterAndType(submitter, requestType);
+
+            // Then
+            assertThat(result).isFalse();
+        }
+
+        @Test
+        void shouldPropagateInfraException_whenJdbcHelperThrows() {
+            // Given
+            StaffAccountId submitter = StaffAccountId.generate();
+            StaffAccountRequestType requestType = StaffAccountRequestType.PASSWORD_CHANGE;
+
+            doThrow(InfraException.class)
+                    .when(writeJdbcHelperMock)
+                    .queryFirstOrDefault(any(SqlStatement.class), eq(StaffAccountRequestIdDao.class));
+
+            // When & Then
+            assertThatThrownBy(() -> sut.existsPendingRequestBySubmitterAndType(submitter, requestType))
                     .isInstanceOf(InfraException.class);
         }
     }
