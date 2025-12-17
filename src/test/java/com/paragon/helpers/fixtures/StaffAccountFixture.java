@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public class StaffAccountFixture {
     private String id = UUID.randomUUID().toString();
-    private String username = "testuser";
+    private String username = "testuser_" + UUID.randomUUID().toString().substring(0, 8);
     private String email = null;
     private String password = "SecurePass123!";
     private boolean isPasswordTemporary = true;
