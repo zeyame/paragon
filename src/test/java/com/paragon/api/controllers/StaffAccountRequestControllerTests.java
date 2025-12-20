@@ -2,7 +2,7 @@ package com.paragon.api.controllers;
 
 import com.paragon.api.dtos.ResponseDto;
 import com.paragon.api.dtos.staffaccountrequest.submitpasswordchangerequest.SubmitPasswordChangeRequestResponseDto;
-import com.paragon.api.security.HttpContextHelperImpl;
+import com.paragon.api.security.HttpContextHelper;
 import com.paragon.application.commands.submitstaffaccountpasswordchangerequest.SubmitPasswordChangeRequestCommand;
 import com.paragon.application.commands.submitstaffaccountpasswordchangerequest.SubmitPasswordChangeRequestCommandHandler;
 import com.paragon.application.commands.submitstaffaccountpasswordchangerequest.SubmitPasswordChangeRequestCommandResponse;
@@ -29,13 +29,13 @@ public class StaffAccountRequestControllerTests {
     class SubmitPasswordChangeRequest {
         private final StaffAccountRequestController sut;
         private final SubmitPasswordChangeRequestCommandHandler commandHandlerMock;
-        private final HttpContextHelperImpl httpContextHelperMock;
+        private final HttpContextHelper httpContextHelperMock;
         private final String requestingStaffId;
         private final SubmitPasswordChangeRequestCommandResponse commandResponse;
 
         public SubmitPasswordChangeRequest() {
             commandHandlerMock = mock(SubmitPasswordChangeRequestCommandHandler.class);
-            httpContextHelperMock = mock(HttpContextHelperImpl.class);
+            httpContextHelperMock = mock(HttpContextHelper.class);
             TaskExecutor taskExecutor = Runnable::run;
 
             requestingStaffId = UUID.randomUUID().toString();
