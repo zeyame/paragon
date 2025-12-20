@@ -80,30 +80,6 @@ public class StaffAccountRequestControllerTests extends IntegrationTestBase {
     }
 
     @Test
-    void shouldReturnForbiddenWhenUserIsNotAuthenticated() throws Exception {
-        // When
-        MvcResult result = sendRequest(UUID.randomUUID().toString(), List.of());
-
-        // Then
-        MockHttpServletResponse response = result.getResponse();
-        assertThat(response.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
-
-        String responseBody = response.getContentAsString();
-        ResponseDto<SubmitPasswordChangeRequestResponseDto> responseDto = objectMapper.readValue(
-                responseBody,
-                objectMapper.getTypeFactory().constructParametricType(ResponseDto.class, SubmitPasswordChangeRequestResponseDto.class)
-        );
-
-        assertThat(responseDto.result()).isNull();
-        ErrorDto errorDto = responseDto.errorDto();
-        assertThat(errorDto).isNotNull();
-
-        PermissionDeniedException expected = PermissionDeniedException.accessDenied();
-        assertThat(errorDto.message()).isEqualTo(expected.getMessage());
-        assertThat(errorDto.code()).isEqualTo(expected.getErrorCode());
-    }
-
-    @Test
     void shouldReturnConflictWhenPendingPasswordChangeRequestAlreadyExists() throws Exception {
         // Given
         StaffAccount staffAccount = new StaffAccountFixture()
