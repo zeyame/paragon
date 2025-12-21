@@ -28,4 +28,13 @@ public class StaffAccountRequestExceptionInfoTests {
         assertThat(info.getMessage()).isEqualTo("Target ID and target type must both be provided or both be null.");
         assertThat(info.getDomainErrorCode()).isEqualTo(30003);
     }
+
+    @Test
+    void pendingRequestAlreadyExistsForSubmitter_shouldHaveExpectedCodeAndMessage() {
+        String requestType = "PASSWORD_CHANGE";
+        StaffAccountRequestExceptionInfo info = StaffAccountRequestExceptionInfo.pendingRequestAlreadyExistsForSubmitter(requestType);
+
+        assertThat(info.getMessage()).isEqualTo("A pending request of type 'PASSWORD_CHANGE' already exists.");
+        assertThat(info.getDomainErrorCode()).isEqualTo(30004);
+    }
 }

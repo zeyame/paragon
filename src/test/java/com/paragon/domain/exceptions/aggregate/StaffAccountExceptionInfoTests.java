@@ -109,4 +109,12 @@ public class StaffAccountExceptionInfoTests {
         assertThat(info.getMessage()).isEqualTo("Temporary password can only be completed while the account is pending a password change.");
         assertThat(info.getDomainErrorCode()).isEqualTo(10013);
     }
+
+    @Test
+    void cannotSubmitRequestWhilePendingPasswordChange_shouldHaveExpectedCodeAndMessage() {
+        StaffAccountExceptionInfo info = StaffAccountExceptionInfo.cannotSubmitRequestWhilePendingPasswordChange();
+
+        assertThat(info.getMessage()).isEqualTo("Cannot submit password change request while account requires password reset.");
+        assertThat(info.getDomainErrorCode()).isEqualTo(10014);
+    }
 }
