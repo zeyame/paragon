@@ -27,4 +27,11 @@ public class StaffAccountRequestExceptionInfo extends DomainExceptionInfo {
                 30003
         );
     }
+
+    public static StaffAccountRequestExceptionInfo pendingRequestAlreadyExistsForSubmitter(String requestType) {
+        return new StaffAccountRequestExceptionInfo(
+                String.format("A pending request of type '%s' already exists.", requestType),
+                30004
+        );
+    }
 }
