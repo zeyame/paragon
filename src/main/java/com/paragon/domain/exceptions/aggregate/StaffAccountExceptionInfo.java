@@ -97,4 +97,11 @@ public class StaffAccountExceptionInfo extends DomainExceptionInfo {
                 10013
         );
     }
+
+    public static StaffAccountExceptionInfo cannotSubmitRequestWhilePendingPasswordChange() {
+        return new StaffAccountExceptionInfo(
+                "Cannot submit password change request while account requires password reset.",
+                10014
+        );
+    }
 }
